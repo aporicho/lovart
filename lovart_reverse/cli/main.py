@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -16,13 +15,14 @@ from lovart_reverse.cli.envelope import fail, ok
 from lovart_reverse.discovery import generator_list, generator_schema
 from lovart_reverse.downloads import download_artifacts
 from lovart_reverse.errors import InputError, LovartError
-from lovart_reverse.generation import dry_run_request, generation_gate, submit_model
+from lovart_reverse.generation import dry_run_request, generation_preflight, submit_model
 from lovart_reverse.io_json import load_body
 from lovart_reverse.paths import ROOT
 from lovart_reverse.pricing.account import balance_summary, time_variant_summary
 from lovart_reverse.pricing.estimator import estimate
 from lovart_reverse.pricing.table import fetch_pricing_rows, rows_as_json
 from lovart_reverse.registry import load_ref_registry, model_records, request_schema, validate_body
+from lovart_reverse.setup import setup_status
 from lovart_reverse.task import task_info
 from lovart_reverse.update import check_update, diff_update, sync_metadata
 
@@ -91,34 +91,42 @@ def cmd_free(args: argparse.Namespace) -> dict[str, Any]:
     return result
 
 
+def cmd_setup(args: argparse.Namespace) -> dict[str, Any]:
+    return setup_status(offline=args.offline)
+
+
 def cmd_generate(args: argparse.Namespace) -> dict[str, Any]:
     body = _load_body_args(args)
-    schema_errors = _schema_validation(args.model, body)
-    rows = fetch_pricing_rows(live=not args.offline)
-    gate = generation_gate(
+    preflight, blocking_error = generation_preflight(
         args.model,
         body,
-        rows,
         mode=args.mode,
         allow_paid=args.allow_paid,
         max_credits=args.max_credits,
         live=not args.offline,
     )
-    preview = dry_run_request(args.model, body, language=args.language)
-    if args.dry_run or not args.submit:
-        return {"submitted": False, "schema_errors": schema_errors, "gate": gate, "request": preview}
-    if schema_errors:
-        raise InputError("schema validation failed", {"schema_errors": schema_errors})
-    if os.environ.get("LOVART_ALLOW_GENERATION") != "1":
-        raise InputError("set LOVART_ALLOW_GENERATION=1 to permit real generation", {"gate": gate})
+    request = dry_run_request(args.model, body, language=args.language)
+    if args.dry_run:
+        return {"submitted": False, "preflight": preflight, "request": request}
+    if blocking_error:
+        raise blocking_error
     response = submit_model(args.model, body, language=args.language)
-    data: dict[str, Any] = {"submitted": True, "gate": gate, "response": response}
     task_id = _find_task_id(response)
+    data: dict[str, Any] = {
+        "preflight": preflight,
+        "submitted": True,
+        "task_id": task_id,
+        "status": "submitted",
+        "artifacts": [],
+        "downloads": [],
+        "response": response,
+    }
     if args.wait and task_id:
         current = task_info(task_id)
-        data["task"] = current
+        artifacts = current.get("artifacts") or []
+        data.update({"status": current.get("status"), "task": current, "artifacts": artifacts})
         if args.download:
-            data["downloads"] = download_artifacts(current.get("artifacts") or [])
+            data["downloads"] = download_artifacts(artifacts, task_id=task_id)
     return data
 
 
@@ -179,6 +187,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="lovart")
     sub = parser.add_subparsers(dest="command", required=True)
 
+    setup = sub.add_parser("setup")
+    setup.add_argument("--offline", action="store_true")
+
     auth = sub.add_parser("auth")
     auth_sub = auth.add_subparsers(dest="auth_cmd", required=True)
     auth_sub.add_parser("status")
@@ -218,7 +229,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_body_args(generate)
     generate.add_argument("--mode", choices=["fast", "relax", "auto"], default="auto")
     generate.add_argument("--dry-run", action="store_true")
-    generate.add_argument("--submit", action="store_true")
+    generate.add_argument("--submit", action="store_true", help=argparse.SUPPRESS)
     generate.add_argument("--allow-paid", action="store_true")
     generate.add_argument("--max-credits", type=float)
     generate.add_argument("--language", default="en")
@@ -242,6 +253,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def dispatch(args: argparse.Namespace) -> dict[str, Any]:
+    if args.command == "setup":
+        return cmd_setup(args)
     if args.command == "auth":
         return cmd_auth(args)
     if args.command == "models":

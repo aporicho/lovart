@@ -2,9 +2,22 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+
+def _project_root() -> Path:
+    env_root = os.environ.get("LOVART_REVERSE_ROOT")
+    if env_root:
+        return Path(env_root).expanduser().resolve()
+    cwd = Path.cwd().resolve()
+    for candidate in (cwd, *cwd.parents):
+        if (candidate / "ref" / "lovart_manifest.json").exists() or (candidate / "pyproject.toml").exists():
+            return candidate
+    return Path(__file__).resolve().parent.parent
+
+
+ROOT = _project_root()
 REF_DIR = ROOT / "ref"
 CAPTURES_DIR = ROOT / "captures"
 DOWNLOADS_DIR = ROOT / "downloads"

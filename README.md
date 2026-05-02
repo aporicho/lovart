@@ -1,100 +1,96 @@
 # Lovart Reverse
 
-Lovart 网页端生成能力的本地逆向工具。目标是把模型列表、schema、价格、权益、提交、任务查询、下载和更新检测封装成稳定 JSON CLI，供 Claude Code、Codex、opencode 这类 agent 调用。
+Agent-first Lovart web reverse tooling. The CLI exposes model discovery, schema validation, pricing, zero-credit entitlement checks, update drift detection, generation submission, task lookup, and downloads as stable JSON commands.
 
-默认策略是不扣积分：真实生成前必须完成 schema 校验、0 积分权益判断和价格估算。非 0 积分或价格未知时，必须显式传 `--allow-paid --max-credits N`，并设置 `LOVART_ALLOW_GENERATION=1`。
+Default policy: **zero-credit first**. Real generation is allowed only when preflight proves the request is covered by a zero-credit entitlement, or when the caller explicitly passes `--allow-paid --max-credits N`.
 
-## Install
+## 5-Minute Quickstart
 
-```bash
-uv sync
-uv run python -m lovart_reverse.cli.main models
-```
-
-安装为普通 wheel 后会提供 console script：
+Install dependencies:
 
 ```bash
-lovart models
+uv sync --no-editable
+source .venv/bin/activate
 ```
 
-## CLI Contract
+Check readiness:
 
-stdout 只输出 JSON，stderr 只输出诊断信息。
+```bash
+lovart setup
+```
 
-成功：
+If setup reports missing auth, capture a browser request and extract credentials:
+
+```bash
+lovart reverse capture
+lovart auth extract captures/<lovart-request>.json
+```
+
+Create a request file:
+
+```json
+{
+  "prompt": "a clean product render of a red cube on a white background",
+  "quality": "low",
+  "size": "1024*1024"
+}
+```
+
+Dry-run preflight without submitting:
+
+```bash
+lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
+```
+
+Submit, wait, and download artifacts:
+
+```bash
+lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
+```
+
+Paid generation must be explicit:
+
+```bash
+lovart generate openai/gpt-image-2 --body-file request.json --mode auto --allow-paid --max-credits 5 --wait --download
+```
+
+## JSON Contract
+
+stdout is JSON only. Diagnostics go to stderr.
+
+Success:
 
 ```json
 {"ok":true,"data":{},"warnings":[]}
 ```
 
-失败：
+Failure:
 
 ```json
-{"ok":false,"error":{"code":"...","message":"...","details":{}}}
+{"ok":false,"error":{"code":"auth_missing","message":"...","details":{}}}
 ```
 
-## Commands
+Generated files are saved under `downloads/<task_id>/` when `--download` is used.
+
+## Main Commands
 
 ```bash
-uv run python -m lovart_reverse.cli.main auth status
-uv run python -m lovart_reverse.cli.main auth extract captures/request.json
-uv run python -m lovart_reverse.cli.main models
-uv run python -m lovart_reverse.cli.main schema openai/gpt-image-2
-uv run python -m lovart_reverse.cli.main price openai/gpt-image-2 --body '{"prompt":"cat","quality":"low","size":"1024*1024"}'
-uv run python -m lovart_reverse.cli.main free openai/gpt-image-2 --mode auto --body '{"prompt":"cat","quality":"low","size":"1024*1024"}'
-uv run python -m lovart_reverse.cli.main generate openai/gpt-image-2 --dry-run --body '{"prompt":"cat","quality":"low","size":"1024*1024"}'
-uv run python -m lovart_reverse.cli.main task TASK_ID
-uv run python -m lovart_reverse.cli.main reverse capture
-uv run python -m lovart_reverse.cli.main reverse replay captures/request.json
+lovart setup
+lovart models
+lovart schema openai/gpt-image-2
+lovart price openai/gpt-image-2 --body-file request.json --batch 10
+lovart free openai/gpt-image-2 --body-file request.json --mode auto
+lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
+lovart update check
+lovart update sync --metadata-only
+lovart doctor
 ```
 
-## Update Detection
-
-本地 manifest 位于 `ref/lovart_manifest.json`，记录 Lovart canvas 静态 bundle、Sentry release、generator list/schema、pricing、entitlement shape 和 signer WASM 信息的 hash。不会记录 token、cookie、邮箱或账号 ID。
-
-```bash
-uv run python -m lovart_reverse.cli.main update check
-uv run python -m lovart_reverse.cli.main update diff
-uv run python -m lovart_reverse.cli.main update sync --metadata-only
-```
-
-`update check` 是只读操作。`update sync --metadata-only` 会刷新：
-
-- `ref/lovart_generator_list.json`
-- `ref/lovart_generator_schema.json`
-- `ref/lovart_pricing_table.json`
-- `ref/lovart_manifest.json`
-
-同步后会自动跑最小离线检查：registry、pricing、entitlement。
-
-## Package Layout
-
-业务代码全部在 `lovart_reverse/`：
-
-- `auth/`：凭证读取、抓包抽取、敏感信息保护。
-- `signing/`：LGW 签名、时间同步、签名 provider。
-- `http/`：`www`、`canva`、`lgw` client。
-- `discovery/`：模型列表与 OpenAPI schema。
-- `registry/`：统一模型 registry、schema、能力。
-- `pricing/`：价格表、余额、峰谷倍率、批量估算。
-- `entitlement/`：低速无限、快速 0 积分、请求约束匹配。
-- `generation/`：生成 dry-run、paid gate、提交。
-- `task/`：任务查询、状态归一化。
-- `assets/`：上传能力，占位到抓包确认后实现。
-- `downloads/`：artifact 下载。
-- `update/`：官方版本漂移检测、快照 hash、同步建议。
-- `capture/`：mitm 抓包、replay、逆向辅助。
-- `cli/`：唯一 CLI 实现。
-
-架构规则见 `docs/architecture/file-architecture-philosophy.md`。运行检查：
-
-```bash
-uv run python -m lovart_reverse.cli.main doctor
-```
+See `docs/agent-contract.md` for Claude Code, Codex, and opencode usage. See `docs/reverse_workflow.md` for capture and reverse-maintenance work.
 
 ## Safety
 
-这些路径默认不入库：
+Ignored runtime paths:
 
 - `.lovart/`
 - `scripts/creds.json`
@@ -104,4 +100,4 @@ uv run python -m lovart_reverse.cli.main doctor
 - `.mitmproxy/`
 - `.venv/`
 
-不要用本项目绕过登录、验证码、额度、付费、风控或访问控制。只逆向你自己账号在浏览器里合法产生的请求。
+Use this only with Lovart requests produced by your own logged-in browser session. Do not use it to bypass login, quota, payment, rate limits, or access controls.

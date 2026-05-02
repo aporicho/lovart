@@ -27,14 +27,34 @@ class AuthError(LovartError):
         super().__init__("auth_error", message, details or {}, 3)
 
 
+class AuthMissingError(LovartError):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
+        super().__init__("auth_missing", message, details or {}, 3)
+
+
 class SignatureError(LovartError):
     def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__("signature_error", message, details or {}, 4)
 
 
+class SignerStaleError(LovartError):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
+        super().__init__("signer_stale", message, details or {}, 4)
+
+
 class RemoteError(LovartError):
     def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__("remote_error", message, details or {}, 5)
+
+
+class MetadataStaleError(LovartError):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
+        super().__init__("metadata_stale", message, details or {}, 5)
+
+
+class SchemaInvalidError(LovartError):
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
+        super().__init__("schema_invalid", message, details or {}, 2)
 
 
 class CreditRiskError(LovartError):
