@@ -1,0 +1,1914 @@
+[
+  {
+    "type": "image-model",
+    "title": {
+      "en": "Image Models",
+      "zh": "图片模型",
+      "zh-TW": "圖片模型",
+      "ja": "画像モデル"
+    },
+    "unit": {
+      "en": "images",
+      "zh": "张",
+      "zh-TW": "張",
+      "ja": "枚"
+    },
+    "features": [
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+        "modelName": "GPT Image 2 1K",
+        "unitPrice": {
+          "en": "1 credits/image, low, no ref image",
+          "zh": "1 积分/张, low, no ref image",
+          "zh-TW": "1 積分/張,low, no ref image",
+          "ja": "1 クレジット/枚, low, no ref image"
+        },
+        "unitPriceNum": 1,
+        "extraInfo": {
+          "monthly": {
+            "pro": {
+              "tooltip": {
+                "en": "Access to GPT Image 2 1K/2K/4K\nOnly 1K(no ref image) is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 GPT Image 2 1K/2K/4K\n只有 1K(no ref image) 无限生成\n升级后会员期内无限使用1年",
+                "ja": "GPT Image 2 1K/2K/4K にアクセス可能\n1K(no ref image) のみ無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 GPT Image 2 1K/2K/4K\n只有 1K(no ref image) 無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to GPT Image 2 1K/2K/4K\nUp to 2K(no ref image) is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "GPT Image 2 1K/2K/4K にアクセス可能\n2K(no ref image)まで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "basic": {
+              "tooltip": {
+                "en": "Access to GPT Image 2 1K/2K/4K\nOnly 1K(no ref image) is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 GPT Image 2 1K/2K/4K\n只有 1K(no ref image) 无限生成\n升级后会员期内无限使用1年",
+                "ja": "GPT Image 2 1K/2K/4K にアクセス可能\n1K(no ref image) のみ無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 GPT Image 2 1K/2K/4K\n只有 1K(no ref image) 無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "pro": {
+              "tooltip": {
+                "en": "Access to GPT Image 2 1K/2K/4K\nUp to 2K(no ref image) is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "GPT Image 2 1K/2K/4K にアクセス可能\n2K(no ref image)まで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to GPT Image 2 1K/2K/4K\nUp to 2K(no ref image) is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "GPT Image 2 1K/2K/4K にアクセス可能\n2K(no ref image)まで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+        "modelName": "GPT Image 2 2K",
+        "unitPrice": {
+          "en": "2 credits/image, low, no ref image",
+          "zh": "2 积分/张, low, no ref image",
+          "zh-TW": "2 積分/張, low, no ref image",
+          "ja": "2 クレジット/枚, low, no ref image"
+        },
+        "unitPriceNum": 2,
+        "extraInfo": {
+          "monthly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to GPT Image 2 1K/2K/4K\nUp to 2K(no ref image) is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "GPT Image 2 1K/2K/4K にアクセス可能\n2K(no ref image)まで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "pro": {
+              "tooltip": {
+                "en": "Access to GPT Image 2 1K/2K/4K\nUp to 2K(no ref image) is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "GPT Image 2 1K/2K/4K にアクセス可能\n2K(no ref image)まで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to GPT Image 2 1K/2K/4K\nUp to 2K(no ref image) is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "GPT Image 2 1K/2K/4K にアクセス可能\n2K(no ref image)まで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 GPT Image 2 1K/2K/4K\n2K(no ref image) 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+        "modelName": "GPT Image 2 4K",
+        "unitPrice": {
+          "en": "3 credits/image, low, no ref image",
+          "zh": "3 积分/张, low, no ref image",
+          "zh-TW": "3 積分/張, low, no ref image",
+          "ja": "3 クレジット/枚, low, no ref image"
+        },
+        "unitPriceNum": 3
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+        "modelName": "GPT Image 2 1K",
+        "unitPrice": {
+          "en": "8 credits/image, medium,no ref image",
+          "zh": "8 积分/张, medium,no ref image",
+          "zh-TW": "8 積分/張,medium,no ref image",
+          "ja": "8 クレジット/枚, medium,no ref image"
+        },
+        "unitPriceNum": 8,
+        "extraInfo": {
+          "monthly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with GPT Image 2 medium,no ref image - valid for 1 month",
+                "zh": "使用 GPT Image 2 medium,no ref image 无限生成图片 – 有效期 1 个月",
+                "ja": "GPT Image 2 medium,no ref image で無制限の画像生成 – 有効期限 1 ヶ月",
+                "zh-TW": "使用 GPT Image 2 medium,no ref image 無限生成圖片 – 有效期 1 個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited image generation with GPT Image 2 medium,no ref image - valid for 1 month",
+                "zh": "使用 GPT Image 2 medium,no ref image 无限生成图片 – 有效期 1 个月",
+                "ja": "GPT Image 2 medium,no ref image で無制限の画像生成 – 有効期限 1 ヶ月",
+                "zh-TW": "使用 GPT Image 2 medium,no ref image 無限生成圖片 – 有效期 1 個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with GPT Image 2 medium,no ref image - valid for 1 month",
+                "zh": "使用 GPT Image 2 medium,no ref image 无限生成图片 – 有效期 1 个月",
+                "ja": "GPT Image 2 medium,no ref image で無制限の画像生成 – 有効期限 1 ヶ月",
+                "zh-TW": "使用 GPT Image 2 medium,no ref image 無限生成圖片 – 有效期 1 個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+        "modelName": "GPT Image 2 2K",
+        "unitPrice": {
+          "en": "12 credits/image, medium,no ref image",
+          "zh": "12 积分/张, medium,no ref image",
+          "zh-TW": "12 積分/張,medium,no ref image",
+          "ja": "12 クレジット/枚, medium,no ref image"
+        },
+        "unitPriceNum": 12,
+        "extraInfo": {
+          "monthly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with GPT Image 2 medium,no ref image - valid for 1 month",
+                "zh": "使用 GPT Image 2 medium,no ref image 无限生成图片 – 有效期 1 个月",
+                "ja": "GPT Image 2 medium,no ref image で無制限の画像生成 – 有効期限 1 ヶ月",
+                "zh-TW": "使用 GPT Image 2 medium,no ref image 無限生成圖片 – 有效期 1 個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with GPT Image 2 medium,no ref image - valid for 1 month",
+                "zh": "使用 GPT Image 2 medium,no ref image 无限生成图片 – 有效期 1 个月",
+                "ja": "GPT Image 2 medium,no ref image で無制限の画像生成 – 有効期限 1 ヶ月",
+                "zh-TW": "使用 GPT Image 2 medium,no ref image 無限生成圖片 – 有效期 1 個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nano_banana.svg",
+        "modelName": "Nano Banana 2 512P",
+        "unitPrice": {
+          "en": "5 credits/image",
+          "zh": "5 积分/张",
+          "zh-TW": "5 積分/張",
+          "ja": "5 クレジット/枚"
+        },
+        "unitPriceNum": 5,
+        "extraInfo": {
+          "monthly": {
+            "pro": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nOnly 512 is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n只有 512 无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n512のみ無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n只有 512 無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "basic": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nOnly 1K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n只有 1K 无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n1K のみ無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n只有 1K 無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "pro": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 2K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n2K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n2Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n2K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nano_banana.svg",
+        "modelName": "Nano Banana 2 1K",
+        "unitPrice": {
+          "en": "8 credits/image",
+          "zh": "8 积分/张",
+          "zh-TW": "8 積分/張",
+          "ja": "8 クレジット/枚"
+        },
+        "unitPriceNum": 8,
+        "extraInfo": {
+          "monthly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "basic": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nOnly 1K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n只有 1K 无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n1K のみ無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n只有 1K 無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "pro": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 2K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n2K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n2Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n2K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nano_banana.svg",
+        "modelName": "Nano Banana 2 2K",
+        "unitPrice": {
+          "en": "12 credits/image",
+          "zh": "12 积分/张",
+          "zh-TW": "12 積分/張",
+          "ja": "12 クレジット/枚"
+        },
+        "unitPriceNum": 12,
+        "extraInfo": {
+          "monthly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "pro": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 2K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n2K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n2Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n2K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nano_banana.svg",
+        "modelName": "Nano Banana 2 4K",
+        "unitPrice": {
+          "en": "18 credits/image",
+          "zh": "18 积分/张",
+          "zh-TW": "18 積分/張",
+          "ja": "18 クレジット/枚"
+        },
+        "unitPriceNum": 18,
+        "extraInfo": {
+          "monthly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana 2 512/1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana 2 512/1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana 2 512/1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nano_banana.svg",
+        "modelName": "Nano Banana Pro 1K",
+        "extraInfo": {
+          "yearly": {
+            "basic": {
+              "tooltip": {
+                "en": "Access to Nano Banana Pro 1K/2K/4K\nOnly 1K is unlimited\n Unlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana Pro 1K/2K/4K\n只有 1K 无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana Pro 1K/2K/4K にアクセス可能\n1K のみ無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana Pro 1K/2K/4K\n只有 1K 無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "pro": {
+              "tooltip": {
+                "en": "Access to Nano Banana Pro 1K/2K/4K\nUp to 2K is unlimited \n  Unlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana Pro 1K/2K/4K\n2K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana Pro 1K/2K/4K にアクセス可能\n2Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana Pro 1K/2K/4K\n2K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana Pro 1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana Pro 1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana Pro 1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana Pro 1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        },
+        "unitPrice": {
+          "en": "14 credits/image",
+          "zh": "14 积分/张",
+          "zh-TW": "14 積分/張",
+          "ja": "14 クレジット/枚"
+        },
+        "unitPriceNum": 14
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nano_banana.svg",
+        "modelName": "Nano Banana Pro 2K",
+        "unitPrice": {
+          "en": "14 credits/image",
+          "zh": "14 积分/张",
+          "zh-TW": "14 積分/張",
+          "ja": "14 クレジット/枚"
+        },
+        "unitPriceNum": 14,
+        "extraInfo": {
+          "monthly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana Pro 1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana Pro 1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana Pro 1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana Pro 1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "pro": {
+              "tooltip": {
+                "en": "Access to Nano Banana Pro 1K/2K/4K\nUp to 2K is unlimited \n  Unlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana Pro 1K/2K/4K\n2K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana Pro 1K/2K/4K にアクセス可能\n2Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana Pro 1K/2K/4K\n2K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana Pro 1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana Pro 1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana Pro 1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana Pro 1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nano_banana.svg",
+        "modelName": "Nano Banana Pro 4K",
+        "unitPrice": {
+          "en": "24 credits/image",
+          "zh": "24 积分/张",
+          "zh-TW": "24 積分/張",
+          "ja": "24 クレジット/枚"
+        },
+        "unitPriceNum": 24,
+        "extraInfo": {
+          "monthly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana Pro 1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana Pro 1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana Pro 1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana Pro 1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Access to Nano Banana Pro 1K/2K/4K\nUp to 4K is unlimited\nUnlimited for 1 year after upgrade",
+                "zh": "可使用 Nano Banana Pro 1K/2K/4K\n4K 以内无限生成\n升级后会员期内无限使用1年",
+                "ja": "Nano Banana Pro 1K/2K/4K にアクセス可能\n4Kまで無制限\nアップグレード後1年間無制限",
+                "zh-TW": "可使用 Nano Banana Pro 1K/2K/4K\n4K 以內無限生成\n升級後會員期內無限使用1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nano_banana.svg",
+        "modelName": "Nano Banana",
+        "unitPrice": {
+          "en": "6 credits/image",
+          "zh": "6 积分/张",
+          "zh-TW": "6 積分/張",
+          "ja": "6 クレジット/枚"
+        },
+        "unitPriceNum": 6,
+        "extraInfo": {
+          "monthly": {
+            "basic": {
+              "tooltip": {
+                "en": "Unlimited image generation with Nano Banana - valid for 1 year",
+                "zh": "使用 Nano Banana 无限生成图片 – 有效期1年",
+                "ja": "Nano Bananaで無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Nano Banana 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited image generation with Nano Banana - valid for 1 year",
+                "zh": "使用 Nano Banana 无限生成图片 – 有效期1年",
+                "ja": "Nano Bananaで無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Nano Banana 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with Nano Banana - valid for 1 year",
+                "zh": "使用 Nano Banana 无限生成图片 – 有效期1年",
+                "ja": "Nano Bananaで無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Nano Banana 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "basic": {
+              "tooltip": {
+                "en": "Unlimited image generation with Nano Banana - valid for 1 year",
+                "zh": "使用 Nano Banana 无限生成图片 – 有效期1年",
+                "ja": "Nano Bananaで無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Nano Banana 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited image generation with Nano Banana - valid for 1 year",
+                "zh": "使用 Nano Banana 无限生成图片 – 有效期1年",
+                "ja": "Nano Bananaで無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Nano Banana 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with Nano Banana - valid for 1 year",
+                "zh": "使用 Nano Banana 无限生成图片 – 有效期1年",
+                "ja": "Nano Bananaで無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Nano Banana 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+        "modelName": "Seedream 4.0",
+        "unitPrice": {
+          "en": "2 credits/image",
+          "zh": "2 积分/张",
+          "zh-TW": "2 積分/張",
+          "ja": "2 クレジット/枚"
+        },
+        "unitPriceNum": 2,
+        "extraInfo": {
+          "monthly": {
+            "basic": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.0 - valid for 1 year",
+                "zh": "使用 Seedream 4.0 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.0で無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Seedream 4.0 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.0 - valid for 1 year",
+                "zh": "使用 Seedream 4.0 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.0で無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Seedream 4.0 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.0 - valid for 1 year",
+                "zh": "使用 Seedream 4.0 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.0で無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Seedream 4.0 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "basic": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.0 - valid for 1 year",
+                "zh": "使用 Seedream 4.0 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.0で無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Seedream 4.0 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.0 - valid for 1 year",
+                "zh": "使用 Seedream 4.0 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.0で無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Seedream 4.0 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.0 - valid for 1 year",
+                "zh": "使用 Seedream 4.0 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.0で無制限の画像生成 – 有効期限1年間",
+                "zh-TW": "使用 Seedream 4.0 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+        "modelName": "Seedream 4.5",
+        "unitPrice": {
+          "en": "3 credits/image",
+          "zh": "3 积分/张",
+          "zh-TW": "3 積分/張",
+          "ja": "3 クレジット/枚"
+        },
+        "unitPriceNum": 3,
+        "extraInfo": {
+          "monthly": {
+            "basic": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.5 - valid for 1 week",
+                "zh": "使用 Seedream 4.5 无限生成图片 – 有效期1周",
+                "ja": "Seedream 4.5で無制限の画像生成 – 有効期限1週間",
+                "zh-TW": "使用 Seedream 4.5 無限生成圖片 – 有效期 1 周"
+              },
+              "tags": [
+                {
+                  "text": "1 WEEK UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.5 - valid for 1 year",
+                "zh": "使用 Seedream 4.5 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.5で無制限の画像生成 – 有効期限1年",
+                "zh-TW": "使用 Seedream 4.5 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.5 - valid for 1 year",
+                "zh": "使用 Seedream 4.5 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.5で無制限の画像生成 – 有効期限1年",
+                "zh-TW": "使用 Seedream 4.5 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "basic": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.5 - valid for 1 year",
+                "zh": "使用 Seedream 4.5 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.5で無制限の画像生成 – 有効期限1年",
+                "zh-TW": "使用 Seedream 4.5 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.5 - valid for 1 year",
+                "zh": "使用 Seedream 4.5 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.5で無制限の画像生成 – 有効期限1年",
+                "zh-TW": "使用 Seedream 4.5 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with Seedream 4.5 - valid for 1 year",
+                "zh": "使用 Seedream 4.5 无限生成图片 – 有效期1年",
+                "ja": "Seedream 4.5で無制限の画像生成 – 有効期限1年",
+                "zh-TW": "使用 Seedream 4.5 無限生成圖片 – 有效期 1 年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+        "modelName": "Seedream 5.0 Lite",
+        "unitPrice": {
+          "en": "3 credits/image",
+          "zh": "3 积分/张",
+          "zh-TW": "3 積分/張",
+          "ja": "3 クレジット/枚"
+        },
+        "unitPriceNum": 3
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+        "modelName": "GPT Image 1.5",
+        "unitPrice": {
+          "en": "4 credits/image, medium,no ref image",
+          "zh": "4 积分/张, medium,no ref image",
+          "zh-TW": "4 積分/張, medium,no ref image",
+          "ja": "4 クレジット/枚, medium,no ref image"
+        },
+        "unitPriceNum": 4,
+        "extraInfo": {
+          "monthly": {
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited image generation with GPT Image 1.5 - valid for 1 year",
+                "zh": "使用 GPT Image 1.5 无限生成图片 - 有效期1年",
+                "ja": "GPT Image 1.5で無制限の画像生成 - 1年間有効",
+                "zh-TW": "使用 GPT Image 1.5 無限生成圖片 - 有效期1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with GPT Image 1.5 - valid for 1 year",
+                "zh": "使用 GPT Image 1.5 无限生成图片 - 有效期1年",
+                "ja": "GPT Image 1.5で無制限の画像生成 - 1年間有効",
+                "zh-TW": "使用 GPT Image 1.5 無限生成圖片 - 有效期1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          },
+          "yearly": {
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited image generation with GPT Image 1.5 - valid for 1 year",
+                "zh": "使用 GPT Image 1.5 无限生成图片 - 有效期1年",
+                "ja": "GPT Image 1.5で無制限の画像生成 - 1年間有効",
+                "zh-TW": "使用 GPT Image 1.5 無限生成圖片 - 有效期1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited image generation with GPT Image 1.5 - valid for 1 year",
+                "zh": "使用 GPT Image 1.5 无限生成图片 - 有效期1年",
+                "ja": "GPT Image 1.5で無制限の画像生成 - 1年間有効",
+                "zh-TW": "使用 GPT Image 1.5 無限生成圖片 - 有效期1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#FFE74A",
+                  "textColor": ""
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/flux_kontext_max.svg",
+        "modelName": "Flux Kontext",
+        "unitPrice": {
+          "en": "12 credits/image",
+          "zh": "12 积分/张",
+          "zh-TW": "12 積分/張",
+          "ja": "12 クレジット/枚"
+        },
+        "unitPriceNum": 12
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/flux_kontext_max.svg",
+        "modelName": "Flux 2 Pro 1K",
+        "unitPrice": {
+          "en": " 4 credits/image ",
+          "zh": " 4 积分/张 ",
+          "zh-TW": " 4 積分/張 ",
+          "ja": " 4 クレジット/枚 "
+        },
+        "unitPriceNum": 4
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/flux_kontext_max.svg",
+        "modelName": "Flux 2 Max 1K",
+        "unitPrice": {
+          "en": " 12 credits/image",
+          "zh": " 12 积分/张 ",
+          "zh-TW": " 12 積分/張 ",
+          "ja": " 12 クレジット/枚 "
+        },
+        "unitPriceNum": 12
+      }
+    ],
+    "defaultFeaturesLength": 5
+  },
+  {
+    "type": "video-model",
+    "title": {
+      "en": "Video Models",
+      "zh": "视频模型",
+      "zh-TW": "視頻模型",
+      "ja": "ビデオモデル"
+    },
+    "unit": {
+      "en": "videos",
+      "zh": "个",
+      "zh-TW": "個",
+      "ja": "個"
+    },
+    "features": [
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+        "modelName": "Seedance 2.0 480p",
+        "unitPrice": {
+          "en": "40 credits/5s",
+          "zh": "40 积分/5s",
+          "zh-TW": "40 積分/5s",
+          "ja": "40 クレジット/5s"
+        },
+        "unitPriceNum": 40,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+        "modelName": "Seedance 2.0 720p",
+        "unitPrice": {
+          "en": "90 credits/5s",
+          "zh": "90 积分/5s",
+          "zh-TW": "90 積分/5s",
+          "ja": "90 クレジット/5s"
+        },
+        "unitPriceNum": 90,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+        "modelName": "Seedance 2.0 480p, w/ reference video",
+        "unitPrice": {
+          "en": "25 credits/5s",
+          "zh": "25 积分/5s",
+          "zh-TW": "25 積分/5s",
+          "ja": "25 クレジット/5s"
+        },
+        "unitPriceNum": 25,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+        "modelName": "Seedance 2.0 720p, w/ reference video",
+        "unitPrice": {
+          "en": "55 credits/5s",
+          "zh": "55 积分/5s",
+          "zh-TW": "55 積分/5s",
+          "ja": "55 クレジット/5s"
+        },
+        "unitPriceNum": 55,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_0_master.svg",
+        "modelName": "Kling 3.0 Omni Pro",
+        "unitPrice": {
+          "en": "40 credits/5s",
+          "zh": "40 积分/5s",
+          "zh-TW": "40 積分/5s",
+          "ja": "40 クレジット/5s"
+        },
+        "unitPriceNum": 40,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_0_master.svg",
+        "modelName": "Kling 3.0 Pro",
+        "unitPrice": {
+          "en": "60 credits/5s",
+          "zh": "60 积分/5s",
+          "zh-TW": "60 積分/5s",
+          "ja": "60 クレジット/5s"
+        },
+        "unitPriceNum": 60,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_0_master.svg",
+        "modelName": "Kling O1 Pro, w/ reference video",
+        "unitPrice": {
+          "en": "30 credits/5s",
+          "zh": "30 积分/5s",
+          "zh-TW": "30 積分/5s",
+          "ja": "30 クレジット/5s"
+        },
+        "unitPriceNum": 30,
+        "extraInfo": {
+          "yearly": {
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited video generation with Kling O1 - valid for 1 month",
+                "zh": "Kling O1 视频无限生成 - 有效期1个月",
+                "ja": "Kling O1 無制限の動画生成 - 1か月間有効",
+                "zh-TW": "Kling O1 影片無限生成 - 有效期1個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited video generation with Kling O1 - valid for 1 year",
+                "zh": "Kling O1 视频无限生成 - 有效期1年",
+                "ja": "Kling O1 無制限の動画生成 - 1年間有効",
+                "zh-TW": "Kling O1 影片無限生成 - 有效期1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          }
+        },
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+        "modelName": "Kling 2.6 Pro, w/ audio",
+        "unitPrice": {
+          "en": "36 credits/5s",
+          "zh": "36 积分/5s",
+          "zh-TW": "36 積分/5s",
+          "ja": "36 クレジット/5s"
+        },
+        "unitPriceNum": 36,
+        "extraInfo": {
+          "yearly": {
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited video generation with Kling 2.6 - valid for 1 month",
+                "zh": "Kling 2.6 视频无限生成 - 有效期1个月",
+                "ja": "Kling 2.6 無制限の動画生成 - 1か月間有効",
+                "zh-TW": "Kling 2.6 影片無限生成 - 有效期1個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited video generation with Kling 2.6 - valid for 1 year",
+                "zh": "Kling 2.6 视频无限生成 - 有效期1年",
+                "ja": "Kling 2.6 無制限の動画生成 - 1年間有効",
+                "zh-TW": "Kling 2.6 影片無限生成 - 有效期1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          }
+        },
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+        "modelName": "Kling 2.5 Turbo Std",
+        "unitPrice": {
+          "en": "15 credits/5s",
+          "zh": "15 积分/5s",
+          "zh-TW": "15 積分/5s",
+          "ja": "15 クレジット/5s"
+        },
+        "unitPriceNum": 15,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+        "modelName": "Kling 2.5 Turbo Pro",
+        "unitPrice": {
+          "en": "20 credits/5s",
+          "zh": "20 积分/5s",
+          "zh-TW": "20 積分/5s",
+          "ja": "20 クレジット/5s"
+        },
+        "unitPriceNum": 20,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1.svg",
+        "modelName": "Kling 2.1 720p/1080p",
+        "unitPrice": {
+          "en": "18 credits/5s",
+          "zh": "18 积分/5s",
+          "zh-TW": "18 積分/5s",
+          "ja": "18 クレジット/5s"
+        },
+        "unitPriceNum": 18,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+        "modelName": "Kling 2.1 Master 1080p",
+        "unitPrice": {
+          "en": "50 credits/5s",
+          "zh": "50 积分/5s",
+          "zh-TW": "50 積分/5s",
+          "ja": "50 クレジット/5s"
+        },
+        "unitPriceNum": 50,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+        "modelName": "Seedance 1.5 Pro 480p, w/ audio",
+        "unitPrice": {
+          "en": "10 credits/5s",
+          "zh": "10 积分/5s",
+          "zh-TW": "10 積分/5s",
+          "ja": "10 クレジット/5s"
+        },
+        "unitPriceNum": 10,
+        "extraInfo": {
+          "yearly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited video generation with Seedance 1.5 Pro - valid for 1 month",
+                "zh": "Seedance 1.5 Pro 视频无限生成 - 有效期1个月",
+                "ja": "Seedance 1.5 Pro 無制限の動画生成 - 1か月間有効",
+                "zh-TW": "Seedance 1.5 Pro 影片無限生成 - 有效期1個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+        "modelName": "Seedance 1.5 Pro 720p, w/ audio",
+        "unitPrice": {
+          "en": "25 credits/5s",
+          "zh": "25 积分/5s",
+          "zh-TW": "25 積分/5s",
+          "ja": "25 クレジット/5s"
+        },
+        "unitPriceNum": 25,
+        "extraInfo": {
+          "yearly": {
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited video generation with Seedance 1.5 Pro - valid for 1 month",
+                "zh": "Seedance 1.5 Pro 视频无限生成 - 有效期1个月",
+                "ja": "Seedance 1.5 Pro 無制限の動画生成 - 1か月間有効",
+                "zh-TW": "Seedance 1.5 Pro 影片無限生成 - 有效期1個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/sora_2.svg",
+        "modelName": "Sora 2 720p",
+        "unitPrice": {
+          "en": "40 credits/4s",
+          "zh": "40 积分/4s",
+          "zh-TW": "40 積分/4s",
+          "ja": "40 クレジット/4s"
+        },
+        "unitPriceNum": 40,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/sora_2.svg",
+        "modelName": "Sora 2 Pro 720p",
+        "unitPrice": {
+          "en": "116 credits/4s",
+          "zh": "116 积分/4s",
+          "zh-TW": "116 積分/4s",
+          "ja": "116 クレジット/4s"
+        },
+        "unitPriceNum": 116,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/sora_2.svg",
+        "modelName": "Sora 2 Pro 1080p",
+        "unitPrice": {
+          "en": "192 credits/4s",
+          "zh": "192 积分/4s",
+          "zh-TW": "192 積分/4s",
+          "ja": "192 クレジット/4s"
+        },
+        "unitPriceNum": 192,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3_fast.svg",
+        "modelName": "Veo 3.1 Fast 720p/1080p",
+        "unitPrice": {
+          "en": "40 credits/4s",
+          "zh": "40 积分/4s",
+          "zh-TW": "40 積分/4s",
+          "ja": "40 クレジット/4s"
+        },
+        "unitPriceNum": 40,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3.svg",
+        "modelName": "Veo 3.1 720p/1080p",
+        "unitPrice": {
+          "en": "104 credits/4s",
+          "zh": "104 积分/4s",
+          "zh-TW": "104 積分/4s",
+          "ja": "104 クレジット/4s"
+        },
+        "unitPriceNum": 104,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3_fast.svg",
+        "modelName": "Veo 3 Fast 720p/1080p",
+        "unitPrice": {
+          "en": "40 credits/4s",
+          "zh": "40 积分/4s",
+          "zh-TW": "40 積分/4s",
+          "ja": "40 クレジット/4s"
+        },
+        "unitPriceNum": 40,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3.svg",
+        "modelName": "Veo 3 720p/1080p",
+        "unitPrice": {
+          "en": "104 credits/4s",
+          "zh": "104 积分/4s",
+          "zh-TW": "104 積分/4s",
+          "ja": "104 クレジット/4s"
+        },
+        "unitPriceNum": 104,
+        "isVipModel": true
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/wan_2_2.svg",
+        "modelName": "Wan 2.6 480p",
+        "unitPrice": {
+          "en": "15 credits/5s",
+          "zh": "15 积分/5s",
+          "zh-TW": "15 積分/5s",
+          "ja": "15 クレジット/5s"
+        },
+        "unitPriceNum": 15,
+        "extraInfo": {
+          "yearly": {
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited video generation with Wan 2.6 - valid for 1 month",
+                "zh": "Wan 2.6 视频无限生成 - 有效期1个月",
+                "ja": "Wan 2.6 無制限の動画生成 - 1か月間有効",
+                "zh-TW": "Wan 2.6 影片無限生成 - 有效期1個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited video generation with Wan 2.6 - valid for 1 year",
+                "zh": "Wan 2.6 视频无限生成 - 有效期1年",
+                "ja": "Wan 2.6 無制限の動画生成 - 1年間有効",
+                "zh-TW": "Wan 2.6 影片無限生成 - 有效期1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/wan_2_2.svg",
+        "modelName": "Wan 2.6 720p",
+        "unitPrice": {
+          "en": "25 credits/5s",
+          "zh": "25 积分/5s",
+          "zh-TW": "25 積分/5s",
+          "ja": "25 クレジット/5s"
+        },
+        "unitPriceNum": 25,
+        "extraInfo": {
+          "yearly": {
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited video generation with Wan 2.6 - valid for 1 month",
+                "zh": "Wan 2.6 视频无限生成 - 有效期1个月",
+                "ja": "Wan 2.6 無制限の動画生成 - 1か月間有効",
+                "zh-TW": "Wan 2.6 影片無限生成 - 有效期1個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited video generation with Wan 2.6 - valid for 1 year",
+                "zh": "Wan 2.6 视频无限生成 - 有效期1年",
+                "ja": "Wan 2.6 無制限の動画生成 - 1年間有効",
+                "zh-TW": "Wan 2.6 影片無限生成 - 有效期1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/wan_2_2.svg",
+        "modelName": "Wan 2.6 1080p",
+        "unitPrice": {
+          "en": "35 credits/5s",
+          "zh": "35 积分/5s",
+          "zh-TW": "35 積分/5s",
+          "ja": "35 クレジット/5s"
+        },
+        "unitPriceNum": 35,
+        "extraInfo": {
+          "yearly": {
+            "pro": {
+              "tooltip": {
+                "en": "Unlimited video generation with Wan 2.6 - valid for 1 month",
+                "zh": "Wan 2.6 视频无限生成 - 有效期1个月",
+                "ja": "Wan 2.6 無制限の動画生成 - 1か月間有効",
+                "zh-TW": "Wan 2.6 影片無限生成 - 有效期1個月"
+              },
+              "tags": [
+                {
+                  "text": "1 MONTH UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            },
+            "ultimate": {
+              "tooltip": {
+                "en": "Unlimited video generation with Wan 2.6 - valid for 1 year",
+                "zh": "Wan 2.6 视频无限生成 - 有效期1年",
+                "ja": "Wan 2.6 無制限の動画生成 - 1年間有効",
+                "zh-TW": "Wan 2.6 影片無限生成 - 有效期1年"
+              },
+              "tags": [
+                {
+                  "text": "365 UNLIMITED",
+                  "bgColor": "#F0F0F0"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+        "modelName": "Vidu Q2 720p",
+        "unitPrice": {
+          "en": "20 credits/5s",
+          "zh": "20 积分/5s",
+          "zh-TW": "20 積分/5s",
+          "ja": "20 クレジット/5s"
+        },
+        "unitPriceNum": 20
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+        "modelName": "Vidu Q2 1080p",
+        "unitPrice": {
+          "en": "30 credits/5s",
+          "zh": "30 积分/5s",
+          "zh-TW": "30 積分/5s",
+          "ja": "30 クレジット/5s"
+        },
+        "unitPriceNum": 30
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+        "modelName": "Vidu Q1 1080p",
+        "unitPrice": {
+          "en": "28 credits/5s",
+          "zh": "28 积分/5s",
+          "zh-TW": "28 積分/5s",
+          "ja": "28 クレジット/5s"
+        },
+        "unitPriceNum": 28
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+        "modelName": "Hailuo 2.3 Fast 768p 6s",
+        "unitPrice": {
+          "en": "12 credits/6s",
+          "zh": "12 积分/6s",
+          "zh-TW": "12 積分/6s",
+          "ja": "12 クレジット/6s"
+        },
+        "unitPriceNum": 12
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+        "modelName": "Hailuo 2.3  Fast 1080p 6s",
+        "unitPrice": {
+          "en": "18 credits/6s",
+          "zh": "18 积分/6s",
+          "zh-TW": "18 積分/6s",
+          "ja": "18 クレジット/6s"
+        },
+        "unitPriceNum": 18
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+        "modelName": "Hailuo 2.3 768p 6s",
+        "unitPrice": {
+          "en": "12 credits/6s",
+          "zh": "12 积分/6s",
+          "zh-TW": "12 積分/6s",
+          "ja": "12 クレジット/6s"
+        },
+        "unitPriceNum": 12
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+        "modelName": "Hailuo 2.3  1080p 6s",
+        "unitPrice": {
+          "en": "24 credits/6s",
+          "zh": "24 积分/6s",
+          "zh-TW": "24 積分/6s",
+          "ja": "24 クレジット/6s"
+        },
+        "unitPriceNum": 24
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+        "modelName": "Hailuo 02 768p",
+        "unitPrice": {
+          "en": "12 credits/6s",
+          "zh": "12 积分/6s",
+          "zh-TW": "12 積分/6s",
+          "ja": "12 クレジット/6s"
+        },
+        "unitPriceNum": 12
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+        "modelName": "Hailuo 02 1080p",
+        "unitPrice": {
+          "en": "20 credits/6s",
+          "zh": "20 积分/6s",
+          "zh-TW": "20 積分/6s",
+          "ja": "20 クレジット/6s"
+        },
+        "unitPriceNum": 20
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+        "modelName": "Seedance Pro 480p",
+        "unitPrice": {
+          "en": "10 credits/5s",
+          "zh": "10 积分/5s",
+          "zh-TW": "10 積分/5s",
+          "ja": "10 クレジット/5s"
+        },
+        "unitPriceNum": 10
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+        "modelName": "Seedance 1.0 Pro 720p",
+        "unitPrice": {
+          "en": "15 credits/5s",
+          "zh": "15 积分/5s",
+          "zh-TW": "15 積分/5s",
+          "ja": "15 クレジット/5s"
+        },
+        "unitPriceNum": 15
+      },
+      {
+        "modelIcon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+        "modelName": "Seedance 1.0 Pro 1080p",
+        "unitPrice": {
+          "en": "35 credits/5s",
+          "zh": "35 积分/5s",
+          "zh-TW": "35 積分/5s",
+          "ja": "35 クレジット/5s"
+        },
+        "unitPriceNum": 35
+      }
+    ],
+    "defaultFeaturesLength": 5
+  },
+  {
+    "type": "features",
+    "title": {
+      "en": "Credits",
+      "zh": "积分",
+      "zh-TW": "積分",
+      "ja": "クレジット"
+    },
+    "features": [
+      {
+        "type": "credits",
+        "featureName": {
+          "en": "Credits",
+          "zh": "积分",
+          "zh-TW": "積分",
+          "ja": "クレジット"
+        },
+        "featureNumber": [
+          "100/d",
+          "2000",
+          "3500",
+          "11000",
+          "27000"
+        ]
+      },
+      {
+        "type": "discount",
+        "featureName": {
+          "en": "Credit discount",
+          "zh": "积分折扣",
+          "zh-TW": "積分折扣",
+          "ja": "クレジット割引"
+        },
+        "featureNumber": [
+          "",
+          "",
+          "",
+          "10%",
+          "10%"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "features",
+    "title": {
+      "en": "Access & Features",
+      "zh": "权限 & 功能",
+      "zh-TW": "權限 & 功能",
+      "ja": "アクセス & 機能"
+    },
+    "features": [
+      {
+        "featureName": {
+          "en": "Concurrent tasks",
+          "zh": "并发任务",
+          "zh-TW": "並行任務",
+          "ja": "同時タスク"
+        },
+        "featureNumber": [
+          "1",
+          "2",
+          "4",
+          "8",
+          "10"
+        ]
+      },
+      {
+        "featureName": {
+          "en": "Commercial license",
+          "zh": "商业许可",
+          "zh-TW": "商業許可",
+          "ja": "商用ライセンス"
+        },
+        "featureNumber": [
+          "",
+          "√",
+          "√",
+          "√",
+          "√"
+        ]
+      },
+      {
+        "featureName": {
+          "en": "Access to all video models",
+          "zh": "所有视频模型",
+          "zh-TW": "所有視頻模型",
+          "ja": "全ビデオモデル"
+        },
+        "featureNumber": [
+          "",
+          "√",
+          "√",
+          "√",
+          "√"
+        ]
+      },
+      {
+        "featureName": {
+          "en": "Access to all image and editing models",
+          "zh": "所有图片和编辑模型",
+          "zh-TW": "所有圖片和編輯模型",
+          "ja": "全画像&編集モデル"
+        },
+        "featureNumber": [
+          "√",
+          "√",
+          "√",
+          "√",
+          "√"
+        ]
+      }
+    ]
+  }
+]
