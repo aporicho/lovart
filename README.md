@@ -1,98 +1,39 @@
 # Lovart Reverse
 
-Agent-first Lovart web reverse tooling. The CLI exposes model discovery, schema validation, live credit quotes, zero-credit entitlement checks, update drift detection, generation submission, local batch jobs, task lookup, and downloads as stable JSON commands.
+Lovart Reverse is an agent-first JSON CLI for Lovart generation. It exposes model discovery, legal config values, live credit quotes, zero-credit safety gates, generation submission, local batch jobs, task lookup, downloads, and update drift checks.
 
-Default policy: **zero-credit first**. Real generation is allowed only when preflight proves the request is covered by a zero-credit entitlement, or when the caller explicitly passes `--allow-paid --max-credits N`. Batch generation requires `--allow-paid --max-total-credits N` when any job costs credits.
+This README is the main manual. Other docs are references or role methods; they must not redefine the core workflow.
 
-## 5-Minute Quickstart
+## Golden Rules
 
-Install dependencies:
+- Parse stdout only. Every command returns a JSON envelope; stderr is human diagnostics.
+- Use the `lovart` CLI. Do not read `.lovart/`, `scripts/creds.json`, `captures/`, browser profiles, or `ref/` directly.
+- Legal model parameters come from `lovart config <model>`. Do not guess sizes, quality values, aspect ratios, modes, or counts.
+- `quote` tells the credit cost. `dry-run` and the generation gate decide whether submission is allowed.
+- Default real generation is zero-credit only.
+- Paid single generation requires `--allow-paid --max-credits N`.
+- Paid batch generation requires `--allow-paid --max-total-credits N`.
+- Batch `jobs.jsonl` is user-level: one line is one concept/task. Use top-level `outputs` for requested image count.
+- Do not manually split one concept into many JSONL rows. The CLI expands `outputs` into remote requests.
+- After interruption, use `lovart jobs resume`, not `jobs run`. Existing `task_id` values must not be submitted again.
+- `jobs resume` refuses changed `jobs.jsonl` files because the state stores `jobs_file_hash`.
+
+## Install
 
 ```bash
 uv sync --no-editable
 source .venv/bin/activate
-```
-
-Check readiness:
-
-```bash
 lovart setup
 ```
 
-List models and inspect exact legal config values:
-
-```bash
-lovart models
-lovart plan --intent image-concept
-lovart config openai/gpt-image-2
-lovart plan openai/gpt-image-2 --intent image-concept --quote live
-lovart quote openai/gpt-image-2 --body-file request.json
-```
-
-If setup reports missing auth, capture a browser request and extract credentials:
+If auth is missing, capture and extract credentials:
 
 ```bash
 lovart reverse capture
 lovart auth extract captures/<lovart-request>.json
 ```
 
-Create a request file:
-
-```json
-{
-  "prompt": "a clean product render of a red cube on a white background",
-  "quality": "low",
-  "size": "1024*1024"
-}
-```
-
-Dry-run preflight without submitting:
-
-```bash
-lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
-```
-
-Submit, wait, and download artifacts:
-
-```bash
-lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
-```
-
-Paid generation must be explicit:
-
-```bash
-lovart generate openai/gpt-image-2 --body-file request.json --mode auto --allow-paid --max-credits 5 --wait --download
-```
-
-## Batch Quickstart
-
-Agents convert prompt documents into `jobs.jsonl`; humans should not need to hand-write batch JSON. Each line is one user-level concept job, not necessarily one Lovart remote request:
-
-```json
-{"job_id":"001","title":"青竹峰晨雾中的韩立","model":"seedream/seedream-5-0","mode":"relax","outputs":10,"body":{"prompt":"...","aspect_ratio":"4:3","resolution":"2K","response_format":"url","watermark":false}}
-```
-
-When `outputs` is present, the CLI maps it to the model's quantity field (`n`, `max_images`, or `count`) and splits into multiple remote requests only when needed.
-
-Quote, dry-run, submit the whole batch, then wait and download:
-
-```bash
-lovart jobs quote runs/fanren/jobs.jsonl
-lovart jobs dry-run runs/fanren/jobs.jsonl
-lovart jobs run runs/fanren/jobs.jsonl --wait --download
-lovart jobs status runs/fanren
-lovart jobs resume runs/fanren/jobs.jsonl --wait --download
-```
-
-Paid batch generation must include a total budget:
-
-```bash
-lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wait --download
-```
-
-## JSON Contract
-
-stdout is JSON only. Diagnostics go to stderr.
+## JSON Envelope
 
 Success:
 
@@ -106,34 +47,148 @@ Failure:
 {"ok":false,"error":{"code":"auth_missing","message":"...","details":{}}}
 ```
 
-Generated files are saved under `downloads/<task_id>/` when `--download` is used.
+## Single Generation
+
+Use this flow for one request:
+
+```bash
+lovart setup
+lovart plan --intent image-concept
+lovart config openai/gpt-image-2
+lovart quote openai/gpt-image-2 --body-file request.json
+lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
+lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
+```
+
+Example `request.json`:
+
+```json
+{
+  "prompt": "a clean product render of a red cube on a white background",
+  "quality": "low",
+  "size": "1024*1024"
+}
+```
+
+Paid generation must be explicit:
+
+```bash
+lovart generate openai/gpt-image-2 --body-file request.json --mode auto --allow-paid --max-credits 5 --wait --download
+```
+
+## Batch Generation
+
+Agents convert prompt documents into `jobs.jsonl`; humans should not need to hand-write it. Each line is one user-level concept job:
+
+```json
+{"job_id":"001","title":"青竹峰晨雾中的韩立","model":"seedream/seedream-5-0","mode":"relax","outputs":10,"body":{"prompt":"...","aspect_ratio":"4:3","resolution":"2K","response_format":"url","watermark":false}}
+```
+
+`outputs` means desired image count for that concept. When present, `body` must not contain `n`, `max_images`, or `count`; the CLI maps `outputs` to the model quantity field and splits into multiple remote requests only when needed.
+
+Batch flow:
+
+```bash
+lovart setup
+lovart plan --intent image-concept
+lovart config seedream/seedream-5-0
+lovart jobs quote runs/fanren/jobs.jsonl
+lovart jobs dry-run runs/fanren/jobs.jsonl
+lovart jobs run runs/fanren/jobs.jsonl --wait --download
+lovart jobs status runs/fanren
+lovart jobs resume runs/fanren/jobs.jsonl --wait --download
+```
+
+Paid batch generation must include a total budget:
+
+```bash
+lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wait --download
+```
+
+## Config And Planning
+
+`lovart config <model>` returns the legal fields for a model:
+
+- `values` for enum fields.
+- `minimum` / `maximum` for numeric fields.
+- `minItems` / `maxItems` for array fields.
+- `enumerable=false` for free input fields such as prompt or image URLs.
+
+`lovart plan` returns three non-submitting routes:
+
+- `quality_best`: highest legal settings found from config-derived candidates.
+- `cost_best`: lowest-cost route, preferring zero-credit combinations.
+- `speed_best`: route with fast mode / fast entitlement / fast variant signal. It is not measured wall-clock latency.
+
+If a route has `quote.exact=true`, its credits are exact. If false, run `lovart quote` on the final request before stating exact cost.
+
+## Jobs Semantics
+
+`lovart jobs` expands user-level jobs into `remote_requests`:
+
+- GPT Image 2 with `outputs:10` becomes one remote request with `body.n=10`.
+- Seedream 5 with `outputs:10` becomes one remote request with `body.max_images=10`.
+- If a model supports only 4 outputs per request, `outputs:10` becomes `4 + 4 + 2`.
+- If a model has no quantity field, `outputs:10` becomes 10 single-output remote requests.
+
+State is stored in `runs/<project>/jobs_state.json`. Quote reports are stored in `runs/<project>/jobs_quote.json`. Downloads are saved under `downloads/<task_id>/`.
+
+## Error Handling
+
+- `auth_missing`: run capture/auth extraction.
+- `metadata_stale`: run `lovart update sync --metadata-only`, then retry.
+- `signer_stale`: do not submit real generation until signing is revalidated.
+- `schema_invalid`: fix request JSON according to schema errors.
+- `unknown_pricing`: do not submit unless the user provides explicit budget.
+- `credit_risk`: retry only with the correct paid budget flags.
+- `task_failed` / `timeout`: inspect status, keep state, and use resume when appropriate.
 
 ## Main Commands
 
 ```bash
 lovart setup
 lovart models
-lovart config openai/gpt-image-2
+lovart config <model>
 lovart plan --intent image-concept
-lovart plan openai/gpt-image-2 --intent image-concept --quote live
-lovart quote openai/gpt-image-2 --body-file request.json
-lovart jobs quote runs/fanren/jobs.jsonl
-lovart jobs dry-run runs/fanren/jobs.jsonl
-lovart jobs run runs/fanren/jobs.jsonl --wait --download
-lovart jobs status runs/fanren
-lovart jobs resume runs/fanren/jobs.jsonl --wait --download
-lovart config --global
-lovart schema openai/gpt-image-2
-lovart free openai/gpt-image-2 --body-file request.json --mode auto
-lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
+lovart quote <model> --body-file request.json
+lovart generate <model> --body-file request.json --mode auto --dry-run
+lovart generate <model> --body-file request.json --mode auto --wait --download
+lovart jobs quote runs/<project>/jobs.jsonl
+lovart jobs dry-run runs/<project>/jobs.jsonl
+lovart jobs run runs/<project>/jobs.jsonl --wait --download
+lovart jobs status runs/<project>
+lovart jobs resume runs/<project>/jobs.jsonl --wait --download
 lovart update check
 lovart update sync --metadata-only
 lovart doctor
 ```
 
-See `AGENTS.md` for the machine entry contract, `docs/concepts/LovartCLI生成专家.md` for generation methodology, `docs/agent-contract.md` for Claude Code, Codex, and opencode usage, and `docs/reverse_workflow.md` for capture and reverse-maintenance work.
+## Agent Self-Test
 
-## Safety
+An agent understands this project if it can answer:
+
+1. What is the stable machine interface?
+   JSON-only stdout envelope from the `lovart` CLI.
+2. How do you know legal model parameters?
+   Use `lovart config <model>`; never guess.
+3. How do you confirm credit cost and submit safety?
+   Use `quote` for cost, then `dry-run`/gate before real generation.
+4. For 100 concepts with 10 images each, how many JSONL rows?
+   100 rows, each with `outputs:10`.
+5. Why use `jobs resume` after interruption?
+   State may already contain `task_id`; rerunning can duplicate generation and spend. Resume also checks `jobs_file_hash`.
+
+## Reference Docs
+
+- `AGENTS.md`: short hard rules for coding agents.
+- `docs/agent-contract.md`: field-level CLI JSON reference.
+- `docs/concepts/概念设计师.md`: concept design role method.
+- `docs/concepts/AIGC提示词设计师.md`: prompt design role method.
+- `docs/concepts/LovartCLI生成专家.md`: Lovart CLI usage role method.
+- `docs/reverse_workflow.md`: reverse-maintenance workflow.
+- `docs/architecture/file-architecture-philosophy.md`: package architecture rules.
+
+## Runtime Safety
 
 Ignored runtime paths:
 

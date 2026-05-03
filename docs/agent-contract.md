@@ -1,8 +1,6 @@
-# Agent Contract
+# CLI JSON Reference
 
-The Lovart CLI is designed for Claude Code, Codex, opencode, and similar coding agents. The stable integration surface is the CLI JSON envelope.
-
-Install or activate the project first so `lovart` is directly on `PATH`. Agent calls should invoke `lovart ...` directly, not `uv run lovart ...`, because `uv` may print environment messages before the JSON envelope.
+This is the field-level API reference for agents. For workflow and rules, read `README.md`.
 
 ## Envelope
 
@@ -18,31 +16,13 @@ Failure:
 {"ok":false,"error":{"code":"...","message":"...","details":{}}}
 ```
 
-stdout must be parsed as JSON. stderr is diagnostic only.
+stdout is the machine contract. stderr is diagnostic only.
 
-## Recommended Agent Flow
+## Config
 
-```bash
-lovart setup
-lovart models
-lovart config openai/gpt-image-2
-lovart plan --intent image-concept
-lovart plan openai/gpt-image-2 --intent image-concept
-lovart quote openai/gpt-image-2 --body-file request.json
-lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
-lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
-lovart jobs quote runs/fanren/jobs.jsonl
-lovart jobs dry-run runs/fanren/jobs.jsonl
-lovart jobs run runs/fanren/jobs.jsonl --wait --download
-```
+`lovart config <model>` returns legal model configuration fields.
 
-Agents must call `plan` before presenting route choices. For a fixed model, call `config`, then `plan <model>`. If the model is not fixed, call `plan --intent image-concept` to compare model candidates, then call `config <selected-model>` before offering parameter edits. Agents should use `--dry-run` before a new model/body shape.
-
-## Config Discovery
-
-`lovart config <model>` returns exhaustive legal configuration values derived from the Lovart schema.
-
-Each field includes:
+Important field keys:
 
 - `key`
 - `type`
@@ -52,77 +32,57 @@ Each field includes:
 - `description`
 - `source`
 - `enumerable`
-- `values` when the legal value set is enumerable
-- `minimum` / `maximum` for numeric ranges
-- `minItems` / `maxItems` for arrays
+- `values`
+- `minimum` / `maximum`
+- `minItems` / `maxItems`
+- `route_role`
 
-Allowed sources:
+If `values` exists, it is the legal enumerable set. If `enumerable=false`, the value must come from user/context input.
 
-- `schema.inline_enum`
-- `schema.ref_enum:<Name>`
-- `schema.boolean`
-- `schema.range`
-- `schema.array_limits`
-- `schema.free_input`
+## Plan
 
-Agents must not guess values. If `values` exists, it is the complete legal set. If `enumerable=false`, the field needs user/context input.
+`lovart plan` returns non-submitting route candidates.
 
-For example, an agent may say:
+Important route keys:
 
-- `quality` supports only `auto`, `high`, `medium`, `low`.
-- `size` supports only the exact strings returned in `size.values`.
-- `n` supports integers from `minimum` to `maximum`.
-- `prompt` is free input and must be supplied by the user or generated from the user's request.
+- `id`
+- `model`
+- `mode`
+- `body_patch`
+- `request_body`
+- `quote`
+- `zero_credit`
+- `requires_paid_confirmation`
+- `constraints`
+- `degraded_steps`
+- `quality_score`
+- `cost_score`
+- `speed_score`
+- `user_message`
 
-Agents must not say values like `1280x720`, `portrait`, or `ultra` unless those exact values are returned in `field.values`.
+If `quote.exact=true`, `quote.credits` is exact. If false, run `lovart quote` on the final request before stating exact cost.
 
-## Route Planning
+## Quote
 
-`lovart plan` returns three non-submitting routes for user-facing choice. The model argument is optional:
+`lovart quote <model> --body-file request.json` calls Lovart's signed pricing endpoint.
 
-- `quality_best`: highest legal settings found from config-derived candidates; paid confirmation may be required.
-- `cost_best`: lowest-cost route; searches from higher quality down until quote or entitlement confirms zero credits.
-- `speed_best`: fastest route by `fast` mode, fast model variant, or fast entitlement signal; it is not measured latency.
+Important quote keys:
 
-Useful flags:
+- `quoted`
+- `credits`
+- `balance`
+- `price_detail`
+- `warnings`
 
-```bash
-lovart plan --intent image-concept
-lovart plan openai/gpt-image-2 --intent image-concept
-lovart plan openai/gpt-image-2 --count 4
-lovart plan openai/gpt-image-2 --body-file partial-request.json
-lovart plan openai/gpt-image-2 --quote live
-lovart plan openai/gpt-image-2 --quote auto
-lovart plan openai/gpt-image-2 --quote offline
-```
+Quote is not submit permission. Use dry-run before real generation.
 
-Each route includes `model`, `mode`, `body_patch`, `request_body`, `quote`, `zero_credit`, `requires_paid_confirmation`, `constraints`, `degraded_steps`, `quality_score`, `cost_score`, `speed_score`, and `user_message`. `body_patch` never fabricates free-input fields such as `prompt` or reference image URLs. When `quote.exact=true`, `quote.credits` is the live pricing result. When `quote.exact=false`, run `lovart quote` on the final request before stating exact cost. Agents merge `body_patch` with user-provided free input before running `generate --dry-run`.
+## Generate
 
-## Exact Quote
+`lovart generate ... --dry-run` returns:
 
-`lovart quote <model> --body-file request.json` calls Lovart's signed `POST /v1/generator/pricing` endpoint. Use it before stating exact credit cost.
-
-The quote response includes:
-
-- `credits`: exact pre-submit credit cost shown by Lovart.
-- `balance`: current account balance returned by Lovart.
-- `price_detail`: Lovart's cost breakdown, including normalized resolution, unit price, unit count, and surcharge fields.
-
-Agents may use `plan` to present candidate routes. If the chosen route already has `quote.exact=true`, its `quote.credits` can be used for budget confirmation; otherwise use `quote` on the final request.
-
-## Preflight Fields
-
-`generate` returns `data.preflight` with:
-
-- `auth`: secret-safe auth status.
-- `update`: Lovart drift status.
-- `schema_errors`: request validation problems.
-- `gate`: zero-credit or paid-budget decision.
-- `can_submit`: whether real submission is allowed.
-- `blocking_error`: machine-readable reason when submission is blocked.
-- `recommended_actions`: next commands or manual actions.
-
-## Generation Output
+- `submitted`
+- `preflight`
+- `request`
 
 `lovart generate ... --wait --download` returns:
 
@@ -133,65 +93,66 @@ Agents may use `plan` to present candidate routes. If the chosen route already h
 - `downloads`
 - `preflight`
 
-Downloads are written to `downloads/<task_id>/`.
+Important `preflight` keys:
 
-## Batch Jobs
+- `auth`
+- `update`
+- `schema_errors`
+- `gate`
+- `can_submit`
+- `blocking_error`
+- `recommended_actions`
 
-`lovart jobs` is the stable local queue interface for batch generation. It does not require Lovart to expose a native batch endpoint. Agents build a JSONL file and let the CLI manage quote, dry-run, submission, task polling, downloads, and resume.
+## Jobs
 
-Each JSONL line is one user-level concept job. `outputs` is the desired number of images for that concept; the CLI maps it to the model's quantity field (`n`, `max_images`, or `count`) and splits into multiple remote requests only when needed.
+Each `jobs.jsonl` line is a user-level job:
 
 ```json
 {"job_id":"001","title":"青竹峰晨雾中的韩立","model":"seedream/seedream-5-0","mode":"relax","outputs":10,"body":{"prompt":"...","aspect_ratio":"4:3","resolution":"2K","response_format":"url","watermark":false}}
 ```
 
-When `outputs` is present, `body` must not include `n`, `max_images`, or `count`. Agents express how many images are wanted; they do not manually split 100 concepts into 1000 low-level jobs.
+When `outputs` is present, `body` must not include `n`, `max_images`, or `count`.
 
-Commands:
+`lovart jobs quote|dry-run|run|resume` return:
 
-```bash
-lovart jobs quote runs/fanren/jobs.jsonl
-lovart jobs dry-run runs/fanren/jobs.jsonl
-lovart jobs run runs/fanren/jobs.jsonl --wait --download
-lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wait --download
-lovart jobs status runs/fanren
-lovart jobs resume runs/fanren/jobs.jsonl --wait --download
-```
-
-`jobs run` uses a two-stage contract: the entire expanded batch must pass schema validation, live quote, update/signing readiness, and paid-budget gate before any remote request is submitted. After that, all pending remote requests are submitted first; once task IDs are recorded, the CLI polls and downloads results.
-
-Batch state is stored at `runs/<project>/jobs_state.json` with a hash of the source jobs file. Agents must use `jobs resume` after interruption so submitted jobs with existing `task_id` values are not submitted again. If the jobs file changed, resume is refused to avoid mismatching task IDs.
-
-Batch statuses:
-
-- `pending`
+- `summary.logical_jobs`
+- `summary.remote_requests`
+- `summary.requested_outputs`
+- `summary.total_credits`
+- `batch_gate`
 - `submitted`
-- `running`
-- `completed`
-- `downloaded`
+- `remote_requests`
+- `tasks`
+- `downloads`
 - `failed`
-- `skipped`
+- `timed_out`
+- `state_file`
+- `jobs`
 
-The jobs envelope includes `summary.logical_jobs`, `summary.remote_requests`, `summary.requested_outputs`, `batch_gate`, `submitted`, `remote_requests`, `tasks`, `downloads`, `failed`, `timed_out`, `state_file`, and full per-job state.
+Important `remote_requests[]` keys:
 
-## Paid Safety
+- `request_id`
+- `job_id`
+- `model`
+- `mode`
+- `output_count`
+- `body`
+- `quote`
+- `preflight`
+- `task_id`
+- `status`
+- `downloads`
 
-The default path allows zero-credit generation only. Paid generation requires both:
+Batch state is stored at `runs/<project>/jobs_state.json` with `jobs_file_hash`. If the source `jobs.jsonl` changes, `resume` refuses to continue.
 
-```bash
---allow-paid --max-credits N
-```
+## Common Errors
 
-Agents must not infer or invent a budget. The user must provide it.
-
-For batches, paid generation requires both:
-
-```bash
---allow-paid --max-total-credits N
-```
-
-The batch is refused if any job has unknown pricing, if the total quote exceeds `N`, or if paid jobs exist without explicit budget authorization.
-
-## Reverse-Maintenance Boundary
-
-Agents must not read or modify credential files, capture files, or `ref/` snapshots unless the user explicitly asks to reverse or sync Lovart behavior.
+- `auth_missing`
+- `metadata_stale`
+- `signer_stale`
+- `schema_invalid`
+- `unknown_pricing`
+- `credit_risk`
+- `task_failed`
+- `timeout`
+- `input_error`
