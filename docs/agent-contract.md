@@ -132,13 +132,23 @@ When `outputs` is present, `body` must not include `n`, `max_images`, or `count`
 - `summary.total_payable_credits`
 - `summary.total_listed_credits`
 - `summary.pending_quote_remote_requests`
+- `summary.effective_limit`
+- `summary.cache_hits`
+- `summary.cache_misses`
+- `summary.signature_groups`
+- `summary.quoted_representative_requests`
 - `state_file`
 - `quote_file`
 - `full_quote_file`
+- `quote_cache_file`
 
 Use `lovart jobs quote <jobs.jsonl> --detail requests` for compact per-request quote summaries. Use `--detail full` only when full prompts, request bodies, raw quote data, and expanded jobs are needed.
 
-Use `lovart jobs quote-status <run_dir>` to inspect quote progress from `jobs_quote_state.json`.
+`lovart jobs quote` accepts either positional `<jobs.jsonl>` or `--jobs-file <jobs.jsonl>`. The default limit is `auto`: batches with more than 100 pending remote requests process 100 at a time. Use `--all` only when a caller intentionally wants to quote all pending requests in one command.
+
+Quote state is isolated per jobs file at `<run_dir>/.lovart_quote/<jobs-stem>-<jobs-hash>/jobs_quote_state.json`, so multiple batch files can share one run directory without hash conflicts. Use `lovart jobs quote-status <run_dir>` to list all quote states, or `lovart jobs quote-status <run_dir> --jobs-file <jobs.jsonl>` to inspect one file.
+
+Quote reuse is based on `cost_signature`. The signature includes model, mode, price-affecting parameters, output count, media input counts/types, and the quote signature version. It excludes prompt/title fields and schema-marked format-only fields. A 0-credit quote may be reused only for the same `cost_signature`.
 
 If live quote cannot reach Lovart, the quote report includes `summary.network_unavailable_remote_requests`, one of `summary.error_counts.network_unavailable`, `summary.error_counts.timestamp_network_unavailable`, or `summary.error_counts.pricing_network_unavailable`, and a matching `quote_blocker.code` when the whole quote run is blocked. In that case the CLI stops early, keeps remaining retryable requests pending, and the agent should fix DNS/network access to `www.lovart.ai` before rerunning the same quote command.
 
@@ -171,7 +181,7 @@ Important `remote_requests[]` keys:
 
 Batch state is stored at `runs/<project>/jobs_state.json` with `jobs_file_hash`. If the source `jobs.jsonl` changes, `resume` refuses to continue.
 
-Batch quote state is stored at `runs/<project>/jobs_quote_state.json` with `jobs_file_hash`. If the source `jobs.jsonl` changes, `jobs quote` refuses to continue unless `--refresh` is passed.
+Batch quote state is stored under `runs/<project>/.lovart_quote/` with `jobs_file_hash`. If the source `jobs.jsonl` changes, `jobs quote` creates a new per-file state instead of reusing the old state. `--refresh` discards the current file's quote state and starts over.
 
 ## Common Errors
 

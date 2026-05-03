@@ -251,7 +251,8 @@ def jobs_quote_command(
     *,
     detail: str = "summary",
     concurrency: int = 2,
-    limit: int | None = None,
+    limit: int | str | None = "auto",
+    all_requests: bool = False,
     refresh: bool = False,
     progress: bool = True,
 ) -> dict[str, Any]:
@@ -262,6 +263,7 @@ def jobs_quote_command(
         detail=detail,
         concurrency=concurrency,
         limit=limit,
+        all_requests=all_requests,
         refresh=refresh,
         progress=progress,
     )
@@ -313,8 +315,8 @@ def jobs_status_command(run_dir: Path) -> dict[str, Any]:
     return status_jobs(run_dir)
 
 
-def jobs_quote_status_command(run_dir: Path) -> dict[str, Any]:
-    return quote_status(run_dir)
+def jobs_quote_status_command(run_dir: Path, jobs_file: Path | None = None) -> dict[str, Any]:
+    return quote_status(run_dir, jobs_file=jobs_file)
 
 
 def jobs_resume_command(

@@ -202,15 +202,17 @@ If a route has `quote.exact=true`, its credits are exact. If false, run `lovart 
 - If a model supports only 4 outputs per request, `outputs:10` becomes `4 + 4 + 2`.
 - If a model has no quantity field, `outputs:10` becomes 10 single-output remote requests.
 
-Generation state is stored in `runs/<project>/jobs_state.json`. Quote progress is stored in `runs/<project>/jobs_quote_state.json`. The default quote report at `runs/<project>/jobs_quote.json` is lightweight; full quote detail is stored in `runs/<project>/jobs_quote_full.json`.
+Generation state is stored in `runs/<project>/jobs_state.json`. Quote progress is isolated per jobs file at `runs/<project>/.lovart_quote/<jobs-stem>-<jobs-hash>/jobs_quote_state.json`. The default quote report in that directory is lightweight; full quote detail is stored beside it as `jobs_quote_full.json`.
 
 `lovart jobs quote` defaults to a lightweight summary and does not echo prompts or full request bodies to stdout. Use `--detail requests` for compact per-request status, and `--detail full` only when you really need the complete expanded jobs and quote raw data.
 
 Batch quote reuses one web-style pricing client for each command run: Lovart time is synced once, signed pricing requests reuse that offset, and internal `original_unit_data` may be added only to the pricing payload. Users and agents should not put `original_unit_data` in request JSON.
 
-For large batches, use `--limit N` and rerun the same command until `summary.pending_quote_remote_requests` is `0`. The command resumes from `jobs_quote_state.json`; if `jobs.jsonl` changes, rerun with `--refresh`.
+The quote command computes a strict `cost_signature` from model, mode, price-affecting parameters, output count, and media input counts. Requests with the same signature share one live quote; prompt/title changes alone do not trigger another quote. A 0-credit result is reusable only within the same signature, never across other parameter combinations.
 
-If DNS or network access to `www.lovart.ai` fails, quote stops early with `network_unavailable` and leaves the remaining retryable requests pending. Fix network/DNS, then rerun the same `lovart jobs quote ...` command; use `--refresh` only when you intentionally want to discard the old quote state.
+For large batches, `--limit auto` is the default: more than 100 pending remote requests are processed 100 at a time. Rerun the same `lovart jobs quote <jobs.jsonl>` command until `summary.pending_quote_remote_requests` is `0`, or pass `--all` when you intentionally want to quote every pending request in one command.
+
+If DNS or network access to `www.lovart.ai` fails, quote stops early with `network_unavailable` and leaves the remaining retryable requests pending. Fix network/DNS, then rerun the same `lovart jobs quote ...` command. Use `--refresh` only when you intentionally want to discard that jobs file's quote state.
 
 Batch quote credit fields:
 

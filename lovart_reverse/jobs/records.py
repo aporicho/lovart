@@ -44,6 +44,16 @@ def quote_full_path(run_dir: Path) -> Path:
     return run_dir / "jobs_quote_full.json"
 
 
+def quote_root_path(run_dir: Path) -> Path:
+    return run_dir / ".lovart_quote"
+
+
+def quote_state_dir(run_dir: Path, jobs_file: Path, jobs_file_hash: str) -> Path:
+    safe_stem = "".join(char if char.isalnum() or char in {"-", "_"} else "_" for char in jobs_file.stem).strip("_")
+    safe_stem = safe_stem or "jobs"
+    return quote_root_path(run_dir) / f"{safe_stem}-{jobs_file_hash[:12]}"
+
+
 def _load_jsonl(path: Path) -> list[Any]:
     records: list[Any] = []
     for line_number, line in enumerate(path.read_text().splitlines(), start=1):

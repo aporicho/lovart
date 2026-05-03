@@ -131,18 +131,22 @@ def cmd_task(args: argparse.Namespace) -> dict[str, Any]:
 
 def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
     if args.jobs_cmd == "quote":
+        jobs_file = args.jobs_file_option or args.jobs_file
+        if jobs_file is None:
+            raise InputError("jobs file is required", {"recommended_actions": ["pass lovart jobs quote <jobs.jsonl> or --jobs-file <jobs.jsonl>"]})
         return jobs_quote_command(
-            args.jobs_file,
+            jobs_file,
             out_dir=args.out_dir,
             language=args.language,
             detail=args.detail,
             concurrency=args.concurrency,
             limit=args.limit,
+            all_requests=args.all,
             refresh=args.refresh,
             progress=not args.no_progress,
         )
     if args.jobs_cmd == "quote-status":
-        return jobs_quote_status_command(args.run_dir)
+        return jobs_quote_status_command(args.run_dir, jobs_file=args.jobs_file)
     if args.jobs_cmd == "dry-run":
         return jobs_dry_run_command(
             args.jobs_file,
@@ -296,16 +300,19 @@ def build_parser() -> argparse.ArgumentParser:
     jobs = sub.add_parser("jobs")
     jobs_sub = jobs.add_subparsers(dest="jobs_cmd", required=True)
     jobs_quote = jobs_sub.add_parser("quote")
-    jobs_quote.add_argument("jobs_file", type=Path)
+    jobs_quote.add_argument("jobs_file", nargs="?", type=Path)
+    jobs_quote.add_argument("--jobs-file", dest="jobs_file_option", type=Path)
     jobs_quote.add_argument("--out-dir", type=Path)
     jobs_quote.add_argument("--language", default="en")
     jobs_quote.add_argument("--detail", choices=["summary", "requests", "full"], default="summary")
     jobs_quote.add_argument("--concurrency", type=int, default=2)
-    jobs_quote.add_argument("--limit", type=int)
+    jobs_quote.add_argument("--limit", default="auto")
+    jobs_quote.add_argument("--all", action="store_true")
     jobs_quote.add_argument("--refresh", action="store_true")
     jobs_quote.add_argument("--no-progress", action="store_true")
     jobs_quote_status = jobs_sub.add_parser("quote-status")
     jobs_quote_status.add_argument("run_dir", type=Path)
+    jobs_quote_status.add_argument("--jobs-file", type=Path)
     jobs_dry_run = jobs_sub.add_parser("dry-run")
     jobs_dry_run.add_argument("jobs_file", type=Path)
     jobs_dry_run.add_argument("--out-dir", type=Path)
