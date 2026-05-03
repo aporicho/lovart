@@ -4,15 +4,29 @@ from __future__ import annotations
 
 import importlib.util
 import shutil
+import sys
 from pathlib import Path
 from typing import Any
 
 from lovart_reverse.errors import InputError
 
 
+def _mitmdump_path() -> str | None:
+    direct = shutil.which("mitmdump")
+    if direct:
+        return direct
+    executable_dir = Path(sys.executable).parent
+    names = ["mitmdump.exe", "mitmdump"] if sys.platform.startswith("win") else ["mitmdump"]
+    for name in names:
+        candidate = executable_dir / name
+        if candidate.exists():
+            return str(candidate)
+    return None
+
+
 def reverse_extra_status() -> dict[str, Any]:
     mitmproxy_module = importlib.util.find_spec("mitmproxy") is not None
-    mitmdump = shutil.which("mitmdump")
+    mitmdump = _mitmdump_path()
     return {
         "available": bool(mitmproxy_module and mitmdump),
         "mitmproxy_module": mitmproxy_module,
