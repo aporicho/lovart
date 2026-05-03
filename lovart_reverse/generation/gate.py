@@ -19,27 +19,27 @@ def generation_gate(
 ) -> dict[str, Any]:
     entitlement = free_check(model, body, mode=mode, live=live)
     pricing = quote_or_unknown(model, body, live=live)
-    quoted_zero_credit = bool(pricing.get("quoted") and float(pricing.get("credits") or 0) == 0)
-    allowed = bool(entitlement.get("zero_credit") or quoted_zero_credit)
-    reason = "quote_zero_credit" if quoted_zero_credit else ("zero_credit_entitlement" if allowed else "")
-    if allowed:
-        return {"allowed": True, "reason": reason, "entitlement": entitlement, "pricing": pricing}
+    if pricing.get("quoted"):
+        credits = float(pricing.get("credits") or 0)
+        if credits == 0:
+            return {"allowed": True, "reason": "quote_zero_credit", "entitlement": entitlement, "pricing": pricing}
+        if not allow_paid:
+            raise CreditRiskError(
+                "generation may spend credits; pass --allow-paid --max-credits N to allow it",
+                {"model": model, "quoted_credits": credits, "entitlement": entitlement, "pricing": pricing},
+            )
+        if max_credits is None:
+            raise CreditRiskError("--max-credits is required with --allow-paid", {"quoted_credits": credits})
+        if credits > max_credits:
+            raise CreditRiskError(
+                "quoted credits exceed --max-credits",
+                {"quoted_credits": credits, "max_credits": max_credits},
+            )
+        return {"allowed": True, "reason": "paid_allowed", "entitlement": entitlement, "pricing": pricing}
+    if not live and entitlement.get("zero_credit"):
+        return {"allowed": True, "reason": "zero_credit_entitlement", "entitlement": entitlement, "pricing": pricing}
     if not pricing.get("quoted"):
         raise UnknownPricingError(
             "pricing is unknown; refusing to submit generation",
             {"model": model, "mode": mode, "pricing": pricing, "entitlement": entitlement},
         )
-    credits = float(pricing["credits"])
-    if not allow_paid:
-        raise CreditRiskError(
-            "generation may spend credits; pass --allow-paid --max-credits N to allow it",
-            {"model": model, "quoted_credits": credits, "entitlement": entitlement, "pricing": pricing},
-        )
-    if max_credits is None:
-        raise CreditRiskError("--max-credits is required with --allow-paid", {"quoted_credits": credits})
-    if credits > max_credits:
-        raise CreditRiskError(
-            "quoted credits exceed --max-credits",
-            {"quoted_credits": credits, "max_credits": max_credits},
-        )
-    return {"allowed": True, "reason": "paid_allowed", "entitlement": entitlement, "pricing": pricing}

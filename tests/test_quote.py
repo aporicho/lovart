@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from lovart_reverse.cli.main import main
+from lovart_reverse.errors import CreditRiskError, UnknownPricingError
 from lovart_reverse.generation.gate import generation_gate
 from lovart_reverse.pricing.quote import QuoteClient, quote
 from lovart_reverse.pricing.web_parity import build_original_unit_data, pricing_input_args
@@ -104,6 +105,25 @@ class QuoteTest(unittest.TestCase):
             result = generation_gate("openai/gpt-image-2", {"prompt": "x"}, mode="auto", allow_paid=False, max_credits=None, live=True)
         self.assertTrue(result["allowed"])
         self.assertEqual(result["reason"], "quote_zero_credit")
+
+    def test_gate_live_quote_positive_overrides_entitlement(self) -> None:
+        with (
+            patch("lovart_reverse.generation.gate.free_check", return_value={"zero_credit": True}),
+            patch(
+                "lovart_reverse.generation.gate.quote_or_unknown",
+                return_value={"quoted": True, "credits": 12.0, "price_detail": {"total_price": 12}},
+            ),
+        ):
+            with self.assertRaises(CreditRiskError):
+                generation_gate("openai/gpt-image-2", {"prompt": "x"}, mode="relax", allow_paid=False, max_credits=None, live=True)
+
+    def test_gate_live_unknown_pricing_blocks_entitlement(self) -> None:
+        with (
+            patch("lovart_reverse.generation.gate.free_check", return_value={"zero_credit": True}),
+            patch("lovart_reverse.generation.gate.quote_or_unknown", return_value={"quoted": False, "credits": None}),
+        ):
+            with self.assertRaises(UnknownPricingError):
+                generation_gate("openai/gpt-image-2", {"prompt": "x"}, mode="relax", allow_paid=False, max_credits=None, live=True)
 
     def test_quote_cli_json_envelope(self) -> None:
         output = io.StringIO()
