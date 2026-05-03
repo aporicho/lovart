@@ -8,6 +8,7 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `lovart_reverse/signing/` owns LGW signing, time sync, and signing fixtures.
 - `lovart_reverse/http/` owns Lovart HTTP sessions and base URLs.
 - `lovart_reverse/discovery/` owns live and reference generator list/schema retrieval.
+- `lovart_reverse/config/` owns exhaustive agent-facing configuration discovery from schema values.
 - `lovart_reverse/registry/` owns model records, schema lookup, and request validation.
 - `lovart_reverse/pricing/` owns pricing tables, balance, peak/off-peak data, and estimates.
 - `lovart_reverse/entitlement/` owns fast zero-credit and relaxed unlimited checks.

@@ -8,9 +8,12 @@ Assume `lovart` is on `PATH` via an activated virtualenv or installed wheel. For
 
 1. Run `lovart setup`.
 2. If `data.ready` is false, follow `data.recommended_actions`.
-3. Write the model request to a JSON file.
-4. Run `lovart generate <model> --body-file request.json --mode auto --wait --download`.
-5. If generation fails, inspect `error.code` and `error.details.recommended_actions`.
+3. Run `lovart models` and choose a model.
+4. Run `lovart config <model>` before showing any model-specific choices to the user.
+5. Write the model request to a JSON file using only legal values from `config`.
+6. Run `lovart generate <model> --body-file request.json --mode auto --dry-run`.
+7. Run `lovart generate <model> --body-file request.json --mode auto --wait --download`.
+8. If generation fails, inspect `error.code` and `error.details.recommended_actions`.
 
 ## Rules
 
@@ -20,13 +23,33 @@ Assume `lovart` is on `PATH` via an activated virtualenv or installed wheel. For
 - Do not modify `ref/` unless the user explicitly requests reverse-maintenance work.
 - Do not bypass `credit_risk`, `unknown_pricing`, `metadata_stale`, or `signer_stale` errors.
 - Paid generation requires user intent plus `--allow-paid --max-credits N`.
+- Do not guess model configuration values. Use only `field.values` returned by `lovart config <model>`.
+- Do not infer legal values from descriptions. If `enumerable=false`, ask the user or extract the value from context.
+- If the user requests a value outside `field.values`, explain that it is unsupported and show the legal values.
+
+## Config Discovery
+
+Call this before asking the user model-specific questions:
+
+```bash
+lovart config <model>
+```
+
+For batch image generation, present values from config exactly:
+
+- Size/aspect fields: use only `values`.
+- Quality fields: use only `values`.
+- Count fields: use `minimum` and `maximum`.
+- Media fields: use `minItems` and `maxItems`.
+- Prompt fields: `enumerable=false`, so ask the user for content.
 
 ## Safe Commands
 
 ```bash
 lovart setup
 lovart models
-lovart schema <model>
+lovart config <model>
+lovart config --global
 lovart price <model> --body-file request.json
 lovart free <model> --body-file request.json --mode auto
 lovart generate <model> --body-file request.json --mode auto --dry-run

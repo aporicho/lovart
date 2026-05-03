@@ -12,6 +12,7 @@ from lovart_reverse.auth.extract import extract_from_capture
 from lovart_reverse.auth.store import status as auth_status
 from lovart_reverse.capture import replay_capture
 from lovart_reverse.cli.envelope import fail, ok
+from lovart_reverse.config import config_for_model, global_config
 from lovart_reverse.discovery import generator_list, generator_schema
 from lovart_reverse.downloads import download_artifacts
 from lovart_reverse.errors import InputError, LovartError
@@ -93,6 +94,14 @@ def cmd_free(args: argparse.Namespace) -> dict[str, Any]:
 
 def cmd_setup(args: argparse.Namespace) -> dict[str, Any]:
     return setup_status(offline=args.offline)
+
+
+def cmd_config(args: argparse.Namespace) -> dict[str, Any]:
+    if args.global_config:
+        return global_config()
+    if not args.model:
+        raise InputError("model is required unless --global is used")
+    return config_for_model(args.model, include_all=args.include_all, example=args.example)
 
 
 def cmd_generate(args: argparse.Namespace) -> dict[str, Any]:
@@ -203,6 +212,12 @@ def build_parser() -> argparse.ArgumentParser:
     schema.add_argument("model")
     schema.add_argument("--live", action="store_true")
 
+    config = sub.add_parser("config")
+    config.add_argument("model", nargs="?")
+    config.add_argument("--all", action="store_true", dest="include_all")
+    config.add_argument("--example", choices=["defaults", "zero_credit"])
+    config.add_argument("--global", action="store_true", dest="global_config")
+
     price = sub.add_parser("price")
     price.add_argument("model")
     _add_body_args(price)
@@ -255,6 +270,8 @@ def build_parser() -> argparse.ArgumentParser:
 def dispatch(args: argparse.Namespace) -> dict[str, Any]:
     if args.command == "setup":
         return cmd_setup(args)
+    if args.command == "config":
+        return cmd_config(args)
     if args.command == "auth":
         return cmd_auth(args)
     if args.command == "models":
