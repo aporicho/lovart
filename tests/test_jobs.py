@@ -248,6 +248,52 @@ class JobsTest(unittest.TestCase):
             self.assertEqual(result["summary"]["quoted_remote_requests"], 1)
             self.assertEqual(result["summary"]["failed_quote_remote_requests"], 1)
 
+    def test_quote_jobs_network_failure_stops_early_and_leaves_pending(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job(str(index), prompt=str(index)) for index in range(5)])
+            calls: list[str] = []
+
+            def quoted(model: str, body: dict[str, object], language: str = "en") -> dict[str, object]:
+                calls.append(str(body["prompt"]))
+                raise RuntimeError("NameResolutionError: Failed to resolve 'www.lovart.ai'")
+
+            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
+                result = quote_jobs(jobs_file, concurrency=2, progress=False)
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(result["summary"]["failed_quote_remote_requests"], 2)
+            self.assertEqual(result["summary"]["pending_quote_remote_requests"], 3)
+            self.assertEqual(result["summary"]["network_unavailable_remote_requests"], 2)
+            self.assertEqual(result["summary"]["error_counts"]["network_unavailable"], 2)
+            self.assertIn("network/DNS", result["warnings"][0])
+            self.assertEqual(result["quote_blocker"]["code"], "network_unavailable")
+
+    def test_quote_jobs_retries_previous_network_failures(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001", prompt="a"), gpt_job("002", prompt="b")])
+
+            def network_down(model: str, body: dict[str, object], language: str = "en") -> dict[str, object]:
+                raise RuntimeError("NameResolutionError: Failed to resolve 'www.lovart.ai'")
+
+            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=network_down):
+                first = quote_jobs(jobs_file, concurrency=1, progress=False)
+            self.assertEqual(first["summary"]["failed_quote_remote_requests"], 1)
+            self.assertEqual(first["summary"]["pending_quote_remote_requests"], 1)
+
+            calls: list[str] = []
+
+            def quoted(model: str, body: dict[str, object], language: str = "en") -> dict[str, object]:
+                calls.append(str(body["prompt"]))
+                return {"model": model, "quoted": True, "credits": 0.0, "payable_credits": 0.0, "warnings": []}
+
+            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
+                second = quote_jobs(jobs_file, progress=False)
+            self.assertEqual(calls, ["a", "b"])
+            self.assertEqual(second["summary"]["quoted_remote_requests"], 2)
+            self.assertEqual(second["summary"]["failed_quote_remote_requests"], 0)
+            self.assertNotIn("quote_blocker", second)
+
     def test_quote_jobs_caps_high_concurrency_with_warning(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             jobs_file = Path(tmp) / "jobs.jsonl"

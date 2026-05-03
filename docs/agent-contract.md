@@ -137,6 +137,8 @@ Use `lovart jobs quote <jobs.jsonl> --detail requests` for compact per-request q
 
 Use `lovart jobs quote-status <run_dir>` to inspect quote progress from `jobs_quote_state.json`.
 
+If live quote cannot reach Lovart, the quote report includes `summary.network_unavailable_remote_requests`, `summary.error_counts.network_unavailable`, and `quote_blocker.code=network_unavailable`. In that case the CLI stops early, keeps remaining retryable requests pending, and the agent should fix DNS/network access to `www.lovart.ai` before rerunning the same quote command.
+
 `lovart jobs dry-run|run|resume` return:
 
 - `summary`
@@ -175,6 +177,7 @@ Batch quote state is stored at `runs/<project>/jobs_quote_state.json` with `jobs
 - `signer_stale`
 - `schema_invalid`
 - `unknown_pricing`
+- `network_unavailable`
 - `credit_risk`
 - `task_failed`
 - `timeout`

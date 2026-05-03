@@ -208,6 +208,8 @@ Generation state is stored in `runs/<project>/jobs_state.json`. Quote progress i
 
 For large batches, use `--limit N` and rerun the same command until `summary.pending_quote_remote_requests` is `0`. The command resumes from `jobs_quote_state.json`; if `jobs.jsonl` changes, rerun with `--refresh`.
 
+If DNS or network access to `www.lovart.ai` fails, quote stops early with `network_unavailable` and leaves the remaining retryable requests pending. Fix network/DNS, then rerun the same `lovart jobs quote ...` command; use `--refresh` only when you intentionally want to discard the old quote state.
+
 Batch quote credit fields:
 
 - `summary.total_credits` equals `summary.total_payable_credits`.
@@ -221,6 +223,7 @@ Batch quote credit fields:
 - `signer_stale`: do not submit real generation until signing is revalidated.
 - `schema_invalid`: fix request JSON according to schema errors.
 - `unknown_pricing`: do not submit unless the user provides explicit budget.
+- `network_unavailable`: fix DNS/network access to `www.lovart.ai`, then rerun quote.
 - `credit_risk`: retry only with the correct paid budget flags.
 - `task_failed` / `timeout`: inspect status, keep state, and use resume when appropriate.
 

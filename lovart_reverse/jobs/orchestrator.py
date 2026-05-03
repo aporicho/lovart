@@ -30,6 +30,17 @@ from lovart_reverse.task import task_info
 
 COMPLETED_REMOTE_STATUSES = {"complete", "completed", "done", "finished", "success", "succeeded"}
 FAILED_REMOTE_STATUSES = {"cancelled", "canceled", "error", "failed", "failure", "rejected"}
+NETWORK_ERROR_MARKERS = (
+    "Failed to resolve",
+    "NameResolutionError",
+    "Temporary failure in name resolution",
+    "Name or service not known",
+    "nodename nor servname",
+    "Unknown host",
+    "ConnectionError",
+    "Max retries exceeded",
+    "Network is unreachable",
+)
 
 
 def quote_jobs(
@@ -57,6 +68,8 @@ def quote_jobs(
     if len(remote_requests) > 50:
         warnings.append("large batch quote detected; prefer --limit N and avoid running multiple large quote commands concurrently")
     selected = _pending_quote_requests(remote_requests, limit=limit)
+    if selected:
+        state.pop("quote_blocker", None)
     _quote_progress(
         progress,
         "quote_started",
@@ -66,37 +79,54 @@ def quote_jobs(
         _prepare_quote_request(registry, request)
     selected = [request for request in selected if request.get("quote_status") == "pending"]
     if selected:
-        with ThreadPoolExecutor(max_workers=concurrency) as executor:
-            futures = {executor.submit(_safe_quote, request["model"], request["body"], language): request for request in selected}
-            for completed, future in enumerate(as_completed(futures), start=1):
-                request = futures[future]
-                try:
-                    request["quote"] = future.result()
-                    request["quote_status"] = "quoted" if isinstance(request["quote"], dict) and request["quote"].get("quoted") else "failed"
-                    if request["quote_status"] == "failed":
-                        _add_error(request, "unknown_pricing", "live quote did not return an exact credit cost", {"quote": request.get("quote")})
-                except Exception as exc:
-                    request["quote_status"] = "failed"
-                    request["quote"] = {
-                        "model": request.get("model"),
-                        "quoted": False,
-                        "credits": None,
-                        "quote_error": {"type": exc.__class__.__name__, "message": str(exc)},
-                        "warnings": ["live quote failed; credit spend is unknown"],
+        completed_total = 0
+        network_blocked = False
+        for chunk in _chunks(selected, concurrency):
+            with ThreadPoolExecutor(max_workers=concurrency) as executor:
+                futures = {executor.submit(_safe_quote, request["model"], request["body"], language): request for request in chunk}
+                completed_chunk: list[dict[str, Any]] = []
+                for future in as_completed(futures):
+                    request = futures[future]
+                    completed_total += 1
+                    try:
+                        request["quote"] = future.result()
+                        request["quote_status"] = "quoted" if isinstance(request["quote"], dict) and request["quote"].get("quoted") else "failed"
+                        if request["quote_status"] == "failed":
+                            error_code, message = _quote_failure_code_and_message(request.get("quote"))
+                            _add_error(request, error_code, message, {"quote": request.get("quote")})
+                    except Exception as exc:
+                        request["quote_status"] = "failed"
+                        request["quote"] = _quote_exception_payload(request.get("model"), exc)
+                        error_code, message = _quote_failure_code_and_message(request.get("quote"))
+                        _add_error(request, error_code, message, {"type": exc.__class__.__name__, "message": str(exc)})
+                    completed_chunk.append(request)
+                    _refresh_job_statuses(state["jobs"])
+                    _save_quote_state(state)
+                    _quote_progress(
+                        progress,
+                        "quote_progress",
+                        {
+                            "completed_selected_remote_requests": completed_total,
+                            "selected_remote_requests": len(selected),
+                            "request_id": request.get("request_id"),
+                            "quote_status": request.get("quote_status"),
+                        },
+                    )
+                if completed_chunk and all(_request_has_network_failure(request) for request in completed_chunk):
+                    network_blocked = True
+                    state["quote_blocker"] = {
+                        "code": "network_unavailable",
+                        "message": "Lovart quote endpoint is not reachable; stopped quote early",
+                        "details": {
+                            "host": "www.lovart.ai",
+                            "completed_before_stop": completed_total,
+                            "selected_remote_requests": len(selected),
+                        },
                     }
-                    _add_error(request, "unknown_pricing", "live quote failed", {"type": exc.__class__.__name__, "message": str(exc)})
-                _refresh_job_statuses(state["jobs"])
-                _save_quote_state(state)
-                _quote_progress(
-                    progress,
-                    "quote_progress",
-                    {
-                        "completed_selected_remote_requests": completed,
-                        "selected_remote_requests": len(selected),
-                        "request_id": request.get("request_id"),
-                        "quote_status": request.get("quote_status"),
-                    },
-                )
+                    _quote_progress(progress, "quote_failed", state["quote_blocker"])
+                    break
+        if network_blocked:
+            warnings.append("Lovart network/DNS is unavailable; quote stopped early and remaining retryable requests were left pending")
     _refresh_job_statuses(state["jobs"])
     _save_quote_state(state)
     full_report = _quote_report(state, detail="full", warnings=warnings)
@@ -260,7 +290,8 @@ def _pending_quote_requests(remote_requests: list[dict[str, Any]], *, limit: int
     pending = [
         request
         for request in remote_requests
-        if request.get("quote_status") not in {"quoted", "failed"}
+        if request.get("quote_status") != "quoted"
+        and (request.get("quote_status") != "failed" or _request_has_network_failure(request))
     ]
     return pending[:limit] if limit is not None else pending
 
@@ -316,15 +347,54 @@ def _safe_quote(model: str, body: dict[str, Any], language: str) -> dict[str, An
     try:
         return quote(model, body, language=language)
     except Exception as exc:
-        return {
-            "model": model,
-            "quoted": False,
-            "credits": None,
-            "payable_credits": None,
-            "listed_credits": None,
-            "quote_error": {"type": exc.__class__.__name__, "message": str(exc)},
-            "warnings": ["live quote failed; credit spend is unknown"],
-        }
+        return _quote_exception_payload(model, exc)
+
+
+def _chunks(items: list[dict[str, Any]], size: int) -> list[list[dict[str, Any]]]:
+    return [items[index : index + size] for index in range(0, len(items), size)]
+
+
+def _quote_exception_payload(model: Any, exc: Exception) -> dict[str, Any]:
+    error_code = "network_unavailable" if _looks_like_network_error(exc) else "unknown_pricing"
+    warning = "Lovart network/DNS unavailable; credit spend is unknown" if error_code == "network_unavailable" else "live quote failed; credit spend is unknown"
+    return {
+        "model": model,
+        "quoted": False,
+        "credits": None,
+        "payable_credits": None,
+        "listed_credits": None,
+        "quote_error": {"type": exc.__class__.__name__, "message": str(exc), "code": error_code},
+        "warnings": [warning],
+    }
+
+
+def _quote_failure_code_and_message(quote_result: Any) -> tuple[str, str]:
+    if _quote_result_has_network_error(quote_result):
+        return "network_unavailable", "live quote failed because Lovart is not reachable"
+    return "unknown_pricing", "live quote did not return an exact credit cost"
+
+
+def _request_has_network_failure(request: dict[str, Any]) -> bool:
+    errors = request.get("errors")
+    if isinstance(errors, list) and any(isinstance(error, dict) and error.get("code") == "network_unavailable" for error in errors):
+        return True
+    return _quote_result_has_network_error(request.get("quote"))
+
+
+def _quote_result_has_network_error(quote_result: Any) -> bool:
+    if not isinstance(quote_result, dict):
+        return False
+    quote_error = quote_result.get("quote_error")
+    if isinstance(quote_error, dict) and quote_error.get("code") == "network_unavailable":
+        return True
+    return _looks_like_network_error(quote_error)
+
+
+def _looks_like_network_error(error: Any) -> bool:
+    if error is None:
+        return False
+    text = str(error)
+    return any(marker in text for marker in NETWORK_ERROR_MARKERS)
 
 
 def _preflight_remote_requests(
@@ -558,6 +628,8 @@ def _quote_report(state: dict[str, Any], *, detail: str, warnings: list[str]) ->
         "warnings": merged_warnings,
         "recommended_actions": _quote_recommended_actions(summary),
     }
+    if isinstance(state.get("quote_blocker"), dict):
+        report["quote_blocker"] = state["quote_blocker"]
     if detail == "requests":
         report["remote_requests"] = [_compact_quote_request(request) for _, request in _iter_remote_requests(jobs)]
     elif detail == "full":
@@ -597,6 +669,8 @@ def _quote_summary_payload(quote_result: Any) -> dict[str, Any] | None:
 
 def _quote_summary_warnings(summary: dict[str, Any]) -> list[str]:
     warnings: list[str] = []
+    if summary.get("network_unavailable_remote_requests"):
+        warnings.append("Lovart network/DNS is unavailable; live quote cannot reach www.lovart.ai")
     if summary.get("listed_but_zero_payable_remote_requests"):
         warnings.append("some requests have payable_credits=0 but listed_credits>0; total_credits uses payable_credits")
     if summary.get("remote_requests", 0) > 50:
@@ -606,6 +680,8 @@ def _quote_summary_warnings(summary: dict[str, Any]) -> list[str]:
 
 def _quote_recommended_actions(summary: dict[str, Any]) -> list[str]:
     actions: list[str] = []
+    if summary.get("network_unavailable_remote_requests"):
+        actions.append("fix DNS/network access to www.lovart.ai, then rerun lovart jobs quote <jobs.jsonl>")
     if summary.get("pending_quote_remote_requests"):
         actions.append("rerun lovart jobs quote <jobs.jsonl> to continue pending quotes")
     if summary.get("remote_requests", 0) > 50:
@@ -620,12 +696,22 @@ def _quote_summary(jobs: list[dict[str, Any]]) -> dict[str, Any]:
     summary = summarize_state(state)
     quoted = 0
     schema_invalid = 0
+    network_unavailable = 0
+    error_counts: dict[str, int] = {}
     quote_status_counts: dict[str, int] = {}
     for _, request in _iter_remote_requests(jobs):
         quote_status = str(request.get("quote_status") or "pending")
         quote_status_counts[quote_status] = quote_status_counts.get(quote_status, 0) + 1
         if request.get("schema_errors"):
             schema_invalid += 1
+        errors = request.get("errors")
+        if isinstance(errors, list):
+            for error in errors:
+                if isinstance(error, dict) and error.get("code"):
+                    code = str(error["code"])
+                    error_counts[code] = error_counts.get(code, 0) + 1
+        if _request_has_network_failure(request):
+            network_unavailable += 1
         quote_result = request.get("quote")
         if isinstance(quote_result, dict) and quote_result.get("quoted"):
             quoted += 1
@@ -637,6 +723,8 @@ def _quote_summary(jobs: list[dict[str, Any]]) -> dict[str, Any]:
         "quote_complete": quote_status_counts.get("pending", 0) + quote_status_counts.get("running", 0) == 0,
         "quote_status_counts": quote_status_counts,
         "schema_invalid_remote_requests": schema_invalid,
+        "network_unavailable_remote_requests": network_unavailable,
+        "error_counts": error_counts,
     }
 
 
