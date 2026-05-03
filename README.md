@@ -21,7 +21,7 @@ This README is the main manual. Other docs are references or role methods; they 
 
 ## Install
 
-Normal agent users should use the release installer. It downloads the self-contained `lovart` binary and configures supported agents for `lovart mcp`. It requires GitHub CLI authentication:
+Normal users should use the release installer. It downloads the self-contained `lovart` binary and configures supported MCP clients for `lovart mcp`. It requires GitHub CLI authentication:
 
 ```bash
 gh auth login
@@ -31,14 +31,14 @@ macOS / Linux:
 
 ```bash
 gh release download --repo aporicho/lovart-reverse --pattern install.sh -O /tmp/lovart-install.sh
-bash /tmp/lovart-install.sh --agents auto --yes
+bash /tmp/lovart-install.sh --mcp-clients auto --yes
 ```
 
 Windows:
 
 ```powershell
 gh release download --repo aporicho/lovart-reverse --pattern install.ps1 -O "$env:TEMP\lovart-install.ps1"
-powershell -ExecutionPolicy Bypass -File "$env:TEMP\lovart-install.ps1" -Agents auto -Yes
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\lovart-install.ps1" -McpClients auto -Yes
 ```
 
 Verify:
@@ -46,7 +46,7 @@ Verify:
 ```bash
 lovart --version
 lovart self-test
-lovart agent status
+lovart mcp status
 ```
 
 Direct binary download is the fallback path.
@@ -81,7 +81,7 @@ lovart self-test
 
 If `lovart --version` shows an older command set or a different git commit than expected, replace the binary before using it from an agent.
 
-The installer writes MCP config for detected agents. Manual Codex config is:
+The installer writes MCP config for detected MCP clients. Manual Codex config is:
 
 ```toml
 [mcp_servers.lovart]
@@ -219,9 +219,9 @@ State is stored in `runs/<project>/jobs_state.json`. Quote reports are stored in
 lovart setup
 lovart --version
 lovart self-test
-lovart agent status
-lovart agent install --agents auto --yes
 lovart mcp
+lovart mcp status
+lovart mcp install --clients auto --yes
 lovart models
 lovart config <model>
 lovart plan --intent image-concept
@@ -256,7 +256,7 @@ An agent understands this project if it can answer:
 ## Reference Docs
 
 - `AGENTS.md`: short hard rules for coding agents.
-- `docs/agent-install.md`: install and MCP/CLI agent setup.
+- `docs/mcp-install.md`: binary install and MCP client setup.
 - `docs/agent-contract.md`: field-level CLI JSON reference.
 - `docs/reverse_workflow.md`: reverse-maintenance workflow.
 - `docs/architecture/file-architecture-philosophy.md`: package architecture rules.

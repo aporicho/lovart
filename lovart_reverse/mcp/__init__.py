@@ -1,3 +1,5 @@
-"""MCP stdio wrapper for safe Lovart generation commands."""
+"""MCP stdio wrapper and local MCP client configuration."""
 
-__all__: list[str] = []
+from lovart_reverse.mcp.configure import mcp_install, mcp_status
+
+__all__ = ["mcp_install", "mcp_status"]

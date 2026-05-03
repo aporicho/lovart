@@ -1,6 +1,6 @@
 # CLI JSON Reference
 
-This is the field-level API reference for agents. For workflow and rules, read `README.md`. For installation and MCP setup, read `docs/agent-install.md`.
+This is the field-level API reference for agents. For workflow and rules, read `README.md`. For installation and MCP setup, read `docs/mcp-install.md`.
 
 ## Envelope
 

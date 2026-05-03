@@ -2,7 +2,7 @@ param(
   [string]$Repo = "aporicho/lovart-reverse",
   [string]$Version = "latest",
   [string]$InstallDir = "$env:USERPROFILE\bin",
-  [string]$Agents = "auto",
+  [string]$McpClients = "auto",
   [switch]$Yes,
   [switch]$Force,
   [switch]$DryRun,
@@ -22,7 +22,7 @@ function Write-Result {
         version = $Version
         asset = $Asset
         install_path = $Path
-        agents = $Agents
+        mcp_clients = $McpClients
         dry_run = [bool]$DryRun
       }
     } | ConvertTo-Json -Compress
@@ -52,7 +52,7 @@ if ($DryRun) {
   } else {
     Write-Host "Would download $Asset from $Repo ($Version)"
     Write-Host "Would install to $InstallPath"
-    Write-Host "Would run: $InstallPath agent install --agents $Agents --yes"
+    Write-Host "Would run: $InstallPath mcp install --clients $McpClients --yes"
   }
   exit 0
 }
@@ -67,7 +67,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 if (-not $Yes) {
-  $Answer = Read-Host "Install Lovart to $InstallPath and configure agents '$Agents'? [y/N]"
+  $Answer = Read-Host "Install Lovart to $InstallPath and configure MCP clients '$McpClients'? [y/N]"
   if ($Answer -notin @("y", "Y", "yes", "YES")) {
     Fail "installation cancelled"
   }
@@ -123,14 +123,14 @@ try {
     Fail "installed binary failed self-test"
   }
 
-  if ($Agents -ne "none") {
-    $Args = @("agent", "install", "--agents", $Agents, "--yes")
+  if ($McpClients -ne "none") {
+    $Args = @("mcp", "install", "--clients", $McpClients, "--yes")
     if ($Force) {
       $Args += "--force"
     }
     & $InstallPath @Args *> $null
     if ($LASTEXITCODE -ne 0) {
-      Fail "agent configuration failed"
+      Fail "MCP client configuration failed"
     }
   }
 

@@ -61,8 +61,12 @@ class PackagingTest(unittest.TestCase):
         powershell_script = (ROOT / "packaging" / "install" / "install.ps1").read_text()
         self.assertIn("gh auth status", shell_script)
         self.assertIn("gh release download", shell_script)
+        self.assertIn("--mcp-clients", shell_script)
+        self.assertIn('"mcp" "install"', shell_script)
         self.assertIn("Get-FileHash -Algorithm SHA256", powershell_script)
         self.assertIn("lovart-windows-x64.exe", powershell_script)
+        self.assertIn("McpClients", powershell_script)
+        self.assertIn('"mcp", "install"', powershell_script)
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `lovart_reverse/commands/` owns the safe command facade shared by CLI and MCP wrappers.
 - `lovart_reverse/mcp/` owns the safe stdio MCP wrapper and must not expose capture, credential extraction, reverse replay submission, metadata sync, or direct `ref/` mutation.
 - `packaging/pyinstaller/` owns the single-binary build spec. Release binaries expose both CLI commands and MCP through `lovart mcp`.
-- `packaging/install/` owns release installer scripts. They download binaries, verify checksums, and call `lovart agent install`; they must not implement generation logic.
+- `packaging/install/` owns release installer scripts. They download binaries, verify checksums, and call `lovart mcp install`; they must not implement generation logic.
 - `.github/workflows/` owns release automation. It may build and upload binaries, but must not embed credentials or captures.
 - `lovart_reverse/setup/` owns one-shot readiness checks for auth, refs, signer, update status, and runtime paths.
 - `lovart_reverse/task/` owns task status normalization.

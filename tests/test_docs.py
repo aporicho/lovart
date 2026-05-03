@@ -21,15 +21,15 @@ class DocsTest(unittest.TestCase):
             "lovart jobs status",
             "lovart jobs resume",
             "lovart generate",
-            "lovart agent status",
-            "lovart agent install",
+            "lovart mcp status",
+            "lovart mcp install",
             "lovart update sync --metadata-only",
             "lovart reverse capture",
         ):
             self.assertIn(command, text)
 
-    def test_agent_install_doc_uses_single_binary_mcp(self) -> None:
-        text = (ROOT / "docs" / "agent-install.md").read_text()
+    def test_mcp_install_doc_uses_single_binary_mcp(self) -> None:
+        text = (ROOT / "docs" / "mcp-install.md").read_text()
         self.assertIn("lovart-macos-arm64", text)
         self.assertIn("install.sh", text)
         self.assertIn("install.ps1", text)
@@ -42,7 +42,7 @@ class DocsTest(unittest.TestCase):
                 (ROOT / "AGENTS.md").read_text(),
                 (ROOT / "README.md").read_text(),
                 (ROOT / "docs" / "agent-contract.md").read_text(),
-                (ROOT / "docs" / "agent-install.md").read_text(),
+                (ROOT / "docs" / "mcp-install.md").read_text(),
             ]
         )
         self.assertIn('"outputs":10', text)

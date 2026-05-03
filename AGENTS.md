@@ -23,6 +23,6 @@ This file is only the hard-rule checklist for coding agents.
 - Do not modify `ref/` unless the user explicitly asks for reverse-maintenance work.
 
 For command fields and JSON shapes, use `docs/agent-contract.md`.
-For installation and MCP configuration, use `docs/agent-install.md`.
+For installation and MCP configuration, use `docs/mcp-install.md`.
 
 Creative expert methods are maintained outside this repository. This project only defines Lovart execution rules, CLI/MCP contracts, safety gates, and reverse-maintenance workflow.

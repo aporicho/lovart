@@ -35,19 +35,20 @@ class CliTest(unittest.TestCase):
         self.assertIn("binary_mode", payload["data"]["runtime"])
         self.assertIn("reverse_extra_available", payload["data"]["runtime"])
 
-    def test_help_lists_current_agent_commands(self) -> None:
+    def test_help_lists_current_mcp_commands(self) -> None:
         help_text = build_parser().format_help()
-        for command in ("config", "plan", "quote", "jobs", "mcp", "agent"):
+        for command in ("config", "plan", "quote", "jobs", "mcp"):
             self.assertIn(command, help_text)
+        self.assertNotIn("agent", help_text)
 
-    def test_agent_status_stdout_is_json_envelope(self) -> None:
+    def test_mcp_status_stdout_is_json_envelope(self) -> None:
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            code = main(["agent", "status", "--agents", "all"])
+            code = main(["mcp", "status", "--clients", "all"])
         self.assertEqual(code, 0)
         payload = json.loads(output.getvalue())
         self.assertTrue(payload["ok"])
-        self.assertEqual({item["agent"] for item in payload["data"]["agents"]}, {"codex", "claude", "opencode", "openclaw"})
+        self.assertEqual({item["client"] for item in payload["data"]["clients"]}, {"codex", "claude", "opencode", "openclaw"})
 
     def test_mcp_subcommand_starts_stdio_server(self) -> None:
         result = subprocess.run(

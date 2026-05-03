@@ -1,10 +1,10 @@
-# Agent Install
+# MCP Install
 
-This project is distributed to agents as a self-contained `lovart` binary. The same binary provides both the JSON CLI and the safe MCP stdio server.
+This project is distributed as a self-contained `lovart` binary. The same binary provides both the JSON CLI and the safe MCP stdio server.
 
 ## Installer
 
-The recommended path is the release installer. It uses `gh release download`, verifies checksums, installs the matching binary, and configures detected agents for `lovart mcp`.
+The recommended path is the release installer. It uses `gh release download`, verifies checksums, installs the matching binary, and configures detected MCP clients for `lovart mcp`.
 
 Authenticate first:
 
@@ -16,20 +16,20 @@ macOS / Linux:
 
 ```bash
 gh release download --repo aporicho/lovart-reverse --pattern install.sh -O /tmp/lovart-install.sh
-bash /tmp/lovart-install.sh --agents auto --yes
+bash /tmp/lovart-install.sh --mcp-clients auto --yes
 lovart --version
 lovart self-test
-lovart agent status
+lovart mcp status
 ```
 
 Windows:
 
 ```powershell
 gh release download --repo aporicho/lovart-reverse --pattern install.ps1 -O "$env:TEMP\lovart-install.ps1"
-powershell -ExecutionPolicy Bypass -File "$env:TEMP\lovart-install.ps1" -Agents auto -Yes
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\lovart-install.ps1" -McpClients auto -Yes
 lovart --version
 lovart self-test
-lovart agent status
+lovart mcp status
 ```
 
 If `lovart --version` shows an unexpected version, commit, or command set, replace the binary before calling generation commands.
@@ -52,7 +52,7 @@ gh release download --repo aporicho/lovart-reverse --pattern "lovart-macos-arm64
 chmod +x ~/.local/bin/lovart
 lovart --version
 lovart self-test
-lovart agent install --agents auto --yes
+lovart mcp install --clients auto --yes
 ```
 
 MCP tools return the same JSON envelope as the CLI:

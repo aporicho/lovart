@@ -1,4 +1,4 @@
-"""Configure local agents to use the Lovart MCP server."""
+"""Configure local MCP clients to use the Lovart MCP server."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from typing import Any
 from lovart_reverse.errors import LovartError
 
 
-SUPPORTED_AGENTS = ("codex", "claude", "opencode", "openclaw")
+SUPPORTED_MCP_CLIENTS = ("codex", "claude", "opencode", "openclaw")
 MANAGED_MARKER = "# Managed by lovart-reverse"
 
 
@@ -25,7 +25,7 @@ class ConfigConflictError(LovartError):
 
 
 @dataclass(frozen=True)
-class AgentContext:
+class McpClientContext:
     lovart_path: Path
     home: Path
     dry_run: bool = False
@@ -33,33 +33,33 @@ class AgentContext:
     force: bool = False
 
 
-def agent_status(*, agents: str = "auto", lovart_path: Path | None = None, home: Path | None = None) -> dict[str, Any]:
-    ctx = AgentContext(_lovart_path(lovart_path), _home(home), dry_run=True)
-    selected = _select_agents(agents, ctx, include_missing=True)
-    statuses = [_status_for(agent, ctx) for agent in selected]
-    return {"lovart_path": str(ctx.lovart_path), "agents": statuses}
+def mcp_status(*, clients: str = "auto", lovart_path: Path | None = None, home: Path | None = None) -> dict[str, Any]:
+    ctx = McpClientContext(_lovart_path(lovart_path), _home(home), dry_run=True)
+    selected = _select_mcp_clients(clients, ctx, include_missing=True)
+    statuses = [_status_for(client, ctx) for client in selected]
+    return {"lovart_path": str(ctx.lovart_path), "clients": statuses}
 
 
-def agent_install(
+def mcp_install(
     *,
-    agents: str = "auto",
+    clients: str = "auto",
     lovart_path: Path | None = None,
     home: Path | None = None,
     dry_run: bool = False,
     yes: bool = False,
     force: bool = False,
 ) -> dict[str, Any]:
-    ctx = AgentContext(_lovart_path(lovart_path), _home(home), dry_run=dry_run, yes=yes, force=force)
-    selected = _select_agents(agents, ctx, include_missing=False)
-    if agents == "none":
+    ctx = McpClientContext(_lovart_path(lovart_path), _home(home), dry_run=dry_run, yes=yes, force=force)
+    selected = _select_mcp_clients(clients, ctx, include_missing=False)
+    if clients == "none":
         selected = []
-    results = [_install_agent(agent, ctx) for agent in selected]
+    results = [_install_client(client, ctx) for client in selected]
     return {
         "lovart_path": str(ctx.lovart_path),
         "dry_run": dry_run,
         "force": force,
-        "agents_requested": agents,
-        "agents_selected": selected,
+        "mcp_clients_requested": clients,
+        "mcp_clients_selected": selected,
         "results": results,
     }
 
@@ -80,64 +80,64 @@ def _home(path: Path | None) -> Path:
     return (path or Path.home()).expanduser().resolve()
 
 
-def _select_agents(agents: str, ctx: AgentContext, *, include_missing: bool) -> list[str]:
-    if agents == "none":
+def _select_mcp_clients(clients: str, ctx: McpClientContext, *, include_missing: bool) -> list[str]:
+    if clients == "none":
         return []
-    if agents == "all":
-        return list(SUPPORTED_AGENTS)
-    if agents == "auto":
-        selected = [agent for agent in SUPPORTED_AGENTS if _agent_detected(agent, ctx)]
+    if clients == "all":
+        return list(SUPPORTED_MCP_CLIENTS)
+    if clients == "auto":
+        selected = [client for client in SUPPORTED_MCP_CLIENTS if _client_detected(client, ctx)]
         if selected:
             return selected
-        return list(SUPPORTED_AGENTS) if include_missing else ["codex"]
-    selected = [item.strip().lower() for item in agents.split(",") if item.strip()]
-    unknown = sorted(set(selected) - set(SUPPORTED_AGENTS))
+        return list(SUPPORTED_MCP_CLIENTS) if include_missing else ["codex"]
+    selected = [item.strip().lower() for item in clients.split(",") if item.strip()]
+    unknown = sorted(set(selected) - set(SUPPORTED_MCP_CLIENTS))
     if unknown:
-        raise LovartError("input_error", "unknown agent", {"agents": unknown, "supported_agents": list(SUPPORTED_AGENTS)}, 2)
+        raise LovartError("input_error", "unknown MCP client", {"clients": unknown, "supported_clients": list(SUPPORTED_MCP_CLIENTS)}, 2)
     return selected
 
 
-def _agent_detected(agent: str, ctx: AgentContext) -> bool:
-    if agent == "codex":
+def _client_detected(client: str, ctx: McpClientContext) -> bool:
+    if client == "codex":
         return (ctx.home / ".codex").exists()
-    if agent == "claude":
+    if client == "claude":
         return shutil.which("claude") is not None
-    if agent == "opencode":
+    if client == "opencode":
         return shutil.which("opencode") is not None or (ctx.home / ".config" / "opencode").exists()
-    if agent == "openclaw":
+    if client == "openclaw":
         return shutil.which("openclaw") is not None
     return False
 
 
-def _status_for(agent: str, ctx: AgentContext) -> dict[str, Any]:
-    if agent == "codex":
+def _status_for(client: str, ctx: McpClientContext) -> dict[str, Any]:
+    if client == "codex":
         return _codex_status(ctx)
-    if agent == "claude":
+    if client == "claude":
         return _command_status("claude", ["claude", "mcp", "add", "--transport", "stdio", "lovart", "--scope", "user", "--", str(ctx.lovart_path), "mcp"])
-    if agent == "opencode":
+    if client == "opencode":
         return _opencode_status(ctx)
-    if agent == "openclaw":
+    if client == "openclaw":
         return _command_status("openclaw", ["openclaw", "mcp", "set", "lovart", _openclaw_payload(ctx)])
-    raise LovartError("input_error", "unknown agent", {"agent": agent}, 2)
+    raise LovartError("input_error", "unknown MCP client", {"client": client}, 2)
 
 
-def _install_agent(agent: str, ctx: AgentContext) -> dict[str, Any]:
-    if agent == "codex":
+def _install_client(client: str, ctx: McpClientContext) -> dict[str, Any]:
+    if client == "codex":
         return _install_codex(ctx)
-    if agent == "claude":
-        return _install_cli_agent("claude", ["claude", "mcp", "add", "--transport", "stdio", "lovart", "--scope", "user", "--", str(ctx.lovart_path), "mcp"], ctx)
-    if agent == "opencode":
+    if client == "claude":
+        return _install_cli_client("claude", ["claude", "mcp", "add", "--transport", "stdio", "lovart", "--scope", "user", "--", str(ctx.lovart_path), "mcp"], ctx)
+    if client == "opencode":
         return _install_opencode(ctx)
-    if agent == "openclaw":
-        return _install_cli_agent("openclaw", ["openclaw", "mcp", "set", "lovart", _openclaw_payload(ctx)], ctx)
-    raise LovartError("input_error", "unknown agent", {"agent": agent}, 2)
+    if client == "openclaw":
+        return _install_cli_client("openclaw", ["openclaw", "mcp", "set", "lovart", _openclaw_payload(ctx)], ctx)
+    raise LovartError("input_error", "unknown MCP client", {"client": client}, 2)
 
 
-def _codex_config_path(ctx: AgentContext) -> Path:
+def _codex_config_path(ctx: McpClientContext) -> Path:
     return ctx.home / ".codex" / "config.toml"
 
 
-def _codex_block(ctx: AgentContext) -> str:
+def _codex_block(ctx: McpClientContext) -> str:
     return "\n".join(
         [
             MANAGED_MARKER,
@@ -149,21 +149,21 @@ def _codex_block(ctx: AgentContext) -> str:
     )
 
 
-def _codex_status(ctx: AgentContext) -> dict[str, Any]:
+def _codex_status(ctx: McpClientContext) -> dict[str, Any]:
     path = _codex_config_path(ctx)
     text = _read_text(path)
     configured = "[mcp_servers.lovart]" in text and str(ctx.lovart_path) in text and 'args = ["mcp"]' in text
     managed = MANAGED_MARKER in text and "[mcp_servers.lovart]" in text
-    return {"agent": "codex", "type": "file", "path": str(path), "exists": path.exists(), "configured": configured, "managed": managed}
+    return {"client": "codex", "type": "file", "path": str(path), "exists": path.exists(), "configured": configured, "managed": managed}
 
 
-def _install_codex(ctx: AgentContext) -> dict[str, Any]:
+def _install_codex(ctx: McpClientContext) -> dict[str, Any]:
     path = _codex_config_path(ctx)
     text = _read_text(path)
     has_block = "[mcp_servers.lovart]" in text
     managed = MANAGED_MARKER in text and has_block
     if has_block and not managed and not ctx.force:
-        raise ConfigConflictError("existing unmanaged Codex Lovart MCP config", {"agent": "codex", "path": str(path), "recommended_actions": ["rerun with --force", "edit the config manually"]})
+        raise ConfigConflictError("existing unmanaged Codex Lovart MCP config", {"client": "codex", "path": str(path), "recommended_actions": ["rerun with --force", "edit the config manually"]})
     next_text = _replace_toml_lovart_block(text, _codex_block(ctx))
     return _write_config_result("codex", path, next_text, ctx, preview={"toml": _codex_block(ctx)})
 
@@ -186,57 +186,57 @@ def _replace_toml_lovart_block(text: str, block: str) -> str:
     return "\n".join(new_lines).rstrip() + "\n"
 
 
-def _opencode_config_path(ctx: AgentContext) -> Path:
+def _opencode_config_path(ctx: McpClientContext) -> Path:
     return ctx.home / ".config" / "opencode" / "opencode.json"
 
 
-def _opencode_status(ctx: AgentContext) -> dict[str, Any]:
+def _opencode_status(ctx: McpClientContext) -> dict[str, Any]:
     path = _opencode_config_path(ctx)
     data = _read_json(path)
     config = (data.get("mcp") or {}).get("lovart") if isinstance(data, dict) else None
     configured = isinstance(config, dict) and config.get("command") == [str(ctx.lovart_path), "mcp"] and config.get("enabled") is True
     managed = isinstance(config, dict) and config.get("managed_by") == "lovart-reverse"
-    return {"agent": "opencode", "type": "file", "path": str(path), "exists": path.exists(), "configured": configured, "managed": managed}
+    return {"client": "opencode", "type": "file", "path": str(path), "exists": path.exists(), "configured": configured, "managed": managed}
 
 
-def _install_opencode(ctx: AgentContext) -> dict[str, Any]:
+def _install_opencode(ctx: McpClientContext) -> dict[str, Any]:
     path = _opencode_config_path(ctx)
     data = _read_json(path)
     mcp = data.setdefault("mcp", {})
     existing = mcp.get("lovart")
     if existing and not (isinstance(existing, dict) and existing.get("managed_by") == "lovart-reverse") and not ctx.force:
-        raise ConfigConflictError("existing unmanaged OpenCode Lovart MCP config", {"agent": "opencode", "path": str(path), "recommended_actions": ["rerun with --force", "edit the config manually"]})
+        raise ConfigConflictError("existing unmanaged OpenCode Lovart MCP config", {"client": "opencode", "path": str(path), "recommended_actions": ["rerun with --force", "edit the config manually"]})
     mcp["lovart"] = {"type": "local", "command": [str(ctx.lovart_path), "mcp"], "enabled": True, "managed_by": "lovart-reverse"}
     text = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
     return _write_config_result("opencode", path, text, ctx, preview={"json": mcp["lovart"]})
 
 
-def _install_cli_agent(agent: str, command: list[str], ctx: AgentContext) -> dict[str, Any]:
+def _install_cli_client(client: str, command: list[str], ctx: McpClientContext) -> dict[str, Any]:
     executable = command[0]
     available = shutil.which(executable) is not None
-    result = {"agent": agent, "type": "command", "available": available, "command": command, "manual_command": _shell_join(command), "changed": False}
+    result = {"client": client, "type": "command", "available": available, "command": command, "manual_command": _shell_join(command), "changed": False}
     if ctx.dry_run or not available:
         result["status"] = "dry_run" if ctx.dry_run else "manual_required"
         return result
     completed = subprocess.run(command, capture_output=True, text=True, check=False)
     result.update({"status": "configured" if completed.returncode == 0 else "failed", "changed": completed.returncode == 0, "returncode": completed.returncode, "stderr": completed.stderr[-2000:], "stdout": completed.stdout[-2000:]})
     if completed.returncode != 0:
-        raise LovartError("agent_config_failed", f"{agent} MCP configuration failed", result, 2)
+        raise LovartError("mcp_config_failed", f"{client} MCP configuration failed", result, 2)
     return result
 
 
-def _command_status(agent: str, command: list[str]) -> dict[str, Any]:
+def _command_status(client: str, command: list[str]) -> dict[str, Any]:
     available = shutil.which(command[0]) is not None
-    return {"agent": agent, "type": "command", "available": available, "configured": None, "manual_command": _shell_join(command)}
+    return {"client": client, "type": "command", "available": available, "configured": None, "manual_command": _shell_join(command)}
 
 
-def _openclaw_payload(ctx: AgentContext) -> str:
+def _openclaw_payload(ctx: McpClientContext) -> str:
     return json.dumps({"command": str(ctx.lovart_path), "args": ["mcp"]}, separators=(",", ":"))
 
 
-def _write_config_result(agent: str, path: Path, text: str, ctx: AgentContext, *, preview: dict[str, Any]) -> dict[str, Any]:
+def _write_config_result(client: str, path: Path, text: str, ctx: McpClientContext, *, preview: dict[str, Any]) -> dict[str, Any]:
     backup = _backup_path(path)
-    result = {"agent": agent, "type": "file", "path": str(path), "backup": str(backup), "changed": False, "dry_run": ctx.dry_run, "preview": preview}
+    result = {"client": client, "type": "file", "path": str(path), "backup": str(backup), "changed": False, "dry_run": ctx.dry_run, "preview": preview}
     if ctx.dry_run:
         result["status"] = "dry_run"
         return result

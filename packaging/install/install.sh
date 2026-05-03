@@ -4,7 +4,7 @@ set -euo pipefail
 REPO="aporicho/lovart-reverse"
 VERSION="latest"
 INSTALL_DIR="${HOME}/.local/bin"
-AGENTS="auto"
+MCP_CLIENTS="auto"
 YES=0
 FORCE=0
 DRY_RUN=0
@@ -18,7 +18,7 @@ Options:
   --repo OWNER/REPO
   --version latest|vX.Y.Z
   --install-dir PATH
-  --agents auto|all|none|codex,claude,opencode,openclaw
+  --mcp-clients auto|all|none|codex,claude,opencode,openclaw
   --yes
   --force
   --dry-run
@@ -41,14 +41,14 @@ emit_json() {
   local message="$2"
   local asset="${3:-}"
   local path="${4:-}"
-  printf '{"ok":%s,"message":%s,"data":{"repo":%s,"version":%s,"asset":%s,"install_path":%s,"agents":%s,"dry_run":%s}}\n' \
+  printf '{"ok":%s,"message":%s,"data":{"repo":%s,"version":%s,"asset":%s,"install_path":%s,"mcp_clients":%s,"dry_run":%s}}\n' \
     "$ok" \
     "$(json_escape "$message")" \
     "$(json_escape "$REPO")" \
     "$(json_escape "$VERSION")" \
     "$(json_escape "$asset")" \
     "$(json_escape "$path")" \
-    "$(json_escape "$AGENTS")" \
+    "$(json_escape "$MCP_CLIENTS")" \
     "$([ "$DRY_RUN" -eq 1 ] && echo true || echo false)"
 }
 
@@ -72,7 +72,7 @@ while [ "$#" -gt 0 ]; do
     --repo) REPO="$2"; shift 2 ;;
     --version) VERSION="$2"; shift 2 ;;
     --install-dir) INSTALL_DIR="$2"; shift 2 ;;
-    --agents) AGENTS="$2"; shift 2 ;;
+    --mcp-clients) MCP_CLIENTS="$2"; shift 2 ;;
     --yes) YES=1; shift ;;
     --force) FORCE=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
@@ -100,7 +100,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
   else
     log "Would download ${ASSET} from ${REPO} (${VERSION})"
     log "Would install to ${INSTALL_PATH}"
-    log "Would run: ${INSTALL_PATH} agent install --agents ${AGENTS} --yes"
+    log "Would run: ${INSTALL_PATH} mcp install --clients ${MCP_CLIENTS} --yes"
   fi
   exit 0
 fi
@@ -109,7 +109,7 @@ command -v gh >/dev/null 2>&1 || fail "gh CLI is required; install GitHub CLI an
 gh auth status >/dev/null 2>&1 || fail "gh is not authenticated; run gh auth login"
 
 if [ "$YES" -ne 1 ]; then
-  printf 'Install Lovart to %s and configure agents "%s"? [y/N] ' "$INSTALL_PATH" "$AGENTS"
+  printf 'Install Lovart to %s and configure MCP clients "%s"? [y/N] ' "$INSTALL_PATH" "$MCP_CLIENTS"
   read -r answer
   case "$answer" in
     y|Y|yes|YES) ;;
@@ -165,12 +165,12 @@ chmod +x "$INSTALL_PATH"
 "$INSTALL_PATH" --version >/dev/null
 "$INSTALL_PATH" self-test >/dev/null
 
-if [ "$AGENTS" != "none" ]; then
-  AGENT_ARGS=("$INSTALL_PATH" "agent" "install" "--agents" "$AGENTS" "--yes")
+if [ "$MCP_CLIENTS" != "none" ]; then
+  MCP_ARGS=("$INSTALL_PATH" "mcp" "install" "--clients" "$MCP_CLIENTS" "--yes")
   if [ "$FORCE" -eq 1 ]; then
-    AGENT_ARGS+=("--force")
+    MCP_ARGS+=("--force")
   fi
-  "${AGENT_ARGS[@]}" >/dev/null
+  "${MCP_ARGS[@]}" >/dev/null
 fi
 
 if ! command -v lovart >/dev/null 2>&1 && [[ ":$PATH:" != *":${INSTALL_DIR}:"* ]]; then
