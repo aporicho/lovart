@@ -22,6 +22,7 @@ from lovart_reverse.paths import ROOT
 from lovart_reverse.planning import plan_for_model
 from lovart_reverse.pricing.account import balance_summary, time_variant_summary
 from lovart_reverse.pricing.estimator import estimate
+from lovart_reverse.pricing.quote import quote
 from lovart_reverse.pricing.table import fetch_pricing_rows, rows_as_json
 from lovart_reverse.registry import load_ref_registry, model_records, request_schema, validate_body
 from lovart_reverse.setup import setup_status
@@ -80,6 +81,13 @@ def cmd_price(args: argparse.Namespace) -> dict[str, Any]:
         result["balance"] = balance_summary()
     if args.with_time_variant:
         result["time_variant"] = time_variant_summary()
+    result["schema_errors"] = _schema_validation(args.model, body)
+    return result
+
+
+def cmd_quote(args: argparse.Namespace) -> dict[str, Any]:
+    body = _load_body_args(args)
+    result = quote(args.model, body, language=args.language)
     result["schema_errors"] = _schema_validation(args.model, body)
     return result
 
@@ -239,6 +247,11 @@ def build_parser() -> argparse.ArgumentParser:
     price.add_argument("--with-balance", action="store_true")
     price.add_argument("--with-time-variant", action="store_true")
 
+    quote_cmd = sub.add_parser("quote")
+    quote_cmd.add_argument("model")
+    _add_body_args(quote_cmd)
+    quote_cmd.add_argument("--language", default="en")
+
     free = sub.add_parser("free")
     free.add_argument("model")
     _add_body_args(free)
@@ -295,6 +308,8 @@ def dispatch(args: argparse.Namespace) -> dict[str, Any]:
         return cmd_schema(args)
     if args.command == "price":
         return cmd_price(args)
+    if args.command == "quote":
+        return cmd_quote(args)
     if args.command == "free":
         return cmd_free(args)
     if args.command == "generate":

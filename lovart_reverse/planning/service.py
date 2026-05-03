@@ -8,7 +8,7 @@ from typing import Any
 from lovart_reverse.config import config_for_model
 from lovart_reverse.entitlement import free_check
 from lovart_reverse.errors import InputError
-from lovart_reverse.pricing.estimator import estimate
+from lovart_reverse.pricing.quote import quote_or_estimate
 from lovart_reverse.pricing.table import PriceRow, fetch_pricing_rows
 from lovart_reverse.pricing.traits import bucket_rank, size_bucket
 from lovart_reverse.registry import load_ref_registry, validate_body
@@ -254,7 +254,7 @@ def _route(
 ) -> dict[str, Any]:
     body_patch = {key: value for key, value in desired_patch.items() if key not in base_body}
     body = {**base_body, **body_patch}
-    pricing = estimate(model, body, rows)
+    pricing = quote_or_estimate(model, body, rows, live=live)
     entitlement = _safe_free_check(model, body, mode, live)
     zero_credit = bool(entitlement.get("zero_credit"))
     estimated = bool(pricing.get("estimated"))

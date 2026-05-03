@@ -6,7 +6,7 @@ from typing import Any
 
 from lovart_reverse.entitlement import free_check
 from lovart_reverse.errors import CreditRiskError, UnknownPricingError
-from lovart_reverse.pricing.estimator import estimate
+from lovart_reverse.pricing.quote import quote_or_estimate
 from lovart_reverse.pricing.table import PriceRow
 
 
@@ -20,9 +20,10 @@ def generation_gate(
     live: bool = True,
 ) -> dict[str, Any]:
     entitlement = free_check(model, body, mode=mode, live=live)
-    pricing = estimate(model, body, rows)
-    allowed = bool(entitlement.get("zero_credit"))
-    reason = "zero_credit_entitlement" if allowed else ""
+    pricing = quote_or_estimate(model, body, rows, live=live)
+    quoted_zero_credit = bool(pricing.get("quoted") and float(pricing.get("credits") or 0) == 0)
+    allowed = bool(entitlement.get("zero_credit") or quoted_zero_credit)
+    reason = "quote_zero_credit" if quoted_zero_credit else ("zero_credit_entitlement" if allowed else "")
     if allowed:
         return {"allowed": True, "reason": reason, "entitlement": entitlement, "pricing": pricing}
     if not pricing.get("estimated"):

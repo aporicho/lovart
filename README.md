@@ -25,6 +25,7 @@ List models and inspect exact legal config values:
 lovart models
 lovart config openai/gpt-image-2
 lovart plan openai/gpt-image-2 --intent image-concept
+lovart quote openai/gpt-image-2 --body-file request.json
 ```
 
 If setup reports missing auth, capture a browser request and extract credentials:
@@ -87,6 +88,7 @@ lovart setup
 lovart models
 lovart config openai/gpt-image-2
 lovart plan openai/gpt-image-2 --intent image-concept
+lovart quote openai/gpt-image-2 --body-file request.json
 lovart config --global
 lovart schema openai/gpt-image-2
 lovart price openai/gpt-image-2 --body-file request.json --batch 10

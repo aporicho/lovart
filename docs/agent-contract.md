@@ -27,6 +27,7 @@ lovart setup
 lovart models
 lovart config openai/gpt-image-2
 lovart plan openai/gpt-image-2 --intent image-concept
+lovart quote openai/gpt-image-2 --body-file request.json
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
 ```
@@ -89,6 +90,18 @@ lovart plan openai/gpt-image-2 --offline
 ```
 
 Each route includes `body_patch`, `request_body`, `estimated_credits`, `zero_credit`, `requires_paid_confirmation`, `constraints`, and `user_message`. `body_patch` never fabricates free-input fields such as `prompt` or reference image URLs. Agents merge `body_patch` with user-provided free input before running `generate --dry-run`.
+
+## Exact Quote
+
+`lovart quote <model> --body-file request.json` calls Lovart's signed `POST /v1/generator/pricing` endpoint. Use it before stating exact credit cost.
+
+The quote response includes:
+
+- `credits`: exact pre-submit credit cost shown by Lovart.
+- `balance`: current account balance returned by Lovart.
+- `price_detail`: Lovart's cost breakdown, including normalized resolution, unit price, unit count, and surcharge fields.
+
+Agents may use `plan` to present candidate routes, but must use `quote` for exact cost and budget confirmation.
 
 ## Preflight Fields
 

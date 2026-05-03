@@ -14,6 +14,7 @@ class DocsTest(unittest.TestCase):
             "lovart setup",
             "lovart config",
             "lovart plan",
+            "lovart quote",
             "lovart generate",
             "lovart update sync --metadata-only",
             "lovart reverse capture",
