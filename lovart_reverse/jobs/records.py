@@ -9,6 +9,7 @@ from typing import Any
 from lovart_reverse.errors import InputError
 
 VALID_MODES = {"auto", "fast", "relax"}
+QUANTITY_BODY_FIELDS = {"n", "max_images", "count"}
 
 
 def load_job_records(jobs_file: Path) -> list[dict[str, Any]]:
@@ -75,6 +76,8 @@ def _validate_records(records: list[Any], path: Path) -> list[dict[str, Any]]:
         model = raw.get("model")
         body = raw.get("body")
         mode = raw.get("mode", "auto")
+        outputs_supplied = "outputs" in raw
+        outputs = raw.get("outputs", 1)
         if not isinstance(job_id, str) or not job_id.strip():
             raise InputError("job_id is required for every job", {"jobs_file": str(path), "index": index})
         if job_id in seen:
@@ -88,6 +91,18 @@ def _validate_records(records: list[Any], path: Path) -> list[dict[str, Any]]:
             )
         if not isinstance(body, dict):
             raise InputError("body must be a JSON object for every job", {"jobs_file": str(path), "job_id": job_id})
+        if not isinstance(outputs, int) or isinstance(outputs, bool) or outputs < 1:
+            raise InputError(
+                "outputs must be a positive integer",
+                {"jobs_file": str(path), "job_id": job_id, "outputs": outputs},
+            )
+        if outputs_supplied:
+            conflicting = sorted(QUANTITY_BODY_FIELDS & set(body))
+            if conflicting:
+                raise InputError(
+                    "outputs cannot be combined with quantity fields inside body",
+                    {"jobs_file": str(path), "job_id": job_id, "conflicting_fields": conflicting},
+                )
         seen.add(job_id)
         validated.append(
             {
@@ -95,6 +110,8 @@ def _validate_records(records: list[Any], path: Path) -> list[dict[str, Any]]:
                 "title": raw.get("title"),
                 "model": model,
                 "mode": mode,
+                "outputs": outputs,
+                "outputs_explicit": outputs_supplied,
                 "body": body,
             }
         )

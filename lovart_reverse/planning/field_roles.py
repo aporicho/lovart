@@ -7,6 +7,7 @@ from typing import Any
 COST_AFFECTING_FIELDS = {
     "n",
     "count",
+    "max_images",
     "quality",
     "size",
     "resolution",
@@ -24,7 +25,7 @@ COST_AFFECTING_FIELDS = {
     "video_list",
     "audio_list",
 }
-BATCH_RELEVANT_FIELDS = {"n", "count", "prompt", "image", "image_url", "image_list"}
+BATCH_RELEVANT_FIELDS = {"n", "count", "max_images", "prompt", "image", "image_url", "image_list"}
 MEDIA_INPUT_FIELDS = {
     "image",
     "image_url",
@@ -59,7 +60,7 @@ QUALITY_AFFECTING_FIELDS = {
     "input_fidelity",
 }
 SPEED_AFFECTING_FIELDS = {"mode", "duration"}
-QUANTITY_FIELDS = {"n", "count"}
+QUANTITY_FIELDS = {"n", "count", "max_images"}
 FORMAT_ONLY_FIELDS = {"output_format", "background", "moderation", "watermark", "sound", "generate_audio"}
 
 

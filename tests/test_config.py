@@ -45,6 +45,13 @@ class ConfigDiscoveryTest(unittest.TestCase):
         self.assertEqual(fields["image"]["maxItems"], 20)
         self.assertFalse(fields["prompt"]["enumerable"])
 
+    def test_seedream_max_images_is_quantity_field(self) -> None:
+        fields = field_map("seedream/seedream-5-0")
+        self.assertEqual(fields["max_images"]["minimum"], 1)
+        self.assertEqual(fields["max_images"]["maximum"], 15)
+        self.assertEqual(fields["max_images"]["route_role"], "quantity")
+        self.assertTrue(fields["max_images"]["batch_relevant"])
+
     def test_seedance_2_values_are_exhaustive(self) -> None:
         fields = field_map("seedance/seedance-2-0")
         self.assertEqual(fields["duration"]["values"], [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])

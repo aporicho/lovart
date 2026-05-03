@@ -32,6 +32,19 @@ class DocsTest(unittest.TestCase):
         self.assertIn("lovart jobs resume", text)
         self.assertIn("不读取 `.lovart/creds.json`", text)
 
+    def test_batch_docs_use_outputs_not_body_quantity(self) -> None:
+        text = "\n".join(
+            [
+                (ROOT / "AGENTS.md").read_text(),
+                (ROOT / "README.md").read_text(),
+                (ROOT / "docs" / "agent-contract.md").read_text(),
+                (ROOT / "docs" / "concepts" / "LovartCLI生成专家.md").read_text(),
+            ]
+        )
+        self.assertIn('"outputs":10', text)
+        self.assertIn("CLI", text)
+        self.assertNotIn('"n":1', text)
+
 
 if __name__ == "__main__":
     unittest.main()

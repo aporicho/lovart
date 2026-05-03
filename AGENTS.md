@@ -25,7 +25,7 @@ Use this flow when the user asks for a batch, a full prompt document, or many co
 1. Run `lovart setup`.
 2. Run `lovart plan --intent image-concept` and present the quality, cost, and speed routes.
 3. Call `lovart config <model>` for the selected model before writing model-specific fields.
-4. Convert the user's prompts into `runs/<project>/jobs.jsonl`; the user should not need to hand-write JSON.
+4. Convert the user's prompts into `runs/<project>/jobs.jsonl`; the user should not need to hand-write JSON. Each line is one concept-level job and should use top-level `outputs` for the number of images wanted.
 5. Run `lovart jobs quote runs/<project>/jobs.jsonl`.
 6. Report total credits, zero-credit jobs, paid jobs, and unknown-pricing jobs.
 7. Run `lovart jobs dry-run runs/<project>/jobs.jsonl`.
@@ -47,6 +47,7 @@ Use this flow when the user asks for a batch, a full prompt document, or many co
 - If the user requests a value outside `field.values`, explain that it is unsupported and show the legal values.
 - Do not ask users to pick raw size/quality before showing `lovart plan` routes.
 - For batches, do not submit one job before the whole batch has passed quote, dry-run, and budget checks.
+- For batches, do not manually split one concept into many JSONL rows. Use `outputs`, and let the CLI expand remote requests.
 - Do not rerun `jobs run` over an existing state with submitted tasks. Use `jobs resume` so existing `task_id` values are not submitted again.
 
 ## Config Discovery
@@ -61,7 +62,7 @@ For batch image generation, present values from config exactly:
 
 - Size/aspect fields: use only `values`.
 - Quality fields: use only `values`.
-- Count fields: use `minimum` and `maximum`.
+- Count fields: use top-level `outputs`; do not write `n`, `max_images`, or `count` inside job `body` when `outputs` is present.
 - Media fields: use `minItems` and `maxItems`.
 - Prompt fields: `enumerable=false`, so ask the user for content.
 

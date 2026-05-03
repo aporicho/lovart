@@ -21,6 +21,7 @@ FREE_BATCH_DEFAULTS = {
     "resolution": "1K",
     "n": 1,
     "count": 1,
+    "max_images": 1,
 }
 
 

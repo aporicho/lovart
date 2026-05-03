@@ -13,37 +13,22 @@ from lovart_reverse.jobs.records import default_run_dir, state_path
 TERMINAL_STATUSES = {"completed", "downloaded", "failed", "skipped"}
 
 
-def new_state(jobs_file: Path, jobs: list[dict[str, Any]], out_dir: Path | None = None) -> dict[str, Any]:
+def new_state(
+    jobs_file: Path,
+    jobs: list[dict[str, Any]],
+    out_dir: Path | None = None,
+    jobs_file_hash: str | None = None,
+) -> dict[str, Any]:
     run_dir = default_run_dir(jobs_file, out_dir)
     now = _now()
-    entries = []
-    for job in jobs:
-        entries.append(
-            {
-                "job_id": job["job_id"],
-                "title": job.get("title"),
-                "model": job["model"],
-                "mode": job["mode"],
-                "body": job["body"],
-                "status": "pending",
-                "quote": None,
-                "preflight": None,
-                "request": None,
-                "task_id": None,
-                "response": None,
-                "task": None,
-                "artifacts": [],
-                "downloads": [],
-                "errors": [],
-            }
-        )
     return {
         "jobs_file": str(jobs_file),
+        "jobs_file_hash": jobs_file_hash,
         "run_dir": str(run_dir),
         "state_file": str(state_path(run_dir)),
         "created_at": now,
         "updated_at": now,
-        "jobs": entries,
+        "jobs": jobs,
     }
 
 
@@ -72,40 +57,72 @@ def existing_state_has_remote_tasks(run_dir: Path) -> bool:
     jobs = data.get("jobs")
     if not isinstance(jobs, list):
         return False
-    return any(isinstance(job, dict) and job.get("task_id") for job in jobs)
+    for job in jobs:
+        if not isinstance(job, dict):
+            continue
+        if job.get("task_id"):
+            return True
+        remote_requests = job.get("remote_requests")
+        if isinstance(remote_requests, list) and any(isinstance(request, dict) and request.get("task_id") for request in remote_requests):
+            return True
+    return False
 
 
 def summarize_state(state: dict[str, Any]) -> dict[str, Any]:
     jobs = [job for job in state.get("jobs", []) if isinstance(job, dict)]
-    counts: dict[str, int] = {}
+    job_counts: dict[str, int] = {}
+    request_counts: dict[str, int] = {}
     total_credits = 0.0
     unknown_pricing = 0
-    paid_jobs = 0
-    zero_credit_jobs = 0
+    paid_requests = 0
+    zero_credit_requests = 0
+    remote_requests = _remote_requests(jobs)
     for job in jobs:
         status = str(job.get("status") or "unknown")
-        counts[status] = counts.get(status, 0) + 1
-        quote = job.get("quote")
+        job_counts[status] = job_counts.get(status, 0) + 1
+    for request in remote_requests:
+        status = str(request.get("status") or "unknown")
+        request_counts[status] = request_counts.get(status, 0) + 1
+        quote = request.get("quote")
         if isinstance(quote, dict) and quote.get("quoted"):
             credits = float(quote.get("credits") or 0)
             total_credits += credits
             if credits == 0:
-                zero_credit_jobs += 1
+                zero_credit_requests += 1
             else:
-                paid_jobs += 1
+                paid_requests += 1
         else:
             unknown_pricing += 1
     failed = [job for job in jobs if job.get("status") == "failed"]
+    requested_outputs = sum(int(job.get("outputs") or 1) for job in jobs)
     return {
+        "logical_jobs": len(jobs),
         "total_jobs": len(jobs),
-        "status_counts": counts,
+        "remote_requests": len(remote_requests),
+        "requested_outputs": requested_outputs,
+        "status_counts": job_counts,
+        "remote_status_counts": request_counts,
         "total_credits": total_credits,
-        "zero_credit_jobs": zero_credit_jobs,
-        "paid_jobs": paid_jobs,
+        "zero_credit_jobs": zero_credit_requests,
+        "paid_jobs": paid_requests,
+        "zero_credit_remote_requests": zero_credit_requests,
+        "paid_remote_requests": paid_requests,
         "unknown_pricing_jobs": unknown_pricing,
+        "unknown_pricing_remote_requests": unknown_pricing,
         "failed_jobs": len(failed),
         "complete": len(jobs) > 0 and all(job.get("status") in TERMINAL_STATUSES for job in jobs),
     }
+
+
+def _remote_requests(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    requests: list[dict[str, Any]] = []
+    for job in jobs:
+        remote_requests = job.get("remote_requests")
+        if isinstance(remote_requests, list):
+            requests.extend(request for request in remote_requests if isinstance(request, dict))
+        else:
+            requests.append(job)
+    return requests
 
 
 def _now() -> str:

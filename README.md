@@ -66,11 +66,13 @@ lovart generate openai/gpt-image-2 --body-file request.json --mode auto --allow-
 
 ## Batch Quickstart
 
-Agents convert prompt documents into `jobs.jsonl`; humans should not need to hand-write batch JSON. Each line is one Lovart generation request:
+Agents convert prompt documents into `jobs.jsonl`; humans should not need to hand-write batch JSON. Each line is one user-level concept job, not necessarily one Lovart remote request:
 
 ```json
-{"job_id":"001","title":"青竹峰晨雾中的韩立","model":"openai/gpt-image-2","mode":"auto","body":{"prompt":"...","quality":"high","size":"1024*1024","n":1}}
+{"job_id":"001","title":"青竹峰晨雾中的韩立","model":"seedream/seedream-5-0","mode":"relax","outputs":10,"body":{"prompt":"...","aspect_ratio":"4:3","resolution":"2K","response_format":"url","watermark":false}}
 ```
+
+When `outputs` is present, the CLI maps it to the model's quantity field (`n`, `max_images`, or `count`) and splits into multiple remote requests only when needed.
 
 Quote, dry-run, submit the whole batch, then wait and download:
 

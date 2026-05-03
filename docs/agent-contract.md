@@ -139,11 +139,13 @@ Downloads are written to `downloads/<task_id>/`.
 
 `lovart jobs` is the stable local queue interface for batch generation. It does not require Lovart to expose a native batch endpoint. Agents build a JSONL file and let the CLI manage quote, dry-run, submission, task polling, downloads, and resume.
 
-Each JSONL line is one job:
+Each JSONL line is one user-level concept job. `outputs` is the desired number of images for that concept; the CLI maps it to the model's quantity field (`n`, `max_images`, or `count`) and splits into multiple remote requests only when needed.
 
 ```json
-{"job_id":"001","title":"青竹峰晨雾中的韩立","model":"openai/gpt-image-2","mode":"auto","body":{"prompt":"...","quality":"high","size":"1024*1024","n":1}}
+{"job_id":"001","title":"青竹峰晨雾中的韩立","model":"seedream/seedream-5-0","mode":"relax","outputs":10,"body":{"prompt":"...","aspect_ratio":"4:3","resolution":"2K","response_format":"url","watermark":false}}
 ```
+
+When `outputs` is present, `body` must not include `n`, `max_images`, or `count`. Agents express how many images are wanted; they do not manually split 100 concepts into 1000 low-level jobs.
 
 Commands:
 
@@ -156,9 +158,9 @@ lovart jobs status runs/fanren
 lovart jobs resume runs/fanren/jobs.jsonl --wait --download
 ```
 
-`jobs run` uses a two-stage contract: the entire batch must pass schema validation, live quote, update/signing readiness, and paid-budget gate before any job is submitted. After that, all pending jobs are submitted first; once task IDs are recorded, the CLI polls and downloads results.
+`jobs run` uses a two-stage contract: the entire expanded batch must pass schema validation, live quote, update/signing readiness, and paid-budget gate before any remote request is submitted. After that, all pending remote requests are submitted first; once task IDs are recorded, the CLI polls and downloads results.
 
-Batch state is stored at `runs/<project>/jobs_state.json`. Agents must use `jobs resume` after interruption so submitted jobs with existing `task_id` values are not submitted again.
+Batch state is stored at `runs/<project>/jobs_state.json` with a hash of the source jobs file. Agents must use `jobs resume` after interruption so submitted jobs with existing `task_id` values are not submitted again. If the jobs file changed, resume is refused to avoid mismatching task IDs.
 
 Batch statuses:
 
@@ -170,7 +172,7 @@ Batch statuses:
 - `failed`
 - `skipped`
 
-The jobs envelope includes `summary`, `batch_gate`, `submitted`, `tasks`, `downloads`, `failed`, `timed_out`, `state_file`, and full per-job state.
+The jobs envelope includes `summary.logical_jobs`, `summary.remote_requests`, `summary.requested_outputs`, `batch_gate`, `submitted`, `remote_requests`, `tasks`, `downloads`, `failed`, `timed_out`, `state_file`, and full per-job state.
 
 ## Paid Safety
 

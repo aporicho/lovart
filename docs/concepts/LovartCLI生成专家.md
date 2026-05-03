@@ -10,7 +10,7 @@ Lovart CLI 生成专家负责把用户的自然语言目标、概念设计文档
 - 使用 `lovart config <model>` 读取模型支持的全部合法配置值。
 - 使用 `lovart quote` 或 `lovart jobs quote` 获取真实积分消耗。
 - 把用户目标和提示词文档转换成 Lovart request body。
-- 批量任务必须生成 `jobs.jsonl`，再交给 `lovart jobs` 执行。
+- 批量任务必须生成用户级 `jobs.jsonl`，再交给 `lovart jobs` 执行。
 - 出错时使用 `jobs status` 和 `jobs resume` 恢复，不重复提交已有 `task_id` 的任务。
 
 ## 不可违反的规则
@@ -45,6 +45,8 @@ lovart generate <model> --body-file request.json --mode auto --wait --download
 
 当用户说“生成一批图”“做 100 张概念图”“把这个提示词文档都跑一遍”时，专家负责生成本地批量任务文件，用户不需要手写 JSON。
 
+批量任务一行代表一个概念或一个用户级任务，不代表一张图。如果每个概念要 10 张，agent 写顶层 `outputs: 10`，不得手动拆成 10 行。
+
 ```bash
 lovart setup
 lovart plan --intent image-concept
@@ -57,7 +59,8 @@ lovart jobs resume runs/fanren/jobs.jsonl --wait --download
 
 批量执行语义：
 
-- 先整批校验 schema/config。
+- 先把用户级 jobs 展开为 Lovart remote requests。
+- 再整批校验 schema/config。
 - 再整批 live quote。
 - 再计算总积分和 paid gate。
 - 全部通过后，提交所有 job。
@@ -74,10 +77,10 @@ lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wa
 
 ## jobs.jsonl 结构
 
-每行是一个生成任务：
+每行是一个用户级生成任务：
 
 ```json
-{"job_id":"001","title":"青竹峰晨雾中的韩立","model":"openai/gpt-image-2","mode":"auto","body":{"prompt":"...","quality":"high","size":"1024*1024","n":1}}
+{"job_id":"001","title":"青竹峰晨雾中的韩立","model":"seedream/seedream-5-0","mode":"relax","outputs":10,"body":{"prompt":"...","aspect_ratio":"4:3","resolution":"2K","response_format":"url","watermark":false}}
 ```
 
 字段说明：
@@ -86,7 +89,10 @@ lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wa
 - `title`：给人看的标题。
 - `model`：Lovart 模型名，必须来自 `lovart models` 或 `lovart plan`。
 - `mode`：`auto`、`fast`、`relax` 之一。
+- `outputs`：该概念需要生成的图片数量。CLI 会映射到模型合法数量字段，例如 `n` 或 `max_images`。
 - `body`：模型请求体，所有可枚举参数必须来自 `lovart config <model>`。
+
+当使用 `outputs` 时，`body` 里不要再写 `n`、`max_images`、`count`。这些字段由 CLI 自动填充或拆分。
 
 ## 100 张概念设计图标准工作流
 
@@ -95,7 +101,7 @@ lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wa
 3. 运行 `lovart setup`。
 4. 运行 `lovart plan --intent image-concept`，给用户展示质量最高、花钱最少、速度最快三条路线。
 5. 用户选定路线后，运行 `lovart config <model>`，只使用合法配置值。
-6. 把 100 条提示词转换成 `runs/<project>/jobs.jsonl`。
+6. 把 100 条提示词转换成 `runs/<project>/jobs.jsonl`，每条一行，若每个概念要 10 张则写 `outputs: 10`。
 7. 运行 `lovart jobs quote`，报告总积分、0 积分任务数、付费任务数、未知报价任务数。
 8. 运行 `lovart jobs dry-run`，确认整批请求可提交。
 9. 若全部 0 积分，执行 `lovart jobs run ... --wait --download`。
