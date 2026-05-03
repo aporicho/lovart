@@ -7,6 +7,19 @@ from typing import Any
 from lovart_reverse.http.client import lgw_request
 
 
+def _float_or_none(value: Any) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _listed_credits(price_detail: Any) -> float | None:
+    if not isinstance(price_detail, dict):
+        return None
+    return _float_or_none(price_detail.get("total_price"))
+
+
 def quote(model: str, body: dict[str, Any], *, language: str = "en") -> dict[str, Any]:
     """Ask Lovart for the exact pre-submit credit quote shown by the web UI."""
 
@@ -20,17 +33,23 @@ def quote(model: str, body: dict[str, Any], *, language: str = "en") -> dict[str
     if not isinstance(quoted, dict):
         return {"model": model, "quoted": False, "raw": data, "warnings": ["quote response did not contain data"]}
     price = quoted.get("price")
-    try:
-        credits = float(price)
-    except (TypeError, ValueError):
-        credits = None
+    price_detail = quoted.get("price_detail")
+    credits = _float_or_none(price)
+    listed_credits = _listed_credits(price_detail)
     return {
         "model": model,
         "quoted": credits is not None,
         "credits": credits,
+        "payable_credits": credits,
+        "listed_credits": listed_credits,
+        "credit_basis": {
+            "payable_credits": "data.price",
+            "listed_credits": "data.price_detail.total_price",
+            "summary_total_credits": "payable_credits",
+        },
         "balance": quoted.get("balance"),
         "price": price,
-        "price_detail": quoted.get("price_detail"),
+        "price_detail": price_detail,
         "raw": data,
         "warnings": [],
     }

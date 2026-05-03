@@ -16,7 +16,7 @@ from lovart_reverse.discovery import generator_list
 from lovart_reverse.downloads import download_artifacts
 from lovart_reverse.generation import dry_run_request, find_task_id, generation_preflight, submit_model
 from lovart_reverse.io_json import hash_bytes
-from lovart_reverse.jobs import dry_run_jobs, quote_jobs, resume_jobs, run_jobs, status_jobs
+from lovart_reverse.jobs import dry_run_jobs, quote_jobs, quote_status, resume_jobs, run_jobs, status_jobs
 from lovart_reverse.paths import (
     PACKAGE_DIR,
     GENERATOR_SCHEMA_FILE,
@@ -244,8 +244,27 @@ def generate_command(
     return data
 
 
-def jobs_quote_command(jobs_file: Path, out_dir: Path | None = None, language: str = "en") -> dict[str, Any]:
-    return quote_jobs(jobs_file, out_dir=out_dir, language=language)
+def jobs_quote_command(
+    jobs_file: Path,
+    out_dir: Path | None = None,
+    language: str = "en",
+    *,
+    detail: str = "summary",
+    concurrency: int = 2,
+    limit: int | None = None,
+    refresh: bool = False,
+    progress: bool = True,
+) -> dict[str, Any]:
+    return quote_jobs(
+        jobs_file,
+        out_dir=out_dir,
+        language=language,
+        detail=detail,
+        concurrency=concurrency,
+        limit=limit,
+        refresh=refresh,
+        progress=progress,
+    )
 
 
 def jobs_dry_run_command(
@@ -292,6 +311,10 @@ def jobs_run_command(
 
 def jobs_status_command(run_dir: Path) -> dict[str, Any]:
     return status_jobs(run_dir)
+
+
+def jobs_quote_status_command(run_dir: Path) -> dict[str, Any]:
+    return quote_status(run_dir)
 
 
 def jobs_resume_command(

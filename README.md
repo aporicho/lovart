@@ -162,7 +162,8 @@ Batch flow:
 lovart setup
 lovart plan --intent image-concept
 lovart config seedream/seedream-5-0
-lovart jobs quote runs/fanren/jobs.jsonl
+lovart jobs quote runs/fanren/jobs.jsonl --limit 25
+lovart jobs quote-status runs/fanren
 lovart jobs dry-run runs/fanren/jobs.jsonl
 lovart jobs run runs/fanren/jobs.jsonl --wait --download
 lovart jobs status runs/fanren
@@ -201,7 +202,17 @@ If a route has `quote.exact=true`, its credits are exact. If false, run `lovart 
 - If a model supports only 4 outputs per request, `outputs:10` becomes `4 + 4 + 2`.
 - If a model has no quantity field, `outputs:10` becomes 10 single-output remote requests.
 
-State is stored in `runs/<project>/jobs_state.json`. Quote reports are stored in `runs/<project>/jobs_quote.json`. Downloads are saved under `downloads/<task_id>/`.
+Generation state is stored in `runs/<project>/jobs_state.json`. Quote progress is stored in `runs/<project>/jobs_quote_state.json`. The default quote report at `runs/<project>/jobs_quote.json` is lightweight; full quote detail is stored in `runs/<project>/jobs_quote_full.json`.
+
+`lovart jobs quote` defaults to a lightweight summary and does not echo prompts or full request bodies to stdout. Use `--detail requests` for compact per-request status, and `--detail full` only when you really need the complete expanded jobs and quote raw data.
+
+For large batches, use `--limit N` and rerun the same command until `summary.pending_quote_remote_requests` is `0`. The command resumes from `jobs_quote_state.json`; if `jobs.jsonl` changes, rerun with `--refresh`.
+
+Batch quote credit fields:
+
+- `summary.total_credits` equals `summary.total_payable_credits`.
+- `payable_credits` comes from Lovart `data.price` and is the actual current-account spend used by gates.
+- `listed_credits` comes from `price_detail.total_price` and is the detail/list price, not the actual spend.
 
 ## Error Handling
 

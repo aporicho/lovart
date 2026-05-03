@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
+import json
+import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from lovart_reverse.downloads import download_artifacts
 from lovart_reverse.errors import CreditRiskError, InputError, LovartError, SchemaInvalidError, UnknownPricingError
 from lovart_reverse.generation import dry_run_request, find_task_id, generation_preflight, submit_model
-from lovart_reverse.io_json import hash_bytes, write_json
+from lovart_reverse.io_json import hash_bytes, read_json, write_json
 from lovart_reverse.jobs.expansion import expand_jobs
-from lovart_reverse.jobs.records import default_run_dir, load_job_records, quote_path
+from lovart_reverse.jobs.records import default_run_dir, load_job_records, quote_full_path, quote_path, quote_state_path
 from lovart_reverse.jobs.state import (
     existing_state_has_remote_tasks,
     load_state,
@@ -28,34 +32,84 @@ COMPLETED_REMOTE_STATUSES = {"complete", "completed", "done", "finished", "succe
 FAILED_REMOTE_STATUSES = {"cancelled", "canceled", "error", "failed", "failure", "rejected"}
 
 
-def quote_jobs(jobs_file: Path, out_dir: Path | None = None, language: str = "en") -> dict[str, Any]:
-    jobs = _expanded_jobs(jobs_file)
+def quote_jobs(
+    jobs_file: Path,
+    out_dir: Path | None = None,
+    language: str = "en",
+    *,
+    detail: str = "summary",
+    concurrency: int = 2,
+    limit: int | None = None,
+    refresh: bool = False,
+    progress: bool = True,
+) -> dict[str, Any]:
     run_dir = default_run_dir(jobs_file, out_dir)
+    if detail not in {"summary", "requests", "full"}:
+        raise InputError("unknown quote detail mode", {"detail": detail, "allowed": ["summary", "requests", "full"]})
+    warnings: list[str] = []
+    concurrency, concurrency_warnings = _quote_concurrency(concurrency)
+    warnings.extend(concurrency_warnings)
+    if limit is not None and limit < 1:
+        raise InputError("--limit must be a positive integer", {"limit": limit})
+    state = _quote_state(jobs_file, run_dir, refresh=refresh)
     registry = load_ref_registry()
-    for _, request in _iter_remote_requests(jobs):
-        schema_errors = validate_body(registry, request["model"], request["body"])
-        request["schema_errors"] = schema_errors
-        if schema_errors:
-            request["quote"] = {
-                "model": request["model"],
-                "quoted": False,
-                "credits": None,
-                "warnings": ["schema validation failed; quote skipped"],
-            }
-        else:
-            request["quote"] = _safe_quote(request["model"], request["body"], language=language)
-    _refresh_job_statuses(jobs)
-    report = {
-        "jobs_file": str(jobs_file),
-        "jobs_file_hash": _jobs_file_hash(jobs_file),
-        "run_dir": str(run_dir),
-        "quote_file": str(quote_path(run_dir)),
-        "summary": _quote_summary(jobs),
-        "jobs": jobs,
-        "remote_requests": [request for _, request in _iter_remote_requests(jobs)],
-    }
-    write_json(quote_path(run_dir), report)
-    return report
+    remote_requests = [request for _, request in _iter_remote_requests(state["jobs"])]
+    if len(remote_requests) > 50:
+        warnings.append("large batch quote detected; prefer --limit N and avoid running multiple large quote commands concurrently")
+    selected = _pending_quote_requests(remote_requests, limit=limit)
+    _quote_progress(
+        progress,
+        "quote_started",
+        {"selected_remote_requests": len(selected), "remote_requests": len(remote_requests), "concurrency": concurrency},
+    )
+    for request in selected:
+        _prepare_quote_request(registry, request)
+    selected = [request for request in selected if request.get("quote_status") == "pending"]
+    if selected:
+        with ThreadPoolExecutor(max_workers=concurrency) as executor:
+            futures = {executor.submit(_safe_quote, request["model"], request["body"], language): request for request in selected}
+            for completed, future in enumerate(as_completed(futures), start=1):
+                request = futures[future]
+                try:
+                    request["quote"] = future.result()
+                    request["quote_status"] = "quoted" if isinstance(request["quote"], dict) and request["quote"].get("quoted") else "failed"
+                    if request["quote_status"] == "failed":
+                        _add_error(request, "unknown_pricing", "live quote did not return an exact credit cost", {"quote": request.get("quote")})
+                except Exception as exc:
+                    request["quote_status"] = "failed"
+                    request["quote"] = {
+                        "model": request.get("model"),
+                        "quoted": False,
+                        "credits": None,
+                        "quote_error": {"type": exc.__class__.__name__, "message": str(exc)},
+                        "warnings": ["live quote failed; credit spend is unknown"],
+                    }
+                    _add_error(request, "unknown_pricing", "live quote failed", {"type": exc.__class__.__name__, "message": str(exc)})
+                _refresh_job_statuses(state["jobs"])
+                _save_quote_state(state)
+                _quote_progress(
+                    progress,
+                    "quote_progress",
+                    {
+                        "completed_selected_remote_requests": completed,
+                        "selected_remote_requests": len(selected),
+                        "request_id": request.get("request_id"),
+                        "quote_status": request.get("quote_status"),
+                    },
+                )
+    _refresh_job_statuses(state["jobs"])
+    _save_quote_state(state)
+    full_report = _quote_report(state, detail="full", warnings=warnings)
+    summary_report = _quote_report(state, detail="summary", warnings=warnings)
+    write_json(quote_full_path(run_dir), full_report)
+    write_json(quote_path(run_dir), summary_report)
+    _quote_progress(progress, "quote_completed", {"summary": summary_report["summary"], "quote_file": summary_report["quote_file"]})
+    return _quote_report(state, detail=detail, warnings=warnings)
+
+
+def quote_status(run_dir: Path) -> dict[str, Any]:
+    state = _load_quote_state(run_dir)
+    return _quote_report(state, detail="summary", warnings=[])
 
 
 def dry_run_jobs(
@@ -145,6 +199,97 @@ def status_jobs(run_dir: Path) -> dict[str, Any]:
     return _state_result(state, "status")
 
 
+def _quote_concurrency(value: int) -> tuple[int, list[str]]:
+    if value < 1:
+        raise InputError("--concurrency must be at least 1", {"concurrency": value})
+    if value > 4:
+        return 4, ["--concurrency was capped at 4 to avoid overloading the pricing endpoint"]
+    return value, []
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _quote_state(jobs_file: Path, run_dir: Path, *, refresh: bool) -> dict[str, Any]:
+    current_hash = _jobs_file_hash(jobs_file)
+    path = quote_state_path(run_dir)
+    if path.exists() and not refresh:
+        state = _load_quote_state(run_dir)
+        if state.get("jobs_file_hash") != current_hash:
+            raise InputError(
+                "jobs file changed since quote state was created; refusing to continue",
+                {
+                    "state_file": str(path),
+                    "saved_hash": state.get("jobs_file_hash"),
+                    "current_hash": current_hash,
+                    "recommended_actions": ["rerun with --refresh"],
+                },
+            )
+        return state
+    now = _now()
+    return {
+        "jobs_file": str(jobs_file),
+        "jobs_file_hash": current_hash,
+        "run_dir": str(run_dir),
+        "quote_state_file": str(path),
+        "quote_file": str(quote_path(run_dir)),
+        "full_quote_file": str(quote_full_path(run_dir)),
+        "created_at": now,
+        "updated_at": now,
+        "jobs": _expanded_jobs(jobs_file),
+    }
+
+
+def _load_quote_state(run_dir: Path) -> dict[str, Any]:
+    path = quote_state_path(run_dir)
+    if not path.exists():
+        raise InputError("jobs quote state file does not exist", {"state_file": str(path)})
+    data = read_json(path)
+    if not isinstance(data, dict) or not isinstance(data.get("jobs"), list):
+        raise InputError("jobs quote state file is invalid", {"state_file": str(path)})
+    return data
+
+
+def _save_quote_state(state: dict[str, Any]) -> None:
+    state["updated_at"] = _now()
+    write_json(Path(str(state["quote_state_file"])), state)
+
+
+def _pending_quote_requests(remote_requests: list[dict[str, Any]], *, limit: int | None) -> list[dict[str, Any]]:
+    pending = [
+        request
+        for request in remote_requests
+        if request.get("quote_status") not in {"quoted", "failed"}
+    ]
+    return pending[:limit] if limit is not None else pending
+
+
+def _prepare_quote_request(registry: Any, request: dict[str, Any]) -> None:
+    request["errors"] = []
+    schema_errors = validate_body(registry, request["model"], request["body"])
+    request["schema_errors"] = schema_errors
+    if schema_errors:
+        request["quote_status"] = "failed"
+        request["quote"] = {
+            "model": request["model"],
+            "quoted": False,
+            "credits": None,
+            "payable_credits": None,
+            "listed_credits": None,
+            "warnings": ["schema validation failed; quote skipped"],
+        }
+        _add_error(request, "schema_invalid", "schema validation failed; quote skipped", {"schema_errors": schema_errors})
+        return
+    request["quote_status"] = "pending"
+
+
+def _quote_progress(enabled: bool, event: str, data: dict[str, Any]) -> None:
+    if not enabled:
+        return
+    print(json.dumps({"event": event, **data}, ensure_ascii=False, separators=(",", ":")), file=sys.stderr, flush=True)
+
+
 def _expanded_jobs(jobs_file: Path) -> list[dict[str, Any]]:
     return expand_jobs(load_job_records(jobs_file))
 
@@ -175,6 +320,8 @@ def _safe_quote(model: str, body: dict[str, Any], language: str) -> dict[str, An
             "model": model,
             "quoted": False,
             "credits": None,
+            "payable_credits": None,
+            "listed_credits": None,
             "quote_error": {"type": exc.__class__.__name__, "message": str(exc)},
             "warnings": ["live quote failed; credit spend is unknown"],
         }
@@ -394,12 +541,89 @@ def _state_result(state: dict[str, Any], operation: str) -> dict[str, Any]:
     }
 
 
+def _quote_report(state: dict[str, Any], *, detail: str, warnings: list[str]) -> dict[str, Any]:
+    run_dir = Path(str(state["run_dir"]))
+    jobs = state["jobs"]
+    summary = _quote_summary(jobs)
+    merged_warnings = list(dict.fromkeys(warnings + _quote_summary_warnings(summary)))
+    report: dict[str, Any] = {
+        "operation": "quote",
+        "jobs_file": state.get("jobs_file"),
+        "jobs_file_hash": state.get("jobs_file_hash"),
+        "run_dir": state.get("run_dir"),
+        "state_file": str(quote_state_path(run_dir)),
+        "quote_file": str(quote_path(run_dir)),
+        "full_quote_file": str(quote_full_path(run_dir)),
+        "summary": summary,
+        "warnings": merged_warnings,
+        "recommended_actions": _quote_recommended_actions(summary),
+    }
+    if detail == "requests":
+        report["remote_requests"] = [_compact_quote_request(request) for _, request in _iter_remote_requests(jobs)]
+    elif detail == "full":
+        report["jobs"] = jobs
+        report["remote_requests"] = [request for _, request in _iter_remote_requests(jobs)]
+    elif detail != "summary":
+        raise InputError("unknown quote detail mode", {"detail": detail, "allowed": ["summary", "requests", "full"]})
+    return report
+
+
+def _compact_quote_request(request: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "request_id": request.get("request_id"),
+        "job_id": request.get("job_id"),
+        "model": request.get("model"),
+        "mode": request.get("mode"),
+        "output_count": request.get("output_count"),
+        "status": request.get("quote_status") or "pending",
+        "quote_summary": _quote_summary_payload(request.get("quote")),
+        "schema_errors": request.get("schema_errors") or [],
+        "errors": request.get("errors") or [],
+    }
+
+
+def _quote_summary_payload(quote_result: Any) -> dict[str, Any] | None:
+    if not isinstance(quote_result, dict):
+        return None
+    return {
+        "quoted": bool(quote_result.get("quoted")),
+        "credits": quote_result.get("credits"),
+        "payable_credits": _quote_payable_credits(quote_result),
+        "listed_credits": _quote_listed_credits(quote_result),
+        "balance": quote_result.get("balance"),
+        "warnings": quote_result.get("warnings") or [],
+    }
+
+
+def _quote_summary_warnings(summary: dict[str, Any]) -> list[str]:
+    warnings: list[str] = []
+    if summary.get("listed_but_zero_payable_remote_requests"):
+        warnings.append("some requests have payable_credits=0 but listed_credits>0; total_credits uses payable_credits")
+    if summary.get("remote_requests", 0) > 50:
+        warnings.append("large batch quote detected; prefer --limit N and avoid running multiple large quote commands concurrently")
+    return warnings
+
+
+def _quote_recommended_actions(summary: dict[str, Any]) -> list[str]:
+    actions: list[str] = []
+    if summary.get("pending_quote_remote_requests"):
+        actions.append("rerun lovart jobs quote <jobs.jsonl> to continue pending quotes")
+    if summary.get("remote_requests", 0) > 50:
+        actions.append("use lovart jobs quote <jobs.jsonl> --limit N for large batches")
+    if summary.get("failed_quote_remote_requests"):
+        actions.append("inspect lovart jobs quote <jobs.jsonl> --detail requests")
+    return actions
+
+
 def _quote_summary(jobs: list[dict[str, Any]]) -> dict[str, Any]:
     state = {"jobs": jobs}
     summary = summarize_state(state)
     quoted = 0
     schema_invalid = 0
+    quote_status_counts: dict[str, int] = {}
     for _, request in _iter_remote_requests(jobs):
+        quote_status = str(request.get("quote_status") or "pending")
+        quote_status_counts[quote_status] = quote_status_counts.get(quote_status, 0) + 1
         if request.get("schema_errors"):
             schema_invalid += 1
         quote_result = request.get("quote")
@@ -408,6 +632,10 @@ def _quote_summary(jobs: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         **summary,
         "quoted_remote_requests": quoted,
+        "pending_quote_remote_requests": quote_status_counts.get("pending", 0) + quote_status_counts.get("running", 0),
+        "failed_quote_remote_requests": quote_status_counts.get("failed", 0),
+        "quote_complete": quote_status_counts.get("pending", 0) + quote_status_counts.get("running", 0) == 0,
+        "quote_status_counts": quote_status_counts,
         "schema_invalid_remote_requests": schema_invalid,
     }
 
@@ -455,7 +683,23 @@ def _quoted_credits(request: dict[str, Any]) -> float:
     quote_result = request.get("quote")
     if not isinstance(quote_result, dict) or not quote_result.get("quoted"):
         return 0.0
-    return float(quote_result.get("credits") or 0)
+    return _quote_payable_credits(quote_result)
+
+
+def _quote_payable_credits(quote_result: dict[str, Any]) -> float:
+    value = quote_result.get("payable_credits", quote_result.get("credits"))
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _quote_listed_credits(quote_result: dict[str, Any]) -> float:
+    value = quote_result.get("listed_credits")
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def _schema_errors(request: dict[str, Any]) -> list[Any]:

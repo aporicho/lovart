@@ -20,13 +20,16 @@ class QuoteTest(unittest.TestCase):
             "data": {
                 "balance": 27100,
                 "price": 80,
-                "price_detail": {"search_key": "4K_high", "unit_price": 80},
+                "price_detail": {"search_key": "4K_high", "unit_price": 80, "total_price": 120},
             },
         }
         with patch("lovart_reverse.pricing.quote.lgw_request", return_value=response) as lgw:
             result = quote("openai/gpt-image-2", {"prompt": "x", "quality": "high", "size": "3840*2160"})
         self.assertTrue(result["quoted"])
         self.assertEqual(result["credits"], 80.0)
+        self.assertEqual(result["payable_credits"], 80.0)
+        self.assertEqual(result["listed_credits"], 120.0)
+        self.assertEqual(result["credit_basis"]["summary_total_credits"], "payable_credits")
         self.assertEqual(result["balance"], 27100)
         lgw.assert_called_once()
         self.assertEqual(lgw.call_args.args[:2], ("POST", "/v1/generator/pricing"))

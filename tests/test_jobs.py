@@ -123,10 +123,15 @@ class JobsTest(unittest.TestCase):
                 return {"model": model, "quoted": True, "credits": credits, "warnings": []}
 
             with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
-                result = quote_jobs(jobs_file)
+                result = quote_jobs(jobs_file, progress=False)
             self.assertEqual(result["summary"]["total_jobs"], 2)
             self.assertEqual(result["summary"]["total_credits"], 12.0)
+            self.assertEqual(result["summary"]["total_payable_credits"], 12.0)
             self.assertTrue((Path(tmp) / "jobs_quote.json").exists())
+            self.assertTrue((Path(tmp) / "jobs_quote_state.json").exists())
+            self.assertTrue((Path(tmp) / "jobs_quote_full.json").exists())
+            self.assertNotIn("remote_requests", result)
+            self.assertNotIn("jobs", result)
 
     def test_quote_jobs_summarizes_user_level_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -149,11 +154,107 @@ class JobsTest(unittest.TestCase):
             ]
             write_jobs(jobs_file, jobs)
             with patch("lovart_reverse.jobs.orchestrator.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []}):
-                result = quote_jobs(jobs_file)
+                result = quote_jobs(jobs_file, detail="full", progress=False)
             self.assertEqual(result["summary"]["logical_jobs"], 2)
             self.assertEqual(result["summary"]["requested_outputs"], 20)
             self.assertEqual(result["summary"]["remote_requests"], 2)
             self.assertEqual(result["remote_requests"][0]["body"]["n"], 10)
+
+    def test_quote_jobs_distinguishes_payable_and_listed_credits(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001", prompt="x")])
+            quoted = {
+                "model": "openai/gpt-image-2",
+                "quoted": True,
+                "credits": 0.0,
+                "payable_credits": 0.0,
+                "listed_credits": 120.0,
+                "warnings": [],
+            }
+            with patch("lovart_reverse.jobs.orchestrator.quote", return_value=quoted):
+                result = quote_jobs(jobs_file, progress=False)
+            self.assertEqual(result["summary"]["total_credits"], 0.0)
+            self.assertEqual(result["summary"]["total_payable_credits"], 0.0)
+            self.assertEqual(result["summary"]["total_listed_credits"], 120.0)
+            self.assertEqual(result["summary"]["listed_but_zero_payable_remote_requests"], 1)
+            self.assertIn("payable_credits=0", result["warnings"][0])
+
+    def test_quote_jobs_requests_detail_excludes_prompt_body_and_raw(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001", prompt="secret prompt")])
+            quote_result = {
+                "model": "openai/gpt-image-2",
+                "quoted": True,
+                "credits": 0.0,
+                "payable_credits": 0.0,
+                "listed_credits": 120.0,
+                "raw": {"data": "large"},
+                "warnings": [],
+            }
+            with patch("lovart_reverse.jobs.orchestrator.quote", return_value=quote_result):
+                result = quote_jobs(jobs_file, detail="requests", progress=False)
+            request = result["remote_requests"][0]
+            self.assertNotIn("body", request)
+            self.assertNotIn("raw", json.dumps(request))
+            self.assertEqual(request["quote_summary"]["payable_credits"], 0.0)
+            self.assertEqual(request["quote_summary"]["listed_credits"], 120.0)
+
+    def test_quote_jobs_limit_and_resume_skips_already_quoted(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001", prompt="a"), gpt_job("002", prompt="b")])
+            calls: list[str] = []
+
+            def quoted(model: str, body: dict[str, object], language: str = "en") -> dict[str, object]:
+                calls.append(str(body["prompt"]))
+                return {"model": model, "quoted": True, "credits": 0.0, "payable_credits": 0.0, "warnings": []}
+
+            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
+                first = quote_jobs(jobs_file, limit=1, progress=False)
+                second = quote_jobs(jobs_file, progress=False)
+            self.assertEqual(calls, ["a", "b"])
+            self.assertEqual(first["summary"]["quoted_remote_requests"], 1)
+            self.assertEqual(first["summary"]["pending_quote_remote_requests"], 1)
+            self.assertEqual(second["summary"]["quoted_remote_requests"], 2)
+            self.assertEqual(second["summary"]["pending_quote_remote_requests"], 0)
+
+    def test_quote_jobs_rejects_changed_file_without_refresh(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001", prompt="a")])
+            with patch("lovart_reverse.jobs.orchestrator.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []}):
+                quote_jobs(jobs_file, progress=False)
+            write_jobs(jobs_file, [gpt_job("001", prompt="changed")])
+            with self.assertRaises(InputError):
+                quote_jobs(jobs_file, progress=False)
+            with patch("lovart_reverse.jobs.orchestrator.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []}):
+                refreshed = quote_jobs(jobs_file, refresh=True, progress=False)
+            self.assertEqual(refreshed["summary"]["quoted_remote_requests"], 1)
+
+    def test_quote_jobs_failure_is_recorded_without_blocking_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001", prompt="a"), gpt_job("002", prompt="b")])
+
+            def quoted(model: str, body: dict[str, object], language: str = "en") -> dict[str, object]:
+                if body["prompt"] == "b":
+                    raise RuntimeError("pricing failed")
+                return {"model": model, "quoted": True, "credits": 0.0, "payable_credits": 0.0, "warnings": []}
+
+            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
+                result = quote_jobs(jobs_file, progress=False)
+            self.assertEqual(result["summary"]["quoted_remote_requests"], 1)
+            self.assertEqual(result["summary"]["failed_quote_remote_requests"], 1)
+
+    def test_quote_jobs_caps_high_concurrency_with_warning(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001", prompt="a")])
+            with patch("lovart_reverse.jobs.orchestrator.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []}):
+                result = quote_jobs(jobs_file, concurrency=99, progress=False)
+            self.assertIn("capped at 4", result["warnings"][0])
 
     def test_paid_batch_is_rejected_without_budget_and_not_submitted(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -233,6 +334,35 @@ class JobsTest(unittest.TestCase):
         payload = json.loads(output.getvalue())
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["data"]["operation"], "dry_run")
+
+    def test_jobs_quote_cli_accepts_v2_flags(self) -> None:
+        output = io.StringIO()
+        with (
+            patch("lovart_reverse.cli.application.jobs_quote_command", return_value={"operation": "quote", "summary": {}}) as quote_command,
+            contextlib.redirect_stdout(output),
+        ):
+            code = main(["jobs", "quote", "runs/fanren/jobs.jsonl", "--detail", "requests", "--concurrency", "99", "--limit", "10", "--refresh", "--no-progress"])
+        self.assertEqual(code, 0)
+        payload = json.loads(output.getvalue())
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["operation"], "quote")
+        self.assertEqual(quote_command.call_args.kwargs["detail"], "requests")
+        self.assertEqual(quote_command.call_args.kwargs["concurrency"], 99)
+        self.assertEqual(quote_command.call_args.kwargs["limit"], 10)
+        self.assertTrue(quote_command.call_args.kwargs["refresh"])
+        self.assertFalse(quote_command.call_args.kwargs["progress"])
+
+    def test_jobs_quote_status_cli_json_envelope(self) -> None:
+        output = io.StringIO()
+        with (
+            patch("lovart_reverse.cli.application.jobs_quote_status_command", return_value={"operation": "quote", "summary": {}}),
+            contextlib.redirect_stdout(output),
+        ):
+            code = main(["jobs", "quote-status", "runs/fanren"])
+        self.assertEqual(code, 0)
+        payload = json.loads(output.getvalue())
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["operation"], "quote")
 
 
 if __name__ == "__main__":

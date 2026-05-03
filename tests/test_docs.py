@@ -16,6 +16,7 @@ class DocsTest(unittest.TestCase):
             "lovart plan",
             "lovart quote",
             "lovart jobs quote",
+            "lovart jobs quote-status",
             "lovart jobs dry-run",
             "lovart jobs run",
             "lovart jobs status",
@@ -47,6 +48,8 @@ class DocsTest(unittest.TestCase):
         )
         self.assertIn('"outputs":10', text)
         self.assertIn("CLI", text)
+        self.assertIn("total_payable_credits", text)
+        self.assertIn("listed_credits", text)
         self.assertNotIn('"n":1', text)
 
 

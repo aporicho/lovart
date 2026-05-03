@@ -72,9 +72,14 @@ Important quote keys:
 
 - `quoted`
 - `credits`
+- `payable_credits`
+- `listed_credits`
+- `credit_basis`
 - `balance`
 - `price_detail`
 - `warnings`
+
+`credits` is retained for compatibility and equals `payable_credits`. `payable_credits` comes from Lovart `data.price` and is the actual current-account spend used by generation gates. `listed_credits` comes from `price_detail.total_price` and is the detail/list price, not the actual spend.
 
 Quote is not submit permission. Use dry-run before real generation.
 
@@ -115,12 +120,26 @@ Each `jobs.jsonl` line is a user-level job:
 
 When `outputs` is present, `body` must not include `n`, `max_images`, or `count`.
 
-`lovart jobs quote|dry-run|run|resume` return:
+`lovart jobs quote` defaults to lightweight stdout. It returns:
 
 - `summary.logical_jobs`
 - `summary.remote_requests`
 - `summary.requested_outputs`
 - `summary.total_credits`
+- `summary.total_payable_credits`
+- `summary.total_listed_credits`
+- `summary.pending_quote_remote_requests`
+- `state_file`
+- `quote_file`
+- `full_quote_file`
+
+Use `lovart jobs quote <jobs.jsonl> --detail requests` for compact per-request quote summaries. Use `--detail full` only when full prompts, request bodies, raw quote data, and expanded jobs are needed.
+
+Use `lovart jobs quote-status <run_dir>` to inspect quote progress from `jobs_quote_state.json`.
+
+`lovart jobs dry-run|run|resume` return:
+
+- `summary`
 - `batch_gate`
 - `submitted`
 - `remote_requests`
@@ -146,6 +165,8 @@ Important `remote_requests[]` keys:
 - `downloads`
 
 Batch state is stored at `runs/<project>/jobs_state.json` with `jobs_file_hash`. If the source `jobs.jsonl` changes, `resume` refuses to continue.
+
+Batch quote state is stored at `runs/<project>/jobs_quote_state.json` with `jobs_file_hash`. If the source `jobs.jsonl` changes, `jobs quote` refuses to continue unless `--refresh` is passed.
 
 ## Common Errors
 

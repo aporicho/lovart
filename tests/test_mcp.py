@@ -13,6 +13,7 @@ class McpTest(unittest.TestCase):
         self.assertIn("lovart_setup", names)
         self.assertIn("lovart_generate", names)
         self.assertIn("lovart_jobs_resume", names)
+        self.assertIn("lovart_jobs_quote_status", names)
         self.assertTrue(names.isdisjoint(UNSAFE_TOOL_NAMES))
         for name in names:
             self.assertNotIn("capture", name)

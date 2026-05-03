@@ -18,6 +18,7 @@ from lovart_reverse.commands import (
     generate_command,
     jobs_dry_run_command,
     jobs_quote_command,
+    jobs_quote_status_command,
     jobs_resume_command,
     jobs_run_command,
     jobs_status_command,
@@ -130,7 +131,18 @@ def cmd_task(args: argparse.Namespace) -> dict[str, Any]:
 
 def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
     if args.jobs_cmd == "quote":
-        return jobs_quote_command(args.jobs_file, out_dir=args.out_dir, language=args.language)
+        return jobs_quote_command(
+            args.jobs_file,
+            out_dir=args.out_dir,
+            language=args.language,
+            detail=args.detail,
+            concurrency=args.concurrency,
+            limit=args.limit,
+            refresh=args.refresh,
+            progress=not args.no_progress,
+        )
+    if args.jobs_cmd == "quote-status":
+        return jobs_quote_status_command(args.run_dir)
     if args.jobs_cmd == "dry-run":
         return jobs_dry_run_command(
             args.jobs_file,
@@ -287,6 +299,13 @@ def build_parser() -> argparse.ArgumentParser:
     jobs_quote.add_argument("jobs_file", type=Path)
     jobs_quote.add_argument("--out-dir", type=Path)
     jobs_quote.add_argument("--language", default="en")
+    jobs_quote.add_argument("--detail", choices=["summary", "requests", "full"], default="summary")
+    jobs_quote.add_argument("--concurrency", type=int, default=2)
+    jobs_quote.add_argument("--limit", type=int)
+    jobs_quote.add_argument("--refresh", action="store_true")
+    jobs_quote.add_argument("--no-progress", action="store_true")
+    jobs_quote_status = jobs_sub.add_parser("quote-status")
+    jobs_quote_status.add_argument("run_dir", type=Path)
     jobs_dry_run = jobs_sub.add_parser("dry-run")
     jobs_dry_run.add_argument("jobs_file", type=Path)
     jobs_dry_run.add_argument("--out-dir", type=Path)

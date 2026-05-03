@@ -36,6 +36,14 @@ def quote_path(run_dir: Path) -> Path:
     return run_dir / "jobs_quote.json"
 
 
+def quote_state_path(run_dir: Path) -> Path:
+    return run_dir / "jobs_quote_state.json"
+
+
+def quote_full_path(run_dir: Path) -> Path:
+    return run_dir / "jobs_quote_full.json"
+
+
 def _load_jsonl(path: Path) -> list[Any]:
     records: list[Any] = []
     for line_number, line in enumerate(path.read_text().splitlines(), start=1):

@@ -73,9 +73,11 @@ def summarize_state(state: dict[str, Any]) -> dict[str, Any]:
     job_counts: dict[str, int] = {}
     request_counts: dict[str, int] = {}
     total_credits = 0.0
+    total_listed_credits = 0.0
     unknown_pricing = 0
     paid_requests = 0
     zero_credit_requests = 0
+    listed_but_zero_payable = 0
     remote_requests = _remote_requests(jobs)
     for job in jobs:
         status = str(job.get("status") or "unknown")
@@ -85,12 +87,16 @@ def summarize_state(state: dict[str, Any]) -> dict[str, Any]:
         request_counts[status] = request_counts.get(status, 0) + 1
         quote = request.get("quote")
         if isinstance(quote, dict) and quote.get("quoted"):
-            credits = float(quote.get("credits") or 0)
+            credits = _payable_credits(quote)
+            listed_credits = _listed_credits(quote)
             total_credits += credits
+            total_listed_credits += listed_credits
             if credits == 0:
                 zero_credit_requests += 1
             else:
                 paid_requests += 1
+            if credits == 0 and listed_credits > 0:
+                listed_but_zero_payable += 1
         else:
             unknown_pricing += 1
     failed = [job for job in jobs if job.get("status") == "failed"]
@@ -103,15 +109,35 @@ def summarize_state(state: dict[str, Any]) -> dict[str, Any]:
         "status_counts": job_counts,
         "remote_status_counts": request_counts,
         "total_credits": total_credits,
+        "total_payable_credits": total_credits,
+        "total_listed_credits": total_listed_credits,
         "zero_credit_jobs": zero_credit_requests,
         "paid_jobs": paid_requests,
+        "zero_payable_remote_requests": zero_credit_requests,
         "zero_credit_remote_requests": zero_credit_requests,
         "paid_remote_requests": paid_requests,
+        "listed_but_zero_payable_remote_requests": listed_but_zero_payable,
         "unknown_pricing_jobs": unknown_pricing,
         "unknown_pricing_remote_requests": unknown_pricing,
         "failed_jobs": len(failed),
         "complete": len(jobs) > 0 and all(job.get("status") in TERMINAL_STATUSES for job in jobs),
     }
+
+
+def _payable_credits(quote: dict[str, Any]) -> float:
+    value = quote.get("payable_credits", quote.get("credits"))
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _listed_credits(quote: dict[str, Any]) -> float:
+    value = quote.get("listed_credits")
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def _remote_requests(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
