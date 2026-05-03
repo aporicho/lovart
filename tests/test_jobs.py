@@ -445,7 +445,7 @@ class JobsTest(unittest.TestCase):
                 events.append(f"submit:{body['prompt']}")
                 return {"data": {"task_id": f"task-{body['prompt']}"}}
 
-            def task(task_id: str) -> dict[str, object]:
+            def task(task_id: str, language: str = "en") -> dict[str, object]:
                 events.append(f"task:{task_id}")
                 return {"status": "completed", "artifacts": [], "raw": {}}
 

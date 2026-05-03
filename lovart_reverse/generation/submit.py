@@ -6,10 +6,12 @@ from typing import Any
 
 from lovart_reverse.http.client import lgw_request
 
+TASKS_PATH = "/v1/generator/tasks"
+
 
 def find_task_id(payload: Any) -> str | None:
     if isinstance(payload, dict):
-        for key in ("task_id", "taskId", "id"):
+        for key in ("task_id", "taskId", "generator_task_id", "generatorTaskId", "id"):
             value = payload.get(key)
             if isinstance(value, str):
                 return value
@@ -25,17 +27,20 @@ def find_task_id(payload: Any) -> str | None:
     return None
 
 
+def task_request_payload(model: str, body: dict[str, Any]) -> dict[str, Any]:
+    return {"generator_name": model.strip("/"), "input_args": dict(body)}
+
+
 def dry_run_request(model: str, body: dict[str, Any], language: str = "en") -> dict[str, Any]:
-    path = "/" + model.strip("/")
     return {
         "method": "POST",
-        "path": path,
+        "path": TASKS_PATH,
         "language": language,
-        "body": body,
+        "body": task_request_payload(model, body),
         "signature_required": True,
     }
 
 
 def submit_model(model: str, body: dict[str, Any], language: str = "en") -> dict[str, Any]:
-    response = lgw_request("POST", "/" + model.strip("/"), body=body, language=language)
+    response = lgw_request("POST", TASKS_PATH, body=task_request_payload(model, body), language=language)
     return response.json()

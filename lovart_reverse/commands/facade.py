@@ -236,7 +236,7 @@ def generate_command(
         "response": response,
     }
     if wait and task_id:
-        current = task_info(task_id)
+        current = task_info(task_id, language=language)
         artifacts = current.get("artifacts") or []
         data.update({"status": current.get("status"), "task": current, "artifacts": artifacts})
         if download:

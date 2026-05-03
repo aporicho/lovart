@@ -212,7 +212,7 @@ def run_jobs(
     save_state(state)
     _submit_pending(state, language=language)
     if wait:
-        _wait_for_submitted(state, download=download, timeout_seconds=timeout_seconds, poll_interval=poll_interval)
+        _wait_for_submitted(state, language=language, download=download, timeout_seconds=timeout_seconds, poll_interval=poll_interval)
     return _state_result(state, "run")
 
 
@@ -251,7 +251,7 @@ def resume_jobs(
     save_state(state)
     _submit_pending(state, language=language)
     if wait:
-        _wait_for_submitted(state, download=download, timeout_seconds=timeout_seconds, poll_interval=poll_interval)
+        _wait_for_submitted(state, language=language, download=download, timeout_seconds=timeout_seconds, poll_interval=poll_interval)
     return _state_result(state, "resume")
 
 
@@ -755,6 +755,7 @@ def _submit_pending(state: dict[str, Any], *, language: str) -> None:
 def _wait_for_submitted(
     state: dict[str, Any],
     *,
+    language: str,
     download: bool,
     timeout_seconds: float,
     poll_interval: float,
@@ -771,7 +772,7 @@ def _wait_for_submitted(
             break
         for request in active:
             try:
-                current = task_info(str(request["task_id"]))
+                current = task_info(str(request["task_id"]), language=language)
                 request["task"] = current
                 remote_status = str(current.get("status") or "unknown").lower()
                 request["artifacts"] = current.get("artifacts") or []
