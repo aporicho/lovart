@@ -12,7 +12,15 @@ import requests
 from lovart_reverse.discovery import generator_list, generator_schema
 from lovart_reverse.entitlement.checks import fetch_unlimited
 from lovart_reverse.io_json import canonical_json, hash_value, read_json, write_json
-from lovart_reverse.paths import GENERATOR_LIST_FILE, GENERATOR_SCHEMA_FILE, MANIFEST_FILE, PRICING_TABLE_FILE
+from lovart_reverse.paths import (
+    GENERATOR_LIST_FILE,
+    GENERATOR_SCHEMA_FILE,
+    PRICING_TABLE_FILE,
+    WRITABLE_GENERATOR_LIST_FILE,
+    WRITABLE_GENERATOR_SCHEMA_FILE,
+    WRITABLE_MANIFEST_FILE,
+    WRITABLE_PRICING_TABLE_FILE,
+)
 from lovart_reverse.pricing.table import fetch_pricing_payload
 from lovart_reverse.registry import load_ref_registry, model_records
 from lovart_reverse.update.manifest import MANIFEST_KEYS, load_manifest, manifest_from_parts, save_manifest
@@ -254,17 +262,17 @@ def diff_update() -> dict[str, Any]:
 
 def sync_metadata() -> dict[str, Any]:
     manifest, raw = fetch_online_snapshot()
-    write_json(GENERATOR_LIST_FILE, raw["generator_list"])
-    write_json(GENERATOR_SCHEMA_FILE, raw["generator_schema"])
-    write_json(PRICING_TABLE_FILE, raw["pricing_table"])
+    write_json(WRITABLE_GENERATOR_LIST_FILE, raw["generator_list"])
+    write_json(WRITABLE_GENERATOR_SCHEMA_FILE, raw["generator_schema"])
+    write_json(WRITABLE_PRICING_TABLE_FILE, raw["pricing_table"])
     save_manifest(manifest)
     checks = _post_sync_checks()
     return {
         "written": [
-            str(GENERATOR_LIST_FILE),
-            str(GENERATOR_SCHEMA_FILE),
-            str(PRICING_TABLE_FILE),
-            str(MANIFEST_FILE),
+            str(WRITABLE_GENERATOR_LIST_FILE),
+            str(WRITABLE_GENERATOR_SCHEMA_FILE),
+            str(WRITABLE_PRICING_TABLE_FILE),
+            str(WRITABLE_MANIFEST_FILE),
         ],
         "manifest": {key: manifest.get(key) for key in MANIFEST_KEYS},
         "offline_checks": checks,

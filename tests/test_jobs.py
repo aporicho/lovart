@@ -225,7 +225,7 @@ class JobsTest(unittest.TestCase):
     def test_jobs_cli_json_envelope(self) -> None:
         output = io.StringIO()
         with (
-            patch("lovart_reverse.cli.application.dry_run_jobs", return_value={"operation": "dry_run", "summary": {}}),
+            patch("lovart_reverse.cli.application.jobs_dry_run_command", return_value={"operation": "dry_run", "summary": {}}),
             contextlib.redirect_stdout(output),
         ):
             code = main(["jobs", "dry-run", "runs/fanren/jobs.jsonl"])

@@ -7,9 +7,34 @@ import unittest
 from unittest.mock import patch
 
 from lovart_reverse.cli.main import main
+from lovart_reverse.cli.application import build_parser
 
 
 class CliTest(unittest.TestCase):
+    def test_version_stdout_is_json_envelope(self) -> None:
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            code = main(["--version"])
+        self.assertEqual(code, 0)
+        payload = json.loads(output.getvalue())
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["package"], "lovart-reverse")
+        self.assertIn("manifest", payload["data"])
+
+    def test_self_test_stdout_is_json_envelope(self) -> None:
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            code = main(["self-test"])
+        self.assertEqual(code, 0)
+        payload = json.loads(output.getvalue())
+        self.assertTrue(payload["ok"])
+        self.assertIn("checks", payload["data"])
+
+    def test_help_lists_current_agent_commands(self) -> None:
+        help_text = build_parser().format_help()
+        for command in ("config", "plan", "quote", "jobs"):
+            self.assertIn(command, help_text)
+
     def test_models_stdout_is_json_envelope(self) -> None:
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -50,7 +75,7 @@ class CliTest(unittest.TestCase):
         output = io.StringIO()
         with (
             patch("lovart_reverse.generation.preflight.auth_status", return_value={"exists": False, "header_names": []}),
-            patch("lovart_reverse.cli.application.submit_model") as submit,
+            patch("lovart_reverse.commands.facade.submit_model") as submit,
             contextlib.redirect_stdout(output),
         ):
             code = main(
@@ -72,7 +97,7 @@ class CliTest(unittest.TestCase):
         with (
             patch("lovart_reverse.generation.preflight.auth_status", return_value={"exists": True, "header_names": ["token"]}),
             patch("lovart_reverse.generation.preflight._update_status", return_value={"status": "stale", "signer_maybe_stale": True, "changes": {"frontend_bundle": True}, "recommended_actions": ["run lovart update sync --metadata-only"]}),
-            patch("lovart_reverse.cli.application.submit_model") as submit,
+            patch("lovart_reverse.commands.facade.submit_model") as submit,
             contextlib.redirect_stdout(output),
         ):
             code = main(

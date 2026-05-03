@@ -6,6 +6,8 @@ const path = require("node:path");
 const ROOT = path.resolve(__dirname, "..", "..");
 const DEFAULT_WASM = path.join(
   ROOT,
+  "lovart_reverse",
+  "data",
   "ref",
   "lovart_static_assets",
   "26bd3a5bd74c3c92.wasm",

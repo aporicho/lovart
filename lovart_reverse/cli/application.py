@@ -11,19 +11,27 @@ from typing import Any
 from lovart_reverse.auth.extract import extract_from_capture
 from lovart_reverse.auth.store import status as auth_status
 from lovart_reverse.capture import replay_capture
-from lovart_reverse.cli.envelope import fail, ok
-from lovart_reverse.config import config_for_model, global_config
-from lovart_reverse.discovery import generator_list, generator_schema
-from lovart_reverse.downloads import download_artifacts
+from lovart_reverse.envelope import fail, ok
+from lovart_reverse.commands import (
+    config_command,
+    generate_command,
+    jobs_dry_run_command,
+    jobs_quote_command,
+    jobs_resume_command,
+    jobs_run_command,
+    jobs_status_command,
+    models_command,
+    plan_command,
+    quote_command,
+    self_test_command,
+    setup_command,
+    version_command,
+)
+from lovart_reverse.discovery import generator_schema
 from lovart_reverse.errors import InputError, LovartError
-from lovart_reverse.generation import dry_run_request, find_task_id, generation_preflight, submit_model
 from lovart_reverse.io_json import load_body
-from lovart_reverse.jobs import dry_run_jobs, quote_jobs, resume_jobs, run_jobs, status_jobs
 from lovart_reverse.paths import ROOT
-from lovart_reverse.planning.planner import plan_for_model
-from lovart_reverse.pricing.quote import quote
-from lovart_reverse.registry import load_ref_registry, model_records, request_schema, validate_body
-from lovart_reverse.setup import setup_status
+from lovart_reverse.registry import load_ref_registry, request_schema, validate_body
 from lovart_reverse.task import task_info
 from lovart_reverse.update import check_update, diff_update, sync_metadata
 
@@ -50,12 +58,7 @@ def cmd_auth(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def cmd_models(args: argparse.Namespace) -> dict[str, Any]:
-    if args.live:
-        listing = generator_list(live=True)
-        return {"source": "live", "raw": listing}
-    snapshot = load_ref_registry()
-    records = [record.to_dict() for record in model_records(snapshot)]
-    return {"source": "ref", "count": len(records), "models": records}
+    return models_command(live=args.live)
 
 
 def cmd_schema(args: argparse.Namespace) -> dict[str, Any]:
@@ -70,9 +73,7 @@ def cmd_schema(args: argparse.Namespace) -> dict[str, Any]:
 
 def cmd_quote(args: argparse.Namespace) -> dict[str, Any]:
     body = _load_body_args(args)
-    result = quote(args.model, body, language=args.language)
-    result["schema_errors"] = _schema_validation(args.model, body)
-    return result
+    return quote_command(args.model, body, language=args.language)
 
 
 def cmd_free(args: argparse.Namespace) -> dict[str, Any]:
@@ -85,63 +86,40 @@ def cmd_free(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def cmd_setup(args: argparse.Namespace) -> dict[str, Any]:
-    return setup_status(offline=args.offline)
+    return setup_command(offline=args.offline)
 
 
 def cmd_config(args: argparse.Namespace) -> dict[str, Any]:
-    if args.global_config:
-        return global_config()
-    if not args.model:
-        raise InputError("model is required unless --global is used")
-    return config_for_model(args.model, include_all=args.include_all, example=args.example)
+    return config_command(args.model, include_all=args.include_all, example=args.example, global_=args.global_config)
 
 
 def cmd_plan(args: argparse.Namespace) -> dict[str, Any]:
     body = _load_body_args(args)
-    quote_mode = "offline" if args.offline else args.quote
-    return plan_for_model(
+    return plan_command(
         args.model,
         intent=args.intent,
         count=args.count,
-        partial_body=body,
-        quote_mode=quote_mode,
+        body=body,
+        quote_mode=args.quote,
         candidate_limit=args.candidate_limit,
+        offline=args.offline,
     )
 
 
 def cmd_generate(args: argparse.Namespace) -> dict[str, Any]:
     body = _load_body_args(args)
-    preflight, blocking_error = generation_preflight(
+    return generate_command(
         args.model,
         body,
         mode=args.mode,
+        dry_run=args.dry_run,
         allow_paid=args.allow_paid,
         max_credits=args.max_credits,
-        live=not args.offline,
+        language=args.language,
+        wait=args.wait,
+        download=args.download,
+        offline=args.offline,
     )
-    request = dry_run_request(args.model, body, language=args.language)
-    if args.dry_run:
-        return {"submitted": False, "preflight": preflight, "request": request}
-    if blocking_error:
-        raise blocking_error
-    response = submit_model(args.model, body, language=args.language)
-    task_id = find_task_id(response)
-    data: dict[str, Any] = {
-        "preflight": preflight,
-        "submitted": True,
-        "task_id": task_id,
-        "status": "submitted",
-        "artifacts": [],
-        "downloads": [],
-        "response": response,
-    }
-    if args.wait and task_id:
-        current = task_info(task_id)
-        artifacts = current.get("artifacts") or []
-        data.update({"status": current.get("status"), "task": current, "artifacts": artifacts})
-        if args.download:
-            data["downloads"] = download_artifacts(artifacts, task_id=task_id)
-    return data
 
 
 def cmd_task(args: argparse.Namespace) -> dict[str, Any]:
@@ -150,9 +128,9 @@ def cmd_task(args: argparse.Namespace) -> dict[str, Any]:
 
 def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
     if args.jobs_cmd == "quote":
-        return quote_jobs(args.jobs_file, out_dir=args.out_dir, language=args.language)
+        return jobs_quote_command(args.jobs_file, out_dir=args.out_dir, language=args.language)
     if args.jobs_cmd == "dry-run":
-        return dry_run_jobs(
+        return jobs_dry_run_command(
             args.jobs_file,
             out_dir=args.out_dir,
             allow_paid=args.allow_paid,
@@ -160,7 +138,7 @@ def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
             language=args.language,
         )
     if args.jobs_cmd == "run":
-        return run_jobs(
+        return jobs_run_command(
             args.jobs_file,
             out_dir=args.out_dir,
             allow_paid=args.allow_paid,
@@ -172,7 +150,7 @@ def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
             poll_interval=args.poll_interval,
         )
     if args.jobs_cmd == "resume":
-        return resume_jobs(
+        return jobs_resume_command(
             args.jobs_file,
             out_dir=args.out_dir,
             allow_paid=args.allow_paid,
@@ -185,7 +163,7 @@ def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
             poll_interval=args.poll_interval,
         )
     if args.jobs_cmd == "status":
-        return status_jobs(args.run_dir)
+        return jobs_status_command(args.run_dir)
     raise ValueError("unknown jobs command")
 
 
@@ -222,7 +200,8 @@ def cmd_doctor(args: argparse.Namespace) -> dict[str, Any]:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="lovart")
-    sub = parser.add_subparsers(dest="command", required=True)
+    parser.add_argument("--version", action="store_true", dest="show_version")
+    sub = parser.add_subparsers(dest="command")
 
     setup = sub.add_parser("setup")
     setup.add_argument("--offline", action="store_true")
@@ -333,13 +312,20 @@ def build_parser() -> argparse.ArgumentParser:
     replay.add_argument("capture", type=Path)
     replay.add_argument("--submit", action="store_true")
 
+    sub.add_parser("self-test")
     sub.add_parser("doctor")
     return parser
 
 
 def dispatch(args: argparse.Namespace) -> dict[str, Any]:
+    if args.show_version:
+        return version_command()
+    if not args.command:
+        raise InputError("command is required unless --version is used", {"recommended_actions": ["run lovart --help"]})
     if args.command == "setup":
         return cmd_setup(args)
+    if args.command == "self-test":
+        return self_test_command()
     if args.command == "config":
         return cmd_config(args)
     if args.command == "plan":

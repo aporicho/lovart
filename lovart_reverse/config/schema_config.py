@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from lovart_reverse.errors import SchemaInvalidError
-from lovart_reverse.paths import CAPTURES_DIR, DOWNLOADS_DIR, REF_DIR, ROOT
+from lovart_reverse.paths import CAPTURES_DIR, DOWNLOADS_DIR, PACKAGE_REF_DIR, REF_DIR, ROOT, RUNS_DIR
 from lovart_reverse.planning.field_roles import (
     BATCH_RELEVANT_FIELDS,
     COST_AFFECTING_FIELDS,
@@ -30,9 +30,12 @@ def global_config() -> dict[str, Any]:
         "paths": {
             "root": str(ROOT),
             "ref": str(REF_DIR),
+            "package_ref": str(PACKAGE_REF_DIR),
             "captures": str(CAPTURES_DIR),
             "downloads": str(DOWNLOADS_DIR),
+            "runs": str(RUNS_DIR),
             "root_env": "LOVART_REVERSE_ROOT",
+            "home_env": "LOVART_REVERSE_HOME",
         },
         "planning_flags": [
             "--body-file",

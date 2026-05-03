@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lovart-reverse"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local reverse-engineering helpers for Lovart web requests."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -15,6 +15,7 @@ dependencies = [
 
 [project.scripts]
 lovart = "lovart_reverse.cli.main:main"
+lovart-mcp = "lovart_reverse.mcp.server:main"
 
 [tool.uv]
 package = true
@@ -23,4 +24,4 @@ package = true
 include = ["lovart_reverse*"]
 
 [tool.setuptools.package-data]
-lovart_reverse = ["signing/*.js"]
+lovart_reverse = ["signing/*.js", "data/ref/*.json", "data/ref/lovart_static_assets/*.wasm"]

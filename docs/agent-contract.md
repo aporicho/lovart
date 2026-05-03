@@ -1,6 +1,6 @@
 # CLI JSON Reference
 
-This is the field-level API reference for agents. For workflow and rules, read `README.md`.
+This is the field-level API reference for agents. For workflow and rules, read `README.md`. For installation and MCP setup, read `docs/agent-install.md`.
 
 ## Envelope
 
@@ -17,6 +17,8 @@ Failure:
 ```
 
 stdout is the machine contract. stderr is diagnostic only.
+
+MCP tools return the same envelope as JSON text in their `content[0].text` result. Agents should parse that text exactly like CLI stdout.
 
 ## Config
 

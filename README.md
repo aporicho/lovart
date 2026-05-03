@@ -1,13 +1,14 @@
 # Lovart Reverse
 
-Lovart Reverse is an agent-first JSON CLI for Lovart generation. It exposes model discovery, legal config values, live credit quotes, zero-credit safety gates, generation submission, local batch jobs, task lookup, downloads, and update drift checks.
+Lovart Reverse is an agent-first Lovart generation wrapper. The stable execution layer is a JSON CLI, and the MCP server is a safe thin wrapper around the same commands.
 
 This README is the main manual. Other docs are references or role methods; they must not redefine the core workflow.
 
 ## Golden Rules
 
 - Parse stdout only. Every command returns a JSON envelope; stderr is human diagnostics.
-- Use the `lovart` CLI. Do not read `.lovart/`, `scripts/creds.json`, `captures/`, browser profiles, or `ref/` directly.
+- Prefer the `lovart-mcp` MCP server when the agent supports MCP; otherwise call the `lovart` CLI directly.
+- Do not read `.lovart/`, `scripts/creds.json`, `captures/`, browser profiles, or `ref/` directly.
 - Legal model parameters come from `lovart config <model>`. Do not guess sizes, quality values, aspect ratios, modes, or counts.
 - `quote` tells the credit cost. `dry-run` and the generation gate decide whether submission is allowed.
 - Default real generation is zero-credit only.
@@ -20,10 +21,43 @@ This README is the main manual. Other docs are references or role methods; they 
 
 ## Install
 
+Private GitHub install:
+
 ```bash
-uv sync --no-editable
+uv tool install git+ssh://git@github.com/aporicho/lovart-reverse.git
+lovart --version
+lovart self-test
+```
+
+`pipx` also works:
+
+```bash
+pipx install git+ssh://git@github.com/aporicho/lovart-reverse.git
+lovart --version
+```
+
+Local development install:
+
+```bash
+uv sync
 source .venv/bin/activate
+python -m lovart_reverse.cli.main --version
 lovart setup
+```
+
+If `lovart --version` shows an older command set or a different git commit than expected, reinstall the tool before using it from an agent.
+
+MCP stdio config:
+
+```json
+{
+  "mcpServers": {
+    "lovart": {
+      "command": "lovart-mcp",
+      "args": []
+    }
+  }
+}
 ```
 
 If auth is missing, capture and extract credentials:
@@ -147,6 +181,8 @@ State is stored in `runs/<project>/jobs_state.json`. Quote reports are stored in
 
 ```bash
 lovart setup
+lovart --version
+lovart self-test
 lovart models
 lovart config <model>
 lovart plan --intent image-concept
@@ -181,6 +217,7 @@ An agent understands this project if it can answer:
 ## Reference Docs
 
 - `AGENTS.md`: short hard rules for coding agents.
+- `docs/agent-install.md`: install and MCP/CLI agent setup.
 - `docs/agent-contract.md`: field-level CLI JSON reference.
 - `docs/concepts/概念设计师.md`: concept design role method.
 - `docs/concepts/AIGC提示词设计师.md`: prompt design role method.

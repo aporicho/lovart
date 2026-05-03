@@ -135,7 +135,7 @@ class PlanningTest(unittest.TestCase):
     def test_plan_cli_json_envelope(self) -> None:
         output = io.StringIO()
         with (
-            patch("lovart_reverse.cli.application.plan_for_model", return_value={"model": "openai/gpt-image-2", "routes": []}),
+            patch("lovart_reverse.cli.application.plan_command", return_value={"model": "openai/gpt-image-2", "routes": []}),
             contextlib.redirect_stdout(output),
         ):
             code = main(["plan", "openai/gpt-image-2", "--intent", "image-concept"])

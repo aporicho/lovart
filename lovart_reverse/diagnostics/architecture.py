@@ -7,7 +7,7 @@ import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from lovart_reverse.paths import ROOT
+from lovart_reverse.paths import PACKAGE_DIR, ROOT
 
 FORBIDDEN_FILE_STEMS = {"utils", "helpers", "common", "service", "legacy", "compat", "glue"}
 SENSITIVE_PATTERNS = [
@@ -15,6 +15,7 @@ SENSITIVE_PATTERNS = [
     re.compile(r"(?i)(cookie|authorization)[\"']?\s*[:=]\s*[\"'][^\"']{20,}"),
     re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
 ]
+SENSITIVE_ALLOWLIST = {"git@github.com"}
 
 
 @dataclass(frozen=True)
@@ -27,37 +28,37 @@ class CheckResult:
 
 
 def _python_files() -> list[Path]:
-    return [path for path in (ROOT / "lovart_reverse").rglob("*.py") if "__pycache__" not in path.parts]
+    return [path for path in PACKAGE_DIR.rglob("*.py") if "__pycache__" not in path.parts]
 
 
 def _check_file_names(violations: list[str]) -> None:
     for path in _python_files():
         if path.stem in FORBIDDEN_FILE_STEMS:
-            violations.append(f"forbidden vague module name: {path.relative_to(ROOT)}")
+            violations.append(f"forbidden vague module name: {path.relative_to(PACKAGE_DIR.parent)}")
 
 
 def _check_init_files(violations: list[str]) -> None:
-    for path in (ROOT / "lovart_reverse").rglob("__init__.py"):
+    for path in PACKAGE_DIR.rglob("__init__.py"):
         tree = ast.parse(path.read_text())
         for node in tree.body:
             if isinstance(node, (ast.Import, ast.ImportFrom, ast.Assign, ast.AnnAssign)):
                 continue
             if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
                 continue
-            violations.append(f"__init__.py contains non-export logic: {path.relative_to(ROOT)}")
+            violations.append(f"__init__.py contains non-export logic: {path.relative_to(PACKAGE_DIR.parent)}")
             break
 
 
 def _check_cli_dependencies(violations: list[str]) -> None:
     for path in _python_files():
-        if "cli" in path.relative_to(ROOT).parts:
+        if "cli" in path.relative_to(PACKAGE_DIR.parent).parts:
             continue
         tree = ast.parse(path.read_text())
         for node in ast.walk(tree):
             if isinstance(node, (ast.Import, ast.ImportFrom)):
                 names = [alias.name for alias in node.names] if isinstance(node, ast.Import) else [node.module or ""]
                 if any(name.startswith("lovart_reverse.cli") for name in names):
-                    violations.append(f"business module imports CLI: {path.relative_to(ROOT)}")
+                    violations.append(f"business module imports CLI: {path.relative_to(PACKAGE_DIR.parent)}")
 
 
 def _check_scripts(violations: list[str]) -> None:
@@ -71,7 +72,7 @@ def _check_scripts(violations: list[str]) -> None:
 
 
 def _check_sensitive_text(violations: list[str]) -> None:
-    scan_roots = [ROOT / "lovart_reverse", ROOT / "docs", ROOT / "tests"]
+    scan_roots = [PACKAGE_DIR, ROOT / "docs", ROOT / "tests"]
     for root in scan_roots:
         if not root.exists():
             continue
@@ -80,13 +81,16 @@ def _check_sensitive_text(violations: list[str]) -> None:
                 continue
             text = path.read_text(errors="ignore")
             for pattern in SENSITIVE_PATTERNS:
-                if pattern.search(text):
-                    violations.append(f"possible sensitive value in {path.relative_to(ROOT)}")
+                matches = [match.group(0) for match in pattern.finditer(text)]
+                if any(match not in SENSITIVE_ALLOWLIST for match in matches):
+                    violations.append(f"possible sensitive value in {path.relative_to(PACKAGE_DIR.parent)}")
                     break
 
 
 def run_checks() -> CheckResult:
     violations: list[str] = []
+    if not (PACKAGE_DIR.parent / "pyproject.toml").exists():
+        return CheckResult(ok=True, violations=violations)
     _check_file_names(violations)
     _check_init_files(violations)
     _check_cli_dependencies(violations)

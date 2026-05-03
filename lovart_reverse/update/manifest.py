@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from lovart_reverse.io_json import hash_bytes, hash_value, read_json, write_json
-from lovart_reverse.paths import MANIFEST_FILE, SIGNER_WASM
+from lovart_reverse.paths import MANIFEST_FILE, SIGNER_WASM, WRITABLE_MANIFEST_FILE
 
 
 MANIFEST_KEYS = (
@@ -27,7 +27,7 @@ def load_manifest() -> dict[str, Any] | None:
 
 
 def save_manifest(snapshot: dict[str, Any]) -> None:
-    write_json(MANIFEST_FILE, snapshot)
+    write_json(WRITABLE_MANIFEST_FILE, snapshot)
 
 
 def manifest_from_parts(parts: dict[str, Any]) -> dict[str, Any]:

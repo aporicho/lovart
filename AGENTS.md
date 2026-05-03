@@ -6,9 +6,12 @@ This file is only the hard-rule checklist for coding agents.
 
 ## Hard Rules
 
-- Call the `lovart` CLI; do not read credentials, captures, browser profiles, or `ref/` snapshots directly.
+- Prefer the `lovart-mcp` MCP server when available; otherwise call the `lovart` CLI.
+- Do not read credentials, captures, browser profiles, or `ref/` snapshots directly.
 - Parse stdout as the machine contract. stderr is diagnostics only.
 - Do not wrap machine calls with `uv run lovart ...`; `uv` may print non-JSON messages.
+- Run `lovart --version` and `lovart self-test` when entering a new environment.
+- If `lovart --version` does not match the expected package/commit or lacks current commands, reinstall from the private GitHub repo.
 - Do not guess model parameters. Use `lovart config <model>`.
 - Do not treat `quote` alone as permission to submit. Real generation needs `dry-run` and the generation gate.
 - Do not bypass `auth_missing`, `metadata_stale`, `signer_stale`, `unknown_pricing`, or `credit_risk`.
@@ -26,3 +29,4 @@ This file is only the hard-rule checklist for coding agents.
 - Lovart CLI usage method: `docs/concepts/LovartCLI生成专家.md`
 
 For command fields and JSON shapes, use `docs/agent-contract.md`.
+For installation and MCP configuration, use `docs/agent-install.md`.

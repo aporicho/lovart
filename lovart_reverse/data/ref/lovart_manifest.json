@@ -1,0 +1,91 @@
+{
+  "generated_at": "2026-05-02T19:36:18.774895+00:00",
+  "lovart_canvas_url": "https://www.lovart.ai/canvas",
+  "canvas_html_hash": "926ea7c737010487de6bb2115731516e0ac6af5410a3f297a22a83e7b96b2782",
+  "static_js_hash": "f9b2723a3eb32e0c11f3b374e4b5d2bd7c9ce45c854f018f4778a857ccedb192",
+  "sentry_release_id": "d024246edb4e3ea28816f2292c5e38f69cc720c2",
+  "signer_wasm_url": null,
+  "signer_wasm_hash": null,
+  "generator_list_hash": "83b9672a07d1174bb8286871aa24ac7ad12313e6ceea1bcb087468929a769777",
+  "generator_schema_hash": "99b13cb13b93e85394adfd9a6310d27a959e9476cf20b79c8240f0f4cb018c55",
+  "pricing_table_hash": "3841bce58fa7489b336609000c2c8f9ba9ba09a9bb59f0e140a4c5a7a5066b5f",
+  "entitlement_shape_hash": "8932b0fd79357128ebe03fb922c3efaaeb40f55aca199e5a4115da46964e477a",
+  "details": {
+    "static_js_urls": [
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/canvas.ca9cf300.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/common-0.4fe29a60.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/common-1.7f384852.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/common-2.b6d8afc3.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/common-3.7015f051.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/framework.b5c4262c.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/runtime.993af3b7.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-0.92d94032.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-1.36294d75.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-10.497b7ac0.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-2.8475c724.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-3.202e80cc.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-4.70e9a1d6.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-5.f82bc105.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-6.ed4aea95.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-7.b95c8a7d.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-8.4085207f.js",
+      "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-9.d8df7ec5.js"
+    ],
+    "entitlement_shape": {
+      "fast": {
+        "source": "live",
+        "item_count": 1,
+        "aliases": [
+          "generate_image_gpt_image_2",
+          "generate_image_gpt_image_2_low",
+          "openai/gpt-image-2"
+        ],
+        "extra_keys": [
+          "raw_string"
+        ]
+      },
+      "relax": {
+        "source": "live",
+        "item_count": 17,
+        "aliases": [
+          "bytedance/seedream_v4",
+          "bytedance/seedream_v4_5",
+          "bytedance/seedream_v5",
+          "gemini-2.5-flash-image-preview",
+          "generate_image_gpt_image_1_5",
+          "generate_image_gpt_image_2",
+          "generate_image_midjourney",
+          "generate_image_nano_banana",
+          "generate_image_nano_banana_2",
+          "generate_image_nano_banana_pro",
+          "generate_image_seedream_v4",
+          "generate_image_seedream_v4_5",
+          "generate_image_seedream_v5",
+          "generate_video_kling_omni_v1",
+          "generate_video_kling_v2_6",
+          "generate_video_seedance_pro_v1_5",
+          "generate_video_wan_v2_6",
+          "kling/kling-v2-6",
+          "kling/kling-v2-6-motion-control",
+          "kling/kling-video-o1",
+          "openai/gpt-image-1-5",
+          "openai/gpt-image-2",
+          "seedance-1-5-pro",
+          "seedance/seedance-1-5-pro",
+          "seedream/seedream-4-0",
+          "seedream/seedream-4-5",
+          "seedream/seedream-5-0",
+          "vertex/anon-bob",
+          "vertex/nano-banana",
+          "vertex/nano-banana-2",
+          "wan/wan-2-6",
+          "youchuan/midjourney",
+          "youchuan/midjourney_draft"
+        ],
+        "extra_keys": [
+          "raw_string"
+        ]
+      }
+    }
+  }
+}
