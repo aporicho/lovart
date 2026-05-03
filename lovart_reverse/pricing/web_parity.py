@@ -19,6 +19,19 @@ def pricing_input_args(model: str, body: dict[str, Any]) -> tuple[dict[str, Any]
     return args, True
 
 
+def generation_input_args(model: str, body: dict[str, Any]) -> dict[str, Any]:
+    """Return generator task input args with web parity metadata."""
+
+    args, _ = pricing_input_args(model, body)
+    if "size" in body:
+        dimensions = _parse_size(body.get("size"))
+        if dimensions:
+            width, height = dimensions
+            args.setdefault("width", width)
+            args.setdefault("height", height)
+    return args
+
+
 def build_original_unit_data(model: str, body: dict[str, Any]) -> dict[str, Any]:
     width, height = _dimensions(body)
     count = _count(body)
@@ -46,9 +59,11 @@ def build_original_unit_data(model: str, body: dict[str, Any]) -> dict[str, Any]
             }
         )
     if ratio:
-        payload["ratio"] = ratio
+        payload["ratio"] = _display_ratio(ratio, resolution, body)
     if resolution:
         payload["resolution"] = resolution
+    if "prompt" in body:
+        payload["prompt"] = body["prompt"]
     for key in ("model", "mode", "render_speed", "duration"):
         if key in body:
             payload[key] = body[key]
@@ -151,3 +166,9 @@ def _ratio(width: int | None, height: int | None) -> str | None:
         return None
     factor = gcd(width, height)
     return f"{width // factor}:{height // factor}"
+
+
+def _display_ratio(ratio: Any, resolution: Any, body: dict[str, Any]) -> Any:
+    if body.get("size") and isinstance(ratio, str) and isinstance(resolution, str):
+        return f"{ratio}({resolution.lower()})"
+    return ratio

@@ -71,6 +71,8 @@ class QuoteTest(unittest.TestCase):
         self.assertEqual(original["height"], 1536)
         self.assertEqual(original["count"], 4)
         self.assertEqual(original["quality"], "high")
+        self.assertEqual(original["prompt"], "secret")
+        self.assertEqual(original["ratio"], "2:3(1k)")
 
     def test_original_unit_data_handles_captured_models(self) -> None:
         anon = build_original_unit_data("vertex/anon-bob", {"prompt": "x", "resolution": "2K", "aspect_ratio": "4:3"})

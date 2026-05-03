@@ -441,7 +441,7 @@ class JobsTest(unittest.TestCase):
             write_jobs(jobs_file, [gpt_job("001", prompt="a"), gpt_job("002", prompt="b")])
             events: list[str] = []
 
-            def submit(model: str, body: dict[str, object], language: str = "en") -> dict[str, object]:
+            def submit(model: str, body: dict[str, object], language: str = "en", mode: str = "auto") -> dict[str, object]:
                 events.append(f"submit:{body['prompt']}")
                 return {"data": {"task_id": f"task-{body['prompt']}"}}
 

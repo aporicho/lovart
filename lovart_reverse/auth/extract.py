@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from lovart_reverse.auth.store import save_credentials
+from lovart_reverse.auth.store import load_credentials, save_credentials
 from lovart_reverse.paths import CAPTURES_DIR
 
 AUTH_HEADER_NAMES = {
@@ -36,6 +36,9 @@ ID_KEYS = {
     "teamId",
     "organization_id",
     "organizationId",
+    "cid",
+    "webid",
+    "webId",
 }
 
 
@@ -68,6 +71,15 @@ def _jsonish(value: Any) -> Any:
         return value
 
 
+def _save_merged_credentials(headers: dict[str, str], ids: dict[str, Any], source_capture: str | None) -> None:
+    existing = load_credentials()
+    merged_headers = dict(existing.get("headers") or {})
+    merged_headers.update(headers)
+    merged_ids = dict(existing.get("ids") or {})
+    merged_ids.update(ids)
+    save_credentials(merged_headers, merged_ids, source_capture)
+
+
 def extract_from_captures(captures_dir: Path = CAPTURES_DIR) -> dict[str, Any]:
     files = sorted(captures_dir.glob("*.json"), key=lambda path: path.stat().st_mtime, reverse=True)
     headers: dict[str, str] = {}
@@ -78,20 +90,26 @@ def extract_from_captures(captures_dir: Path = CAPTURES_DIR) -> dict[str, Any]:
             data = json.loads(path.read_text())
         except Exception:
             continue
-        if not (_is_lovart(str(data.get("url", ""))) or _is_lovart(str(data.get("host", "")))):
+        request = data.get("request") if isinstance(data.get("request"), dict) else data
+        if not (
+            _is_lovart(str(data.get("url", "")))
+            or _is_lovart(str(data.get("host", "")))
+            or _is_lovart(str(request.get("url", "")))
+            or _is_lovart(str(request.get("host", "")))
+        ):
             continue
-        for name, value in (data.get("request_headers") or {}).items():
+        for name, value in (request.get("headers") or data.get("request_headers") or {}).items():
             if isinstance(value, str) and value and _maybe_auth_header(str(name)):
                 headers.setdefault(str(name), value)
-        _walk_ids(_jsonish(data.get("request_body")), ids)
-        _walk_ids(data.get("response_body"), ids)
+        _walk_ids(_jsonish(request.get("body") or data.get("request_body")), ids)
+        _walk_ids(data.get("response_body") or (data.get("response") or {}).get("body"), ids)
         if headers and source is None:
             source = path.name
         if any(name.lower() in {"authorization", "token", "x-auth-token", "x-access-token"} for name in headers):
             break
     if not headers:
         return {"saved": False, "header_names": [], "id_keys": [], "source_capture": None}
-    save_credentials(headers, ids, source)
+    _save_merged_credentials(headers, ids, source)
     return {
         "saved": True,
         "header_names": sorted(headers.keys()),
@@ -112,5 +130,5 @@ def extract_from_capture(path: Path) -> dict[str, Any]:
     _walk_ids(data.get("response_body") or (data.get("response") or {}).get("body"), ids)
     if not headers:
         return {"saved": False, "header_names": [], "id_keys": [], "source_capture": path.name}
-    save_credentials(headers, ids, path.name)
+    _save_merged_credentials(headers, ids, path.name)
     return {"saved": True, "header_names": sorted(headers.keys()), "id_keys": sorted(ids.keys()), "source_capture": path.name}

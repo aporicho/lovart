@@ -738,7 +738,7 @@ def _ensure_batch_allowed(
 def _submit_pending(state: dict[str, Any], *, language: str) -> None:
     for _, request in _iter_remote_requests(state["jobs"], statuses={"pending"}):
         try:
-            response = submit_model(request["model"], request["body"], language=language)
+            response = submit_model(request["model"], request["body"], language=language, mode=request["mode"])
             task_id = find_task_id(response)
             request["response"] = response
             request["task_id"] = task_id

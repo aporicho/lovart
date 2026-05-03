@@ -228,7 +228,7 @@ def generate_command(
             "offline mode cannot submit real generation; rerun without --offline so live pricing and update checks can run",
             {"model": model, "request": request},
         )
-    response = submit_model(model, body, language=language)
+    response = submit_model(model, body, language=language, mode=mode)
     task_id = find_task_id(response)
     data: dict[str, Any] = {
         "preflight": preflight,
