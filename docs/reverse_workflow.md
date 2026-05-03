@@ -4,13 +4,19 @@ This workflow is for updating reverse evidence, credentials, metadata, and uncon
 
 ## 1. Capture
 
-Ask the CLI for the mitm command:
+Start a full capture session:
+
+```bash
+lovart reverse start
+```
+
+This starts mitmproxy, opens an isolated Chrome profile through `http://127.0.0.1:8080`, and navigates to Lovart Canvas. Perform one narrow flow, then press Ctrl-C in the terminal. Capture files stay in `captures/`, which is ignored by git.
+
+For lower-level debugging without opening a browser:
 
 ```bash
 lovart reverse capture
 ```
-
-Run the returned command in another shell, browse Lovart through `http://127.0.0.1:8080`, and perform one narrow flow. Capture files stay in `captures/`, which is ignored by git.
 
 ## 2. Extract Auth
 

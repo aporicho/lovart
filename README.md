@@ -99,9 +99,11 @@ uv tool install "git+ssh://git@github.com/aporicho/lovart-reverse.git#egg=lovart
 If auth is missing, a reverse maintainer can capture and extract credentials from a Python environment with the `reverse` extra:
 
 ```bash
-lovart reverse capture
+lovart reverse start
 lovart auth extract captures/<lovart-request>.json
 ```
+
+`lovart reverse start` launches mitmproxy, opens an isolated Chrome profile through the proxy, and writes Lovart traffic into `captures/`. Stop it with Ctrl-C after the browser flow is complete. `lovart reverse capture` remains available as a low-level command printer when you need to start mitmproxy manually.
 
 ## JSON Envelope
 

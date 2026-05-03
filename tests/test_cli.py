@@ -174,6 +174,22 @@ class CliTest(unittest.TestCase):
         self.assertEqual(payload["error"]["code"], "input_error")
         self.assertIn("reverse_extra", payload["error"]["details"])
 
+    def test_reverse_start_dry_run_returns_proxy_and_browser_commands(self) -> None:
+        output = io.StringIO()
+        with (
+            patch("lovart_reverse.capture.session.reverse_extra_status", return_value={"available": True, "mitmproxy_module": True, "mitmdump": "/bin/mitmdump"}),
+            patch("lovart_reverse.capture.session.find_chrome", return_value="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
+            contextlib.redirect_stdout(output),
+        ):
+            code = main(["reverse", "start", "--dry-run", "--port", "9090", "--url", "https://www.lovart.ai/canvas"])
+        self.assertEqual(code, 0)
+        payload = json.loads(output.getvalue())
+        self.assertTrue(payload["ok"])
+        self.assertTrue(payload["data"]["dry_run"])
+        self.assertEqual(payload["data"]["proxy"], "http://127.0.0.1:9090")
+        self.assertEqual(payload["data"]["mitmdump_command"][0], "/bin/mitmdump")
+        self.assertIn("--proxy-server=http://127.0.0.1:9090", payload["data"]["browser_command"])
+
 
 if __name__ == "__main__":
     unittest.main()

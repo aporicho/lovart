@@ -11,6 +11,7 @@ from typing import Any
 from lovart_reverse.auth.extract import extract_from_capture
 from lovart_reverse.auth.store import status as auth_status
 from lovart_reverse.capture.runtime import capture_command
+from lovart_reverse.capture.session import DEFAULT_CAPTURE_URL, run_capture_session
 from lovart_reverse.capture import replay_capture
 from lovart_reverse.envelope import fail, ok
 from lovart_reverse.commands import (
@@ -203,6 +204,15 @@ def cmd_reverse(args: argparse.Namespace) -> dict[str, Any]:
     if args.reverse_cmd == "capture":
         addon = PACKAGE_DIR / "capture" / "mitm_addon.py"
         return capture_command(args.port, addon)
+    if args.reverse_cmd == "start":
+        return run_capture_session(
+            port=args.port,
+            url=args.url,
+            profile_dir=args.profile_dir,
+            browser=args.browser,
+            open_browser=not args.no_browser,
+            dry_run=args.dry_run,
+        )
     raise ValueError("unknown reverse command")
 
 
@@ -347,6 +357,13 @@ def build_parser() -> argparse.ArgumentParser:
     reverse_sub = reverse.add_subparsers(dest="reverse_cmd", required=True)
     capture = reverse_sub.add_parser("capture")
     capture.add_argument("--port", type=int, default=8080)
+    start = reverse_sub.add_parser("start")
+    start.add_argument("--port", type=int, default=8080)
+    start.add_argument("--url", default=DEFAULT_CAPTURE_URL)
+    start.add_argument("--profile-dir", type=Path)
+    start.add_argument("--browser", type=Path)
+    start.add_argument("--no-browser", action="store_true")
+    start.add_argument("--dry-run", action="store_true")
     replay = reverse_sub.add_parser("replay")
     replay.add_argument("capture", type=Path)
     replay.add_argument("--submit", action="store_true")
