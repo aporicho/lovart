@@ -3,6 +3,8 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import subprocess
+import sys
 import unittest
 from unittest.mock import patch
 
@@ -29,11 +31,28 @@ class CliTest(unittest.TestCase):
         payload = json.loads(output.getvalue())
         self.assertTrue(payload["ok"])
         self.assertIn("checks", payload["data"])
+        self.assertTrue(payload["data"]["checks"]["mcp_command_supported"])
+        self.assertIn("binary_mode", payload["data"]["runtime"])
+        self.assertIn("reverse_extra_available", payload["data"]["runtime"])
 
     def test_help_lists_current_agent_commands(self) -> None:
         help_text = build_parser().format_help()
-        for command in ("config", "plan", "quote", "jobs"):
+        for command in ("config", "plan", "quote", "jobs", "mcp"):
             self.assertIn(command, help_text)
+
+    def test_mcp_subcommand_starts_stdio_server(self) -> None:
+        result = subprocess.run(
+            [sys.executable, "-m", "lovart_reverse.cli.main", "mcp"],
+            input='{"jsonrpc":"2.0","id":1,"method":"tools/list"}\n',
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0)
+        payload = json.loads(result.stdout.splitlines()[0])
+        self.assertEqual(payload["id"], 1)
+        self.assertIn("tools", payload["result"])
 
     def test_models_stdout_is_json_envelope(self) -> None:
         output = io.StringIO()
@@ -112,6 +131,18 @@ class CliTest(unittest.TestCase):
         payload = json.loads(output.getvalue())
         self.assertEqual(payload["error"]["code"], "signer_stale")
         submit.assert_not_called()
+
+    def test_reverse_capture_requires_reverse_extra(self) -> None:
+        output = io.StringIO()
+        with (
+            patch("lovart_reverse.capture.runtime.reverse_extra_status", return_value={"available": False, "mitmproxy_module": False, "mitmdump": None}),
+            contextlib.redirect_stdout(output),
+        ):
+            code = main(["reverse", "capture"])
+        self.assertEqual(code, 2)
+        payload = json.loads(output.getvalue())
+        self.assertEqual(payload["error"]["code"], "input_error")
+        self.assertIn("reverse_extra", payload["error"]["details"])
 
 
 if __name__ == "__main__":

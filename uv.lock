@@ -796,16 +796,21 @@ name = "lovart-reverse"
 version = "0.2.0"
 source = { editable = "." }
 dependencies = [
+    { name = "requests" },
+]
+
+[package.optional-dependencies]
+reverse = [
     { name = "mitmproxy", version = "11.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "mitmproxy", version = "12.2.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "requests" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "mitmproxy", specifier = ">=11.0.2" },
+    { name = "mitmproxy", marker = "extra == 'reverse'", specifier = ">=11.0.2" },
     { name = "requests", specifier = ">=2.33.1" },
 ]
+provides-extras = ["reverse"]
 
 [[package]]
 name = "markupsafe"

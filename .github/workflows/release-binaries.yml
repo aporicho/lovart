@@ -1,0 +1,68 @@
+name: Release Binaries
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.asset_name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            asset_name: lovart-macos-arm64
+            binary_path: dist/lovart
+          - runner: ubuntu-latest
+            asset_name: lovart-linux-x64
+            binary_path: dist/lovart
+          - runner: windows-latest
+            asset_name: lovart-windows-x64.exe
+            binary_path: dist/lovart.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build one-file binary
+        shell: bash
+        run: uv run --with pyinstaller pyinstaller packaging/pyinstaller/lovart.spec --noconfirm --clean
+
+      - name: Smoke test binary
+        shell: bash
+        run: |
+          "${{ matrix.binary_path }}" --version
+          "${{ matrix.binary_path }}" self-test
+          "${{ matrix.binary_path }}" config openai/gpt-image-2
+          printf '{"jsonrpc":"2.0","id":1,"method":"tools/list"}\n' | "${{ matrix.binary_path }}" mcp
+
+      - name: Prepare asset
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          cp "${{ matrix.binary_path }}" "release-assets/${{ matrix.asset_name }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: release-assets/${{ matrix.asset_name }}
+
+      - name: Upload release asset
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/${{ matrix.asset_name }}

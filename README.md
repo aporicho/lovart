@@ -7,7 +7,7 @@ This README is the main manual. Other docs are references or role methods; they 
 ## Golden Rules
 
 - Parse stdout only. Every command returns a JSON envelope; stderr is human diagnostics.
-- Prefer the `lovart-mcp` MCP server when the agent supports MCP; otherwise call the `lovart` CLI directly.
+- Prefer the `lovart mcp` stdio server when the agent supports MCP; otherwise call the `lovart` CLI directly.
 - Do not read `.lovart/`, `scripts/creds.json`, `captures/`, browser profiles, or `ref/` directly.
 - Legal model parameters come from `lovart config <model>`. Do not guess sizes, quality values, aspect ratios, modes, or counts.
 - `quote` tells the credit cost. `dry-run` and the generation gate decide whether submission is allowed.
@@ -21,46 +21,54 @@ This README is the main manual. Other docs are references or role methods; they 
 
 ## Install
 
-Private GitHub install:
+Normal agent users should install the self-contained release binary. It does not require a Python environment.
+
+macOS arm64:
 
 ```bash
-uv tool install git+ssh://git@github.com/aporicho/lovart-reverse.git
+mkdir -p ~/.local/bin
+gh release download --repo aporicho/lovart-reverse --pattern "lovart-macos-arm64" -O ~/.local/bin/lovart
+chmod +x ~/.local/bin/lovart
 lovart --version
 lovart self-test
 ```
 
-`pipx` also works:
+Linux x64:
 
 ```bash
-pipx install git+ssh://git@github.com/aporicho/lovart-reverse.git
+mkdir -p ~/.local/bin
+gh release download --repo aporicho/lovart-reverse --pattern "lovart-linux-x64" -O ~/.local/bin/lovart
+chmod +x ~/.local/bin/lovart
 lovart --version
+lovart self-test
 ```
 
-Local development install:
+Windows x64:
 
-```bash
-uv sync
-source .venv/bin/activate
-python -m lovart_reverse.cli.main --version
-lovart setup
+```powershell
+gh release download --repo aporicho/lovart-reverse --pattern "lovart-windows-x64.exe" -O "$env:USERPROFILE\bin\lovart.exe"
+lovart --version
+lovart self-test
 ```
 
-If `lovart --version` shows an older command set or a different git commit than expected, reinstall the tool before using it from an agent.
+If `lovart --version` shows an older command set or a different git commit than expected, replace the binary before using it from an agent.
 
 MCP stdio config:
 
-```json
-{
-  "mcpServers": {
-    "lovart": {
-      "command": "lovart-mcp",
-      "args": []
-    }
-  }
-}
+```toml
+[mcp_servers.lovart]
+command = "/absolute/path/to/lovart"
+args = ["mcp"]
 ```
 
-If auth is missing, capture and extract credentials:
+Python installs are for developers and reverse maintainers:
+
+```bash
+uv tool install git+ssh://git@github.com/aporicho/lovart-reverse.git
+uv tool install "git+ssh://git@github.com/aporicho/lovart-reverse.git#egg=lovart-reverse[reverse]"
+```
+
+If auth is missing, a reverse maintainer can capture and extract credentials from a Python environment with the `reverse` extra:
 
 ```bash
 lovart reverse capture
@@ -183,6 +191,7 @@ State is stored in `runs/<project>/jobs_state.json`. Quote reports are stored in
 lovart setup
 lovart --version
 lovart self-test
+lovart mcp
 lovart models
 lovart config <model>
 lovart plan --intent image-concept

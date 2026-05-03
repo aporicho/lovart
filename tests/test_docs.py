@@ -26,11 +26,11 @@ class DocsTest(unittest.TestCase):
         ):
             self.assertIn(command, text)
 
-    def test_lovart_cli_expert_doc_exists(self) -> None:
-        text = (ROOT / "docs" / "concepts" / "LovartCLI生成专家.md").read_text()
-        self.assertIn("lovart jobs quote", text)
+    def test_agent_install_doc_uses_single_binary_mcp(self) -> None:
+        text = (ROOT / "docs" / "agent-install.md").read_text()
+        self.assertIn("lovart-macos-arm64", text)
+        self.assertIn('args = ["mcp"]', text)
         self.assertIn("lovart jobs resume", text)
-        self.assertIn("不读取 `.lovart/creds.json`", text)
 
     def test_batch_docs_use_outputs_not_body_quantity(self) -> None:
         text = "\n".join(
@@ -38,7 +38,7 @@ class DocsTest(unittest.TestCase):
                 (ROOT / "AGENTS.md").read_text(),
                 (ROOT / "README.md").read_text(),
                 (ROOT / "docs" / "agent-contract.md").read_text(),
-                (ROOT / "docs" / "concepts" / "LovartCLI生成专家.md").read_text(),
+                (ROOT / "docs" / "agent-install.md").read_text(),
             ]
         )
         self.assertIn('"outputs":10', text)

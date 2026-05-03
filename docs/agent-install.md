@@ -1,43 +1,47 @@
 # Agent Install
 
-This project exposes Lovart through two agent-friendly surfaces:
+This project is distributed to agents as a self-contained `lovart` binary. The same binary provides both the JSON CLI and the safe MCP stdio server.
 
-- `lovart`: global JSON CLI and only execution layer.
-- `lovart-mcp`: safe MCP stdio wrapper around the CLI command facade.
+## Binary Install
 
-## Private GitHub Install
-
-Recommended:
+macOS arm64:
 
 ```bash
-uv tool install git+ssh://git@github.com/aporicho/lovart-reverse.git
+mkdir -p ~/.local/bin
+gh release download --repo aporicho/lovart-reverse --pattern "lovart-macos-arm64" -O ~/.local/bin/lovart
+chmod +x ~/.local/bin/lovart
 lovart --version
 lovart self-test
 ```
 
-Alternative:
+Linux x64:
 
 ```bash
-pipx install git+ssh://git@github.com/aporicho/lovart-reverse.git
+mkdir -p ~/.local/bin
+gh release download --repo aporicho/lovart-reverse --pattern "lovart-linux-x64" -O ~/.local/bin/lovart
+chmod +x ~/.local/bin/lovart
 lovart --version
 lovart self-test
 ```
 
-If `lovart --version` shows an unexpected version, commit, or command set, reinstall before calling generation commands.
+Windows x64:
+
+```powershell
+gh release download --repo aporicho/lovart-reverse --pattern "lovart-windows-x64.exe" -O "$env:USERPROFILE\bin\lovart.exe"
+lovart --version
+lovart self-test
+```
+
+If `lovart --version` shows an unexpected version, commit, or command set, replace the binary before calling generation commands.
 
 ## MCP Config
 
-Use stdio:
+Use stdio through the single binary:
 
-```json
-{
-  "mcpServers": {
-    "lovart": {
-      "command": "lovart-mcp",
-      "args": []
-    }
-  }
-}
+```toml
+[mcp_servers.lovart]
+command = "/absolute/path/to/lovart"
+args = ["mcp"]
 ```
 
 MCP tools return the same JSON envelope as the CLI:
@@ -69,7 +73,7 @@ The MCP server does not expose capture, credential extraction, reverse replay su
 
 ## CLI Fallback
 
-When MCP is unavailable, use the CLI directly:
+When MCP is unavailable, use the same binary directly:
 
 ```bash
 lovart setup
@@ -90,3 +94,14 @@ lovart jobs resume runs/<project>/jobs.jsonl --wait --download
 ```
 
 Paid generation still requires explicit budget flags in both MCP and CLI calls.
+
+## Developer And Reverse Maintainer Install
+
+Python installs are for local development and reverse maintenance only:
+
+```bash
+uv tool install git+ssh://git@github.com/aporicho/lovart-reverse.git
+uv tool install "git+ssh://git@github.com/aporicho/lovart-reverse.git#egg=lovart-reverse[reverse]"
+```
+
+The `reverse` extra installs capture dependencies such as `mitmproxy`; normal agent users do not need them.

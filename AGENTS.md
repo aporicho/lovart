@@ -6,12 +6,12 @@ This file is only the hard-rule checklist for coding agents.
 
 ## Hard Rules
 
-- Prefer the `lovart-mcp` MCP server when available; otherwise call the `lovart` CLI.
+- Prefer the `lovart mcp` MCP server from the self-contained `lovart` binary when available; otherwise call the `lovart` CLI.
 - Do not read credentials, captures, browser profiles, or `ref/` snapshots directly.
 - Parse stdout as the machine contract. stderr is diagnostics only.
 - Do not wrap machine calls with `uv run lovart ...`; `uv` may print non-JSON messages.
 - Run `lovart --version` and `lovart self-test` when entering a new environment.
-- If `lovart --version` does not match the expected package/commit or lacks current commands, reinstall from the private GitHub repo.
+- If `lovart --version` does not match the expected package/commit or lacks current commands, replace the binary from the private GitHub release.
 - Do not guess model parameters. Use `lovart config <model>`.
 - Do not treat `quote` alone as permission to submit. Real generation needs `dry-run` and the generation gate.
 - Do not bypass `auth_missing`, `metadata_stale`, `signer_stale`, `unknown_pricing`, or `credit_risk`.

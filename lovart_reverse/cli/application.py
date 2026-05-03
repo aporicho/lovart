@@ -10,6 +10,7 @@ from typing import Any
 
 from lovart_reverse.auth.extract import extract_from_capture
 from lovart_reverse.auth.store import status as auth_status
+from lovart_reverse.capture.runtime import capture_command
 from lovart_reverse.capture import replay_capture
 from lovart_reverse.envelope import fail, ok
 from lovart_reverse.commands import (
@@ -30,7 +31,7 @@ from lovart_reverse.commands import (
 from lovart_reverse.discovery import generator_schema
 from lovart_reverse.errors import InputError, LovartError
 from lovart_reverse.io_json import load_body
-from lovart_reverse.paths import ROOT
+from lovart_reverse.paths import PACKAGE_DIR
 from lovart_reverse.registry import load_ref_registry, request_schema, validate_body
 from lovart_reverse.task import task_info
 from lovart_reverse.update import check_update, diff_update, sync_metadata
@@ -183,12 +184,8 @@ def cmd_reverse(args: argparse.Namespace) -> dict[str, Any]:
     if args.reverse_cmd == "replay":
         return replay_capture(args.capture, submit=args.submit)
     if args.reverse_cmd == "capture":
-        addon = ROOT / "lovart_reverse" / "capture" / "mitm_addon.py"
-        return {
-            "command": ["uv", "run", "mitmdump", "-s", str(addon), "--listen-port", str(args.port)],
-            "proxy": f"http://127.0.0.1:{args.port}",
-            "note": "run this command in a separate shell and browse Lovart through the proxy",
-        }
+        addon = PACKAGE_DIR / "capture" / "mitm_addon.py"
+        return capture_command(args.port, addon)
     raise ValueError("unknown reverse command")
 
 
@@ -313,6 +310,7 @@ def build_parser() -> argparse.ArgumentParser:
     replay.add_argument("--submit", action="store_true")
 
     sub.add_parser("self-test")
+    sub.add_parser("mcp")
     sub.add_parser("doctor")
     return parser
 
@@ -352,12 +350,18 @@ def dispatch(args: argparse.Namespace) -> dict[str, Any]:
         return cmd_reverse(args)
     if args.command == "doctor":
         return cmd_doctor(args)
+    if args.command == "mcp":
+        raise ValueError("mcp must be handled before JSON envelope dispatch")
     raise ValueError(f"unknown command: {args.command}")
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command == "mcp":
+        from lovart_reverse.mcp.server import main as mcp_main
+
+        return mcp_main()
     try:
         print(json.dumps(ok(dispatch(args)), ensure_ascii=False, separators=(",", ":")))
         return 0

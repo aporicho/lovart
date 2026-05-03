@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+import sys
 import subprocess
 from importlib import metadata
 from pathlib import Path
 from typing import Any
 
 from lovart_reverse.auth.store import status as auth_status
+from lovart_reverse.capture.runtime import reverse_extra_status
 from lovart_reverse.config import config_for_model, global_config
 from lovart_reverse.discovery import generator_list
 from lovart_reverse.downloads import download_artifacts
@@ -16,9 +18,9 @@ from lovart_reverse.generation import dry_run_request, find_task_id, generation_
 from lovart_reverse.io_json import hash_bytes
 from lovart_reverse.jobs import dry_run_jobs, quote_jobs, resume_jobs, run_jobs, status_jobs
 from lovart_reverse.paths import (
+    PACKAGE_DIR,
     GENERATOR_SCHEMA_FILE,
     MANIFEST_FILE,
-    PACKAGE_DIR,
     PACKAGE_REF_DIR,
     REF_DIR,
     ROOT,
@@ -42,7 +44,7 @@ def _package_version() -> str:
 def _git_commit() -> str | None:
     repo_root = PACKAGE_DIR.parent
     if not (repo_root / ".git").exists():
-        return _direct_url_commit()
+        return _build_info_commit() or _direct_url_commit()
     try:
         result = subprocess.run(
             ["git", "-C", str(repo_root), "rev-parse", "--short", "HEAD"],
@@ -52,7 +54,23 @@ def _git_commit() -> str | None:
         )
     except (subprocess.CalledProcessError, FileNotFoundError):
         return _direct_url_commit()
-    return result.stdout.strip() or _direct_url_commit()
+    return result.stdout.strip() or _build_info_commit() or _direct_url_commit()
+
+
+def _build_info() -> dict[str, Any]:
+    path = PACKAGE_DIR / "data" / "build_info.json"
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _build_info_commit() -> str | None:
+    commit = _build_info().get("git_commit")
+    return str(commit)[:12] if commit else None
 
 
 def _direct_url_commit() -> str | None:
@@ -80,6 +98,8 @@ def version_command() -> dict[str, Any]:
         "package": "lovart-reverse",
         "version": _package_version(),
         "git_commit": _git_commit(),
+        "binary_mode": bool(getattr(sys, "frozen", False)),
+        "build": _build_info(),
         "runtime_root": str(ROOT),
         "ref_dir": str(REF_DIR),
         "package_ref_dir": str(PACKAGE_REF_DIR),
@@ -104,11 +124,18 @@ def self_test_command() -> dict[str, Any]:
         "refs_available": all(item["exists"] for item in refs.values()),
         "models_available": bool(models),
         "doctor_ok": bool(doctor.get("ok")),
+        "mcp_command_supported": True,
     }
     return {
         "ok": all(checks.values()),
         "version": version_command(),
         "checks": checks,
+        "runtime": {
+            "binary_mode": bool(getattr(sys, "frozen", False)),
+            "mcp_command_supported": True,
+            "reverse_extra_available": reverse_extra_status()["available"],
+            "reverse_extra": reverse_extra_status(),
+        },
         "refs": refs,
         "auth": auth_status(),
         "setup": setup,
