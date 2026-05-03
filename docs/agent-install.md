@@ -2,9 +2,49 @@
 
 This project is distributed to agents as a self-contained `lovart` binary. The same binary provides both the JSON CLI and the safe MCP stdio server.
 
-## Binary Install
+## Installer
 
-macOS arm64:
+The recommended path is the release installer. It uses `gh release download`, verifies checksums, installs the matching binary, and configures detected agents for `lovart mcp`.
+
+Authenticate first:
+
+```bash
+gh auth login
+```
+
+macOS / Linux:
+
+```bash
+gh release download --repo aporicho/lovart-reverse --pattern install.sh -O /tmp/lovart-install.sh
+bash /tmp/lovart-install.sh --agents auto --yes
+lovart --version
+lovart self-test
+lovart agent status
+```
+
+Windows:
+
+```powershell
+gh release download --repo aporicho/lovart-reverse --pattern install.ps1 -O "$env:TEMP\lovart-install.ps1"
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\lovart-install.ps1" -Agents auto -Yes
+lovart --version
+lovart self-test
+lovart agent status
+```
+
+If `lovart --version` shows an unexpected version, commit, or command set, replace the binary before calling generation commands.
+
+## MCP Config
+
+The installer writes MCP config automatically. Manual Codex config uses stdio through the single binary:
+
+```toml
+[mcp_servers.lovart]
+command = "/absolute/path/to/lovart"
+args = ["mcp"]
+```
+
+Direct binary download remains available as a fallback:
 
 ```bash
 mkdir -p ~/.local/bin
@@ -12,36 +52,7 @@ gh release download --repo aporicho/lovart-reverse --pattern "lovart-macos-arm64
 chmod +x ~/.local/bin/lovart
 lovart --version
 lovart self-test
-```
-
-Linux x64:
-
-```bash
-mkdir -p ~/.local/bin
-gh release download --repo aporicho/lovart-reverse --pattern "lovart-linux-x64" -O ~/.local/bin/lovart
-chmod +x ~/.local/bin/lovart
-lovart --version
-lovart self-test
-```
-
-Windows x64:
-
-```powershell
-gh release download --repo aporicho/lovart-reverse --pattern "lovart-windows-x64.exe" -O "$env:USERPROFILE\bin\lovart.exe"
-lovart --version
-lovart self-test
-```
-
-If `lovart --version` shows an unexpected version, commit, or command set, replace the binary before calling generation commands.
-
-## MCP Config
-
-Use stdio through the single binary:
-
-```toml
-[mcp_servers.lovart]
-command = "/absolute/path/to/lovart"
-args = ["mcp"]
+lovart agent install --agents auto --yes
 ```
 
 MCP tools return the same JSON envelope as the CLI:

@@ -10,6 +10,7 @@ from typing import Any
 
 from lovart_reverse.auth.extract import extract_from_capture
 from lovart_reverse.auth.store import status as auth_status
+from lovart_reverse.agent import agent_install, agent_status
 from lovart_reverse.capture.runtime import capture_command
 from lovart_reverse.capture import replay_capture
 from lovart_reverse.envelope import fail, ok
@@ -195,6 +196,21 @@ def cmd_doctor(args: argparse.Namespace) -> dict[str, Any]:
     return run_checks().to_dict()
 
 
+def cmd_agent(args: argparse.Namespace) -> dict[str, Any]:
+    if args.agent_cmd == "status":
+        return agent_status(agents=args.agents, lovart_path=args.lovart_path, home=args.home)
+    if args.agent_cmd == "install":
+        return agent_install(
+            agents=args.agents,
+            lovart_path=args.lovart_path,
+            home=args.home,
+            dry_run=args.dry_run,
+            yes=args.yes,
+            force=args.force,
+        )
+    raise ValueError("unknown agent command")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="lovart")
     parser.add_argument("--version", action="store_true", dest="show_version")
@@ -309,6 +325,20 @@ def build_parser() -> argparse.ArgumentParser:
     replay.add_argument("capture", type=Path)
     replay.add_argument("--submit", action="store_true")
 
+    agent = sub.add_parser("agent")
+    agent_sub = agent.add_subparsers(dest="agent_cmd", required=True)
+    agent_status_cmd = agent_sub.add_parser("status")
+    agent_status_cmd.add_argument("--agents", default="auto")
+    agent_status_cmd.add_argument("--lovart-path", type=Path)
+    agent_status_cmd.add_argument("--home", type=Path)
+    agent_install_cmd = agent_sub.add_parser("install")
+    agent_install_cmd.add_argument("--agents", default="auto")
+    agent_install_cmd.add_argument("--lovart-path", type=Path)
+    agent_install_cmd.add_argument("--home", type=Path)
+    agent_install_cmd.add_argument("--yes", action="store_true")
+    agent_install_cmd.add_argument("--force", action="store_true")
+    agent_install_cmd.add_argument("--dry-run", action="store_true")
+
     sub.add_parser("self-test")
     sub.add_parser("mcp")
     sub.add_parser("doctor")
@@ -350,6 +380,8 @@ def dispatch(args: argparse.Namespace) -> dict[str, Any]:
         return cmd_reverse(args)
     if args.command == "doctor":
         return cmd_doctor(args)
+    if args.command == "agent":
+        return cmd_agent(args)
     if args.command == "mcp":
         raise ValueError("mcp must be handled before JSON envelope dispatch")
     raise ValueError(f"unknown command: {args.command}")

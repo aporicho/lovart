@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import subprocess
 import tomllib
 import unittest
 from pathlib import Path
@@ -35,8 +37,32 @@ class PackagingTest(unittest.TestCase):
         self.assertIn("lovart-linux-x64", workflow)
         self.assertIn("lovart-windows-x64.exe", workflow)
         self.assertIn("lovart.spec", workflow)
+        self.assertIn("install.sh", workflow)
+        self.assertIn("install.ps1", workflow)
+        self.assertIn("SHA256SUMS", workflow)
         self.assertIn('method":"tools/list', workflow)
         self.assertIn('"${{ matrix.binary_path }}" mcp', workflow)
+
+    def test_install_sh_dry_run_json_maps_current_platform(self) -> None:
+        result = subprocess.run(
+            ["bash", str(ROOT / "packaging" / "install" / "install.sh"), "--dry-run", "--json"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertIn(payload["data"]["asset"], {"lovart-macos-arm64", "lovart-linux-x64"})
+        self.assertTrue(payload["data"]["dry_run"])
+
+    def test_install_scripts_require_gh_for_real_downloads(self) -> None:
+        shell_script = (ROOT / "packaging" / "install" / "install.sh").read_text()
+        powershell_script = (ROOT / "packaging" / "install" / "install.ps1").read_text()
+        self.assertIn("gh auth status", shell_script)
+        self.assertIn("gh release download", shell_script)
+        self.assertIn("Get-FileHash -Algorithm SHA256", powershell_script)
+        self.assertIn("lovart-windows-x64.exe", powershell_script)
 
 
 if __name__ == "__main__":

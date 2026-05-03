@@ -21,7 +21,35 @@ This README is the main manual. Other docs are references or role methods; they 
 
 ## Install
 
-Normal agent users should install the self-contained release binary. It does not require a Python environment.
+Normal agent users should use the release installer. It downloads the self-contained `lovart` binary and configures supported agents for `lovart mcp`. It requires GitHub CLI authentication:
+
+```bash
+gh auth login
+```
+
+macOS / Linux:
+
+```bash
+gh release download --repo aporicho/lovart-reverse --pattern install.sh -O /tmp/lovart-install.sh
+bash /tmp/lovart-install.sh --agents auto --yes
+```
+
+Windows:
+
+```powershell
+gh release download --repo aporicho/lovart-reverse --pattern install.ps1 -O "$env:TEMP\lovart-install.ps1"
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\lovart-install.ps1" -Agents auto -Yes
+```
+
+Verify:
+
+```bash
+lovart --version
+lovart self-test
+lovart agent status
+```
+
+Direct binary download is the fallback path.
 
 macOS arm64:
 
@@ -53,7 +81,7 @@ lovart self-test
 
 If `lovart --version` shows an older command set or a different git commit than expected, replace the binary before using it from an agent.
 
-MCP stdio config:
+The installer writes MCP config for detected agents. Manual Codex config is:
 
 ```toml
 [mcp_servers.lovart]
@@ -191,6 +219,8 @@ State is stored in `runs/<project>/jobs_state.json`. Quote reports are stored in
 lovart setup
 lovart --version
 lovart self-test
+lovart agent status
+lovart agent install --agents auto --yes
 lovart mcp
 lovart models
 lovart config <model>

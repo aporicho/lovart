@@ -21,6 +21,8 @@ class DocsTest(unittest.TestCase):
             "lovart jobs status",
             "lovart jobs resume",
             "lovart generate",
+            "lovart agent status",
+            "lovart agent install",
             "lovart update sync --metadata-only",
             "lovart reverse capture",
         ):
@@ -29,6 +31,8 @@ class DocsTest(unittest.TestCase):
     def test_agent_install_doc_uses_single_binary_mcp(self) -> None:
         text = (ROOT / "docs" / "agent-install.md").read_text()
         self.assertIn("lovart-macos-arm64", text)
+        self.assertIn("install.sh", text)
+        self.assertIn("install.ps1", text)
         self.assertIn('args = ["mcp"]', text)
         self.assertIn("lovart jobs resume", text)
 
