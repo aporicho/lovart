@@ -82,6 +82,8 @@ MCP tools return the same JSON envelope as the CLI:
 
 The MCP server does not expose capture, credential extraction, reverse replay submission, metadata sync, or direct `ref/` mutation.
 
+Long batch waits are resumable. MCP clients commonly cap a tool call around two minutes, so `lovart_jobs_run` and `lovart_jobs_resume` use compact summary output by default and cap `wait` windows at 90 seconds. If a batch is still running, call `lovart_jobs_resume` again or inspect `lovart_jobs_status`; saved `task_id`s are reused and are not resubmitted.
+
 ## CLI Fallback
 
 When MCP is unavailable, use the same binary directly:

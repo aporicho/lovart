@@ -20,6 +20,7 @@ This file is only the hard-rule checklist for coding agents.
 - Batch JSONL is user-level: one line per concept/task, with top-level `outputs` for image count.
 - Do not manually split one concept into many JSONL rows; let the CLI expand `remote_requests`.
 - After a partial batch run, use `lovart jobs resume`, not `lovart jobs run`.
+- For slow batch tasks through MCP, use short resumable waits and `jobs status`; do not assume one MCP tool call can wait until completion.
 - Do not modify `ref/` unless the user explicitly asks for reverse-maintenance work.
 
 For command fields and JSON shapes, use `docs/agent-contract.md`.

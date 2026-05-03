@@ -180,12 +180,13 @@ def dry_run_jobs(
     allow_paid: bool = False,
     max_total_credits: float | None = None,
     language: str = "en",
+    detail: str = "full",
 ) -> dict[str, Any]:
     state = _new_state(jobs_file, out_dir)
     _preflight_remote_requests(state, allow_paid=allow_paid, max_total_credits=max_total_credits, language=language)
     state["batch_gate"] = _batch_gate_payload(state, allow_paid=allow_paid, max_total_credits=max_total_credits)
     save_state(state)
-    return _state_result(state, "dry_run")
+    return _state_result(state, "dry_run", detail=detail)
 
 
 def run_jobs(
@@ -199,6 +200,7 @@ def run_jobs(
     download: bool = False,
     timeout_seconds: float = 3600,
     poll_interval: float = 5,
+    detail: str = "full",
 ) -> dict[str, Any]:
     run_dir = default_run_dir(jobs_file, out_dir)
     if existing_state_has_remote_tasks(run_dir):
@@ -213,7 +215,9 @@ def run_jobs(
     _submit_pending(state, language=language)
     if wait:
         _wait_for_submitted(state, language=language, download=download, timeout_seconds=timeout_seconds, poll_interval=poll_interval)
-    return _state_result(state, "run")
+    elif download:
+        _download_completed_artifacts(state)
+    return _state_result(state, "run", detail=detail)
 
 
 def resume_jobs(
@@ -228,6 +232,7 @@ def resume_jobs(
     retry_failed: bool = False,
     timeout_seconds: float = 3600,
     poll_interval: float = 5,
+    detail: str = "full",
 ) -> dict[str, Any]:
     run_dir = default_run_dir(jobs_file, out_dir)
     if state_path(run_dir).exists():
@@ -252,12 +257,14 @@ def resume_jobs(
     _submit_pending(state, language=language)
     if wait:
         _wait_for_submitted(state, language=language, download=download, timeout_seconds=timeout_seconds, poll_interval=poll_interval)
-    return _state_result(state, "resume")
+    elif download:
+        _download_completed_artifacts(state)
+    return _state_result(state, "resume", detail=detail)
 
 
-def status_jobs(run_dir: Path) -> dict[str, Any]:
+def status_jobs(run_dir: Path, *, detail: str = "summary") -> dict[str, Any]:
     state = load_state(run_dir)
-    return _state_result(state, "status")
+    return _state_result(state, "status", detail=detail)
 
 
 def _quote_concurrency(value: int) -> tuple[int, list[str]]:
@@ -803,10 +810,35 @@ def _wait_for_submitted(
             break
         time.sleep(poll_interval)
     state["timed_out"] = timed_out
+    if download:
+        _download_completed_artifacts(state)
     save_state(state)
 
 
-def _state_result(state: dict[str, Any], operation: str) -> dict[str, Any]:
+def _download_completed_artifacts(state: dict[str, Any]) -> None:
+    changed = False
+    for _, request in _iter_remote_requests(state.get("jobs", [])):
+        if request.get("status") != "completed" or request.get("downloads"):
+            continue
+        task_id = request.get("task_id")
+        artifacts = request.get("artifacts")
+        if not task_id or not isinstance(artifacts, list) or not artifacts:
+            continue
+        request["downloads"] = download_artifacts(artifacts, task_id=str(task_id))
+        request["status"] = "downloaded"
+        changed = True
+    if changed:
+        _refresh_job_statuses(state["jobs"])
+        save_state(state)
+
+
+def _state_result(state: dict[str, Any], operation: str, *, detail: str = "full") -> dict[str, Any]:
+    if detail == "summary":
+        return _compact_state_result(state, operation, include_requests=False)
+    if detail == "requests":
+        return _compact_state_result(state, operation, include_requests=True)
+    if detail != "full":
+        raise InputError("unknown jobs detail mode", {"detail": detail, "allowed": ["summary", "requests", "full"]})
     failed_jobs = [job for job in state["jobs"] if job.get("status") == "failed"]
     remote_requests = [request for _, request in _iter_remote_requests(state["jobs"])]
     submitted = [request for request in remote_requests if request.get("task_id")]
@@ -837,7 +869,127 @@ def _state_result(state: dict[str, Any], operation: str) -> dict[str, Any]:
         "failed": failed_jobs,
         "timed_out": bool(state.get("timed_out")),
         "jobs": state.get("jobs", []),
+        "warnings": _state_warnings(state),
+        "recommended_actions": _state_recommended_actions(state),
     }
+
+
+def _compact_state_result(state: dict[str, Any], operation: str, *, include_requests: bool) -> dict[str, Any]:
+    remote_requests = [request for _, request in _iter_remote_requests(state.get("jobs", []))]
+    tasks = [_compact_task_request(request) for request in remote_requests if request.get("task_id")]
+    failed = [_compact_task_request(request) for request in remote_requests if request.get("status") == "failed"]
+    downloads = []
+    for request in remote_requests:
+        downloads.extend(request.get("downloads") or [])
+    result: dict[str, Any] = {
+        "operation": operation,
+        "jobs_file": state.get("jobs_file"),
+        "jobs_file_hash": state.get("jobs_file_hash"),
+        "run_dir": state.get("run_dir"),
+        "state_file": state.get("state_file"),
+        "summary": summarize_state(state),
+        "batch_gate": _compact_batch_gate(state.get("batch_gate")),
+        "task_count": len(tasks),
+        "tasks": tasks,
+        "download_count": len(downloads),
+        "failed": failed,
+        "timed_out": bool(state.get("timed_out")),
+        "warnings": _state_warnings(state),
+        "recommended_actions": _state_recommended_actions(state),
+    }
+    if include_requests:
+        result["remote_requests"] = [_compact_task_request(request) for request in remote_requests]
+    return result
+
+
+def _compact_batch_gate(batch_gate: Any) -> dict[str, Any] | None:
+    if not isinstance(batch_gate, dict):
+        return None
+    return {
+        "allowed": batch_gate.get("allowed"),
+        "allow_paid": batch_gate.get("allow_paid"),
+        "max_total_credits": batch_gate.get("max_total_credits"),
+        "selected_remote_requests": batch_gate.get("selected_remote_requests"),
+        "total_credits": batch_gate.get("total_credits"),
+        "paid_request_count": len(batch_gate.get("paid_request_ids") or []),
+        "unknown_pricing_request_count": len(batch_gate.get("unknown_pricing_request_ids") or []),
+        "schema_invalid_request_count": len(batch_gate.get("schema_invalid_request_ids") or []),
+        "blocking_request_count": len(batch_gate.get("blocking_requests") or []),
+    }
+
+
+def _compact_task_request(request: dict[str, Any]) -> dict[str, Any]:
+    task = request.get("task") if isinstance(request.get("task"), dict) else {}
+    artifacts = request.get("artifacts")
+    if not isinstance(artifacts, list):
+        artifacts = task.get("artifacts") if isinstance(task.get("artifacts"), list) else []
+    downloads = request.get("downloads") if isinstance(request.get("downloads"), list) else []
+    return {
+        "job_id": request.get("job_id"),
+        "title": request.get("title"),
+        "request_id": request.get("request_id"),
+        "model": request.get("model"),
+        "mode": request.get("mode"),
+        "output_count": request.get("output_count"),
+        "status": request.get("status"),
+        "task_id": request.get("task_id"),
+        "remote_status": task.get("status"),
+        "artifact_count": len(artifacts),
+        "download_count": len(downloads),
+        "quote_summary": _quote_summary_payload(request.get("quote")),
+        "schema_errors": request.get("schema_errors") or [],
+        "last_error": _last_error_summary(request),
+    }
+
+
+def _last_error_summary(request: dict[str, Any]) -> dict[str, Any] | None:
+    errors = request.get("errors")
+    if not isinstance(errors, list) or not errors:
+        return None
+    last = errors[-1]
+    if not isinstance(last, dict):
+        return {"code": "unknown", "message": str(last)}
+    details = last.get("details") if isinstance(last.get("details"), dict) else {}
+    return {
+        "code": last.get("code"),
+        "message": last.get("message"),
+        "detail_type": details.get("type"),
+    }
+
+
+def _state_warnings(state: dict[str, Any]) -> list[str]:
+    warnings: list[str] = []
+    summary = summarize_state(state)
+    if state.get("timed_out"):
+        warnings.append("batch polling timed out locally; submitted task IDs are saved and resume can continue polling")
+    if summary.get("remote_status_counts", {}).get("running") or summary.get("remote_status_counts", {}).get("submitted"):
+        warnings.append("some remote requests are still active; use jobs resume or jobs status to continue safely")
+    if summary.get("failed_jobs"):
+        warnings.append("some jobs failed; inspect detail=requests and retry only when the failure is understood")
+    return warnings
+
+
+def _state_recommended_actions(state: dict[str, Any]) -> list[str]:
+    actions: list[str] = []
+    jobs_file = state.get("jobs_file") or "<jobs.jsonl>"
+    run_dir = state.get("run_dir")
+    out_dir_arg = f" --out-dir {run_dir}" if run_dir else ""
+    remote_counts = summarize_state(state).get("remote_status_counts", {})
+    active = int(remote_counts.get("submitted") or 0) + int(remote_counts.get("running") or 0)
+    pending = int(remote_counts.get("pending") or 0)
+    failed = int(remote_counts.get("failed") or 0)
+    completed = int(remote_counts.get("completed") or 0)
+    downloaded = int(remote_counts.get("downloaded") or 0)
+    if active:
+        actions.append(f"lovart jobs resume {jobs_file}{out_dir_arg} --wait --download --timeout-seconds 90")
+        actions.append(f"lovart jobs status {run_dir}" if run_dir else "lovart jobs status <run_dir>")
+    if pending:
+        actions.append(f"lovart jobs resume {jobs_file}{out_dir_arg}")
+    if completed:
+        actions.append(f"lovart jobs resume {jobs_file}{out_dir_arg} --download --timeout-seconds 90")
+    if failed:
+        actions.append(f"lovart jobs status {run_dir} --detail requests" if run_dir else "lovart jobs status <run_dir> --detail requests")
+    return list(dict.fromkeys(actions))
 
 
 def _quote_status_entry(state: dict[str, Any]) -> dict[str, Any]:

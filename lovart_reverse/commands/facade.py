@@ -280,6 +280,7 @@ def jobs_dry_run_command(
     allow_paid: bool = False,
     max_total_credits: float | None = None,
     language: str = "en",
+    detail: str = "full",
 ) -> dict[str, Any]:
     return dry_run_jobs(
         jobs_file,
@@ -287,6 +288,7 @@ def jobs_dry_run_command(
         allow_paid=allow_paid,
         max_total_credits=max_total_credits,
         language=language,
+        detail=detail,
     )
 
 
@@ -301,6 +303,7 @@ def jobs_run_command(
     download: bool = False,
     timeout_seconds: float = 3600,
     poll_interval: float = 5,
+    detail: str = "full",
 ) -> dict[str, Any]:
     return run_jobs(
         jobs_file,
@@ -312,11 +315,12 @@ def jobs_run_command(
         download=download,
         timeout_seconds=timeout_seconds,
         poll_interval=poll_interval,
+        detail=detail,
     )
 
 
-def jobs_status_command(run_dir: Path) -> dict[str, Any]:
-    return status_jobs(run_dir)
+def jobs_status_command(run_dir: Path, *, detail: str = "summary") -> dict[str, Any]:
+    return status_jobs(run_dir, detail=detail)
 
 
 def jobs_quote_status_command(run_dir: Path, jobs_file: Path | None = None) -> dict[str, Any]:
@@ -335,6 +339,7 @@ def jobs_resume_command(
     retry_failed: bool = False,
     timeout_seconds: float = 3600,
     poll_interval: float = 5,
+    detail: str = "full",
 ) -> dict[str, Any]:
     return resume_jobs(
         jobs_file,
@@ -347,4 +352,5 @@ def jobs_resume_command(
         retry_failed=retry_failed,
         timeout_seconds=timeout_seconds,
         poll_interval=poll_interval,
+        detail=detail,
     )

@@ -26,6 +26,7 @@ from lovart_reverse.commands import (
 from lovart_reverse.errors import LovartError
 
 PROTOCOL_VERSION = "2024-11-05"
+MCP_WAIT_TIMEOUT_SECONDS = 90.0
 
 
 def _string_schema(description: str = "") -> dict[str, Any]:
@@ -47,6 +48,10 @@ def _boolean_schema(description: str = "") -> dict[str, Any]:
     if description:
         schema["description"] = description
     return schema
+
+
+def _detail_schema() -> dict[str, Any]:
+    return {"type": "string", "enum": ["summary", "requests", "full"]}
 
 
 def _tool(name: str, description: str, properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
@@ -167,10 +172,11 @@ TOOLS: list[dict[str, Any]] = [
             "download": _boolean_schema(),
             "timeout_seconds": _number_schema(),
             "poll_interval": _number_schema(),
+            "detail": _detail_schema(),
         },
         ["jobs_file"],
     ),
-    _tool("lovart_jobs_status", "Read local batch run state.", {"run_dir": _string_schema()}, ["run_dir"]),
+    _tool("lovart_jobs_status", "Read local batch run state.", {"run_dir": _string_schema(), "detail": _detail_schema()}, ["run_dir"]),
     _tool(
         "lovart_jobs_resume",
         "Resume an interrupted batch without resubmitting existing task IDs.",
@@ -185,6 +191,7 @@ TOOLS: list[dict[str, Any]] = [
             "retry_failed": _boolean_schema(),
             "timeout_seconds": _number_schema(),
             "poll_interval": _number_schema(),
+            "detail": _detail_schema(),
         },
         ["jobs_file"],
     ),
@@ -213,6 +220,66 @@ def _body(args: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(body, dict):
         raise LovartError("input_error", "body must be an object", {"body_type": type(body).__name__})
     return body
+
+
+def _mcp_wait_timeout(args: dict[str, Any]) -> tuple[float, list[str]]:
+    requested = args.get("timeout_seconds")
+    timeout = float(requested) if requested is not None else 3600.0
+    if not bool(args.get("wait", False)):
+        return timeout, []
+    if requested is None or timeout > MCP_WAIT_TIMEOUT_SECONDS:
+        return MCP_WAIT_TIMEOUT_SECONDS, [
+            f"MCP wait was capped at {int(MCP_WAIT_TIMEOUT_SECONDS)} seconds; rerun lovart_jobs_resume or lovart_jobs_status to continue"
+        ]
+    return timeout, []
+
+
+def _merge_warnings(data: dict[str, Any], warnings: list[str]) -> dict[str, Any]:
+    if not warnings:
+        return data
+    result = dict(data)
+    merged = list(dict.fromkeys(warnings + list(result.get("warnings") or [])))
+    result["warnings"] = merged
+    return result
+
+
+def _mcp_jobs_run(args: dict[str, Any]) -> dict[str, Any]:
+    timeout, warnings = _mcp_wait_timeout(args)
+    return _merge_warnings(
+        jobs_run_command(
+            Path(str(args["jobs_file"])),
+            out_dir=_path(args.get("out_dir")),
+            allow_paid=bool(args.get("allow_paid", False)),
+            max_total_credits=args.get("max_total_credits"),
+            language=str(args.get("language") or "en"),
+            wait=bool(args.get("wait", False)),
+            download=bool(args.get("download", False)),
+            timeout_seconds=timeout,
+            poll_interval=float(args.get("poll_interval") or 5),
+            detail=str(args.get("detail") or "summary"),
+        ),
+        warnings,
+    )
+
+
+def _mcp_jobs_resume(args: dict[str, Any]) -> dict[str, Any]:
+    timeout, warnings = _mcp_wait_timeout(args)
+    return _merge_warnings(
+        jobs_resume_command(
+            Path(str(args["jobs_file"])),
+            out_dir=_path(args.get("out_dir")),
+            allow_paid=bool(args.get("allow_paid", False)),
+            max_total_credits=args.get("max_total_credits"),
+            language=str(args.get("language") or "en"),
+            wait=bool(args.get("wait", False)),
+            download=bool(args.get("download", False)),
+            retry_failed=bool(args.get("retry_failed", False)),
+            timeout_seconds=timeout,
+            poll_interval=float(args.get("poll_interval") or 5),
+            detail=str(args.get("detail") or "summary"),
+        ),
+        warnings,
+    )
 
 
 def call_tool_data(name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -275,30 +342,9 @@ def call_tool_data(name: str, arguments: dict[str, Any] | None = None) -> dict[s
             max_total_credits=args.get("max_total_credits"),
             language=str(args.get("language") or "en"),
         ),
-        "lovart_jobs_run": lambda: jobs_run_command(
-            Path(str(args["jobs_file"])),
-            out_dir=_path(args.get("out_dir")),
-            allow_paid=bool(args.get("allow_paid", False)),
-            max_total_credits=args.get("max_total_credits"),
-            language=str(args.get("language") or "en"),
-            wait=bool(args.get("wait", False)),
-            download=bool(args.get("download", False)),
-            timeout_seconds=float(args.get("timeout_seconds") or 3600),
-            poll_interval=float(args.get("poll_interval") or 5),
-        ),
-        "lovart_jobs_status": lambda: jobs_status_command(Path(str(args["run_dir"]))),
-        "lovart_jobs_resume": lambda: jobs_resume_command(
-            Path(str(args["jobs_file"])),
-            out_dir=_path(args.get("out_dir")),
-            allow_paid=bool(args.get("allow_paid", False)),
-            max_total_credits=args.get("max_total_credits"),
-            language=str(args.get("language") or "en"),
-            wait=bool(args.get("wait", False)),
-            download=bool(args.get("download", False)),
-            retry_failed=bool(args.get("retry_failed", False)),
-            timeout_seconds=float(args.get("timeout_seconds") or 3600),
-            poll_interval=float(args.get("poll_interval") or 5),
-        ),
+        "lovart_jobs_run": lambda: _mcp_jobs_run(args),
+        "lovart_jobs_status": lambda: jobs_status_command(Path(str(args["run_dir"])), detail=str(args.get("detail") or "summary")),
+        "lovart_jobs_resume": lambda: _mcp_jobs_resume(args),
     }
     if name not in handlers:
         raise LovartError("input_error", "unknown MCP tool", {"tool": name})

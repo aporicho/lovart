@@ -167,6 +167,7 @@ def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
             download=args.download,
             timeout_seconds=args.timeout_seconds,
             poll_interval=args.poll_interval,
+            detail=args.detail,
         )
     if args.jobs_cmd == "resume":
         return jobs_resume_command(
@@ -180,9 +181,10 @@ def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
             retry_failed=args.retry_failed,
             timeout_seconds=args.timeout_seconds,
             poll_interval=args.poll_interval,
+            detail=args.detail,
         )
     if args.jobs_cmd == "status":
-        return jobs_status_command(args.run_dir)
+        return jobs_status_command(args.run_dir, detail=args.detail)
     raise ValueError("unknown jobs command")
 
 
@@ -339,8 +341,10 @@ def build_parser() -> argparse.ArgumentParser:
     jobs_run.add_argument("--download", action="store_true")
     jobs_run.add_argument("--timeout-seconds", type=float, default=3600)
     jobs_run.add_argument("--poll-interval", type=float, default=5)
+    jobs_run.add_argument("--detail", choices=["summary", "requests", "full"], default="full")
     jobs_status = jobs_sub.add_parser("status")
     jobs_status.add_argument("run_dir", type=Path)
+    jobs_status.add_argument("--detail", choices=["summary", "requests", "full"], default="summary")
     jobs_resume = jobs_sub.add_parser("resume")
     jobs_resume.add_argument("jobs_file", type=Path)
     jobs_resume.add_argument("--out-dir", type=Path)
@@ -352,6 +356,7 @@ def build_parser() -> argparse.ArgumentParser:
     jobs_resume.add_argument("--retry-failed", action="store_true")
     jobs_resume.add_argument("--timeout-seconds", type=float, default=3600)
     jobs_resume.add_argument("--poll-interval", type=float, default=5)
+    jobs_resume.add_argument("--detail", choices=["summary", "requests", "full"], default="full")
 
     reverse = sub.add_parser("reverse")
     reverse_sub = reverse.add_subparsers(dest="reverse_cmd", required=True)

@@ -167,9 +167,9 @@ lovart config seedream/seedream-5-0
 lovart jobs quote runs/fanren/jobs.jsonl --limit 25
 lovart jobs quote-status runs/fanren
 lovart jobs dry-run runs/fanren/jobs.jsonl
-lovart jobs run runs/fanren/jobs.jsonl --wait --download
+lovart jobs run runs/fanren/jobs.jsonl --wait --download --detail summary
 lovart jobs status runs/fanren
-lovart jobs resume runs/fanren/jobs.jsonl --wait --download
+lovart jobs resume runs/fanren/jobs.jsonl --wait --download --timeout-seconds 90 --detail summary
 ```
 
 Paid batch generation must include a total budget:
@@ -207,6 +207,10 @@ If a route has `quote.exact=true`, its credits are exact. If false, run `lovart 
 Generation state is stored in `runs/<project>/jobs_state.json`. Quote progress is isolated per jobs file at `runs/<project>/.lovart_quote/<jobs-stem>-<jobs-hash>/jobs_quote_state.json`. The default quote report in that directory is lightweight; full quote detail is stored beside it as `jobs_quote_full.json`.
 
 `lovart jobs quote` defaults to a lightweight summary and does not echo prompts or full request bodies to stdout. Use `--detail requests` for compact per-request status, and `--detail full` only when you really need the complete expanded jobs and quote raw data.
+
+`lovart jobs status` also defaults to a lightweight summary. It returns compact task IDs, statuses, artifact/download counts, warnings, and safe `recommended_actions`; it does not echo prompts, full request bodies, or raw task payloads unless `--detail full` is explicitly requested.
+
+For long-running models, especially MCP calls, use short resumable polling windows instead of one very long tool call: `lovart jobs resume <jobs.jsonl> --wait --download --timeout-seconds 90 --detail summary`. If the local wait times out, submitted `task_id`s are already saved in `jobs_state.json`; rerun `resume` or `status` to continue without resubmitting.
 
 Batch quote reuses one web-style pricing client for each command run: Lovart time is synced once, signed pricing requests reuse that offset, and internal `original_unit_data` may be added only to the pricing payload. Users and agents should not put `original_unit_data` in request JSON.
 

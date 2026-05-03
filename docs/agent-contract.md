@@ -152,7 +152,24 @@ Quote reuse is based on `cost_signature`. The signature includes model, mode, pr
 
 If live quote cannot reach Lovart, the quote report includes `summary.network_unavailable_remote_requests`, one of `summary.error_counts.network_unavailable`, `summary.error_counts.timestamp_network_unavailable`, or `summary.error_counts.pricing_network_unavailable`, and a matching `quote_blocker.code` when the whole quote run is blocked. In that case the CLI stops early, keeps remaining retryable requests pending, and the agent should fix DNS/network access to `www.lovart.ai` before rerunning the same quote command.
 
-`lovart jobs dry-run|run|resume` return:
+`lovart jobs dry-run|run|resume` can return compact or full detail. CLI defaults to full for `run/resume` for backward compatibility, while MCP defaults to `detail=summary` to avoid oversized tool results. `lovart jobs status` defaults to `detail=summary`.
+
+Compact `summary` detail returns:
+
+- `summary`
+- `batch_gate`
+- `tasks`
+- `task_count`
+- `download_count`
+- `failed`
+- `timed_out`
+- `warnings`
+- `recommended_actions`
+- `state_file`
+
+`requests` detail additionally returns compact `remote_requests[]` without prompts, full bodies, or raw task payloads.
+
+`full` detail returns the legacy complete payload:
 
 - `summary`
 - `batch_gate`
@@ -178,6 +195,8 @@ Important `remote_requests[]` keys:
 - `task_id`
 - `status`
 - `downloads`
+
+For MCP, do not rely on a single long `jobs_run` or `jobs_resume` call to wait for slow models. The MCP wrapper caps wait windows at 90 seconds and returns saved state plus recommended next actions. Agents should call `lovart_jobs_resume` repeatedly, or call `lovart_jobs_status`, until the summary shows no `submitted` or `running` remote requests. Existing `task_id`s in state must never be resubmitted with `jobs run`.
 
 Batch state is stored at `runs/<project>/jobs_state.json` with `jobs_file_hash`. If the source `jobs.jsonl` changes, `resume` refuses to continue.
 

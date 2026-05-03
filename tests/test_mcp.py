@@ -58,6 +58,20 @@ class McpTest(unittest.TestCase):
         self.assertEqual(result["error"]["code"], "auth_missing")
         submit.assert_not_called()
 
+    def test_jobs_resume_caps_mcp_wait_and_uses_compact_detail(self) -> None:
+        with patch("lovart_reverse.mcp.server.jobs_resume_command", return_value={"operation": "resume", "warnings": []}) as resume:
+            result = call_tool_envelope("lovart_jobs_resume", {"jobs_file": "runs/x/jobs.jsonl", "wait": True, "timeout_seconds": 999})
+        self.assertTrue(result["ok"])
+        self.assertIn("capped", result["data"]["warnings"][0])
+        self.assertEqual(resume.call_args.kwargs["timeout_seconds"], 90.0)
+        self.assertEqual(resume.call_args.kwargs["detail"], "summary")
+
+    def test_jobs_status_uses_summary_detail_by_default(self) -> None:
+        with patch("lovart_reverse.mcp.server.jobs_status_command", return_value={"operation": "status"}) as status:
+            result = call_tool_envelope("lovart_jobs_status", {"run_dir": "runs/x"})
+        self.assertTrue(result["ok"])
+        self.assertEqual(status.call_args.kwargs["detail"], "summary")
+
 
 if __name__ == "__main__":
     unittest.main()

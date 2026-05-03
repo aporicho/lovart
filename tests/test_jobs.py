@@ -12,7 +12,7 @@ from lovart_reverse.cli.main import main
 from lovart_reverse.errors import CreditRiskError, InputError
 from lovart_reverse.jobs.expansion import expand_jobs
 from lovart_reverse.jobs.records import load_job_records
-from lovart_reverse.jobs.orchestrator import quote_jobs, quote_status, resume_jobs, run_jobs
+from lovart_reverse.jobs.orchestrator import quote_jobs, quote_status, resume_jobs, run_jobs, status_jobs
 from lovart_reverse.jobs.quote_signature import cost_signature_for_request
 
 
@@ -476,6 +476,61 @@ class JobsTest(unittest.TestCase):
                 result = resume_jobs(jobs_file, wait=True, poll_interval=0)
             submit.assert_not_called()
             self.assertEqual(result["summary"]["status_counts"]["completed"], 1)
+
+    def test_jobs_status_defaults_to_compact_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001", prompt="secret prompt")])
+
+            def task(task_id: str, language: str = "en") -> dict[str, object]:
+                return {"status": "running", "artifacts": [], "raw": {"prompt": "secret prompt"}}
+
+            with (
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.submit_model", return_value={"task_id": "task-001"}),
+                patch("lovart_reverse.jobs.orchestrator.task_info", side_effect=task),
+            ):
+                run_jobs(jobs_file, wait=True, timeout_seconds=0, poll_interval=0)
+            result = status_jobs(Path(tmp))
+            serialized = json.dumps(result)
+            self.assertEqual(result["operation"], "status")
+            self.assertIn("tasks", result)
+            self.assertNotIn("jobs", result)
+            self.assertNotIn("remote_requests", result)
+            self.assertNotIn("secret prompt", serialized)
+            self.assertIn("lovart jobs resume", result["recommended_actions"][0])
+
+    def test_jobs_status_full_detail_keeps_legacy_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001")])
+            with (
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.submit_model", return_value={"task_id": "task-001"}),
+            ):
+                run_jobs(jobs_file)
+            result = status_jobs(Path(tmp), detail="full")
+            self.assertIn("jobs", result)
+            self.assertIn("remote_requests", result)
+
+    def test_resume_downloads_already_completed_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001")])
+            artifact = {"content": "https://a.lovart.ai/artifacts/generator/test.png"}
+            with (
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.submit_model", return_value={"task_id": "task-001"}),
+                patch("lovart_reverse.jobs.orchestrator.task_info", return_value={"status": "completed", "artifacts": [artifact], "raw": {}}),
+            ):
+                run_jobs(jobs_file, wait=True, poll_interval=0)
+            with (
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.download_artifacts", return_value=[{"path": "/tmp/test.png"}]) as download,
+            ):
+                result = resume_jobs(jobs_file, download=True, detail="summary")
+            download.assert_called_once_with([artifact], task_id="task-001")
+            self.assertEqual(result["summary"]["status_counts"]["downloaded"], 1)
 
     def test_resume_rejects_changed_jobs_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
