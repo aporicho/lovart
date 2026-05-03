@@ -29,6 +29,11 @@ class ConfigDiscoveryTest(unittest.TestCase):
         self.assertEqual(fields["image"]["minItems"], 1)
         self.assertEqual(fields["image"]["maxItems"], 16)
         self.assertFalse(fields["prompt"]["enumerable"])
+        self.assertTrue(fields["quality"]["quality_affecting"])
+        self.assertTrue(fields["size"]["quality_affecting"])
+        self.assertTrue(fields["size"]["cost_affecting"])
+        self.assertEqual(fields["size"]["resolution_mapping"]["3840*2160"], "16:9(4k)")
+        self.assertEqual(fields["prompt"]["route_role"], "free_input")
 
     def test_nano_banana_2_values_are_exhaustive(self) -> None:
         fields = field_map("vertex/nano-banana-2")

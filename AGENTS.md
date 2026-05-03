@@ -8,9 +8,9 @@ Assume `lovart` is on `PATH` via an activated virtualenv or installed wheel. For
 
 1. Run `lovart setup`.
 2. If `data.ready` is false, follow `data.recommended_actions`.
-3. Run `lovart models` and choose a model.
+3. Run `lovart models` when the user needs to compare model choices.
 4. Run `lovart config <model>` before showing any model-specific choices to the user.
-5. Run `lovart plan <model>` and present quality, cost, and speed routes before asking for detailed settings.
+5. Run `lovart plan --intent image-concept` when the model is not fixed, or `lovart plan <model> --intent image-concept` for a fixed model, then present quality, cost, and speed routes before asking for detailed settings.
 6. Ask only for route choice, free-input fields, reference assets, count, and budget confirmation when required.
 7. Write the model request to a JSON file using route `body_patch` plus user-provided free input.
 8. Run `lovart quote <model> --body-file request.json` before stating exact credit cost.
@@ -26,7 +26,7 @@ Assume `lovart` is on `PATH` via an activated virtualenv or installed wheel. For
 - Do not modify `ref/` unless the user explicitly requests reverse-maintenance work.
 - Do not bypass `credit_risk`, `unknown_pricing`, `metadata_stale`, or `signer_stale` errors.
 - Paid generation requires user intent plus `--allow-paid --max-credits N`.
-- Do not claim exact credit spend from `price` or `plan`; use `lovart quote` for exact pre-submit cost.
+- Treat `plan.routes[].quote.exact=true` as an exact live quote. If it is false, use `lovart quote` before stating exact cost.
 - Do not guess model configuration values. Use only `field.values` returned by `lovart config <model>`.
 - Do not infer legal values from descriptions. If `enumerable=false`, ask the user or extract the value from context.
 - If the user requests a value outside `field.values`, explain that it is unsupported and show the legal values.
@@ -53,14 +53,15 @@ For batch image generation, present values from config exactly:
 Call this after `config` and before detailed questions:
 
 ```bash
+lovart plan --intent image-concept
 lovart plan <model> --intent image-concept
 ```
 
 Present all three routes:
 
-- `quality_best`: highest quality route; may require paid confirmation.
-- `cost_best`: lowest-cost route; prioritizes zero-credit generation.
-- `speed_best`: fastest route; prioritizes fast mode.
+- `quality_best`: highest legal quality found from config-derived candidates; may require paid confirmation.
+- `cost_best`: lowest-cost route; searches from higher quality down until live quote or entitlement confirms zero credits.
+- `speed_best`: fastest route by fast mode, fast variant, or fast entitlement signal; this is not measured wall-clock latency.
 
 After the user chooses a route, merge its `body_patch` with user-provided free input. If a route has `requires_paid_confirmation=true`, ask for an explicit budget before using `--allow-paid --max-credits N`.
 
@@ -70,6 +71,7 @@ After the user chooses a route, merge its `body_patch` with user-provided free i
 lovart setup
 lovart models
 lovart config <model>
+lovart plan --intent image-concept
 lovart plan <model>
 lovart quote <model> --body-file request.json
 lovart config --global

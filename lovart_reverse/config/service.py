@@ -6,36 +6,15 @@ from typing import Any
 
 from lovart_reverse.errors import SchemaInvalidError
 from lovart_reverse.paths import CAPTURES_DIR, DOWNLOADS_DIR, REF_DIR, ROOT
+from lovart_reverse.planning.field_roles import (
+    BATCH_RELEVANT_FIELDS,
+    COST_AFFECTING_FIELDS,
+    MEDIA_INPUT_FIELDS,
+    classify_field,
+)
 from lovart_reverse.registry import load_ref_registry, model_records, request_schema
 from lovart_reverse.registry.snapshot import RegistrySnapshot
 
-COST_AFFECTING_FIELDS = {
-    "n",
-    "count",
-    "quality",
-    "size",
-    "resolution",
-    "duration",
-    "mode",
-    "image",
-    "image_list",
-    "start_frame_image",
-    "tail_frame_image",
-    "video",
-    "video_list",
-}
-BATCH_RELEVANT_FIELDS = {"n", "count", "prompt", "image", "image_list"}
-MEDIA_INPUT_FIELDS = {
-    "image",
-    "image_url",
-    "image_list",
-    "mask",
-    "start_frame_image",
-    "tail_frame_image",
-    "video",
-    "video_list",
-    "audio_list",
-}
 FREE_BATCH_DEFAULTS = {
     "quality": "low",
     "size": "1024*1024",
@@ -60,6 +39,8 @@ def global_config() -> dict[str, Any]:
             "--intent",
             "--count",
             "--offline",
+            "--quote",
+            "--candidate-limit",
         ],
         "generation_flags": [
             "--body-file",
@@ -193,6 +174,11 @@ def _field_config(snapshot: RegistrySnapshot, schema: dict[str, Any], key: str, 
         "batch_relevant": key in BATCH_RELEVANT_FIELDS,
         "media_input": key in MEDIA_INPUT_FIELDS,
     }
+    if isinstance(spec.get("x-resolution-mapping"), dict):
+        field["resolution_mapping"] = dict(spec["x-resolution-mapping"])
+    elif isinstance(resolved.get("x-resolution-mapping"), dict):
+        field["resolution_mapping"] = dict(resolved["x-resolution-mapping"])
+    field.update(classify_field(key, field))
     _copy_if_present(field, spec, resolved, "minimum")
     _copy_if_present(field, spec, resolved, "maximum")
     _copy_if_present(field, spec, resolved, "minLength")

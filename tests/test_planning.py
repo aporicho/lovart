@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from lovart_reverse.cli.main import main
 from lovart_reverse.config import config_for_model
-from lovart_reverse.planning import plan_for_model
+from lovart_reverse.planning.service import plan_for_model
 from lovart_reverse.pricing.table import PriceRow
 
 
@@ -31,6 +31,24 @@ def fake_free(model: str, body: dict[str, object], mode: str = "auto", live: boo
         "selected_mode": selected,
         "zero_credit": zero,
         "checks": [],
+    }
+
+
+def fake_quote(model: str, body: dict[str, object], rows: list[PriceRow], live: bool = True) -> dict[str, object]:
+    if body.get("quality") == "high" and body.get("size") in {"3840*2160", "2160*3840"}:
+        credits = 80.0
+    elif body.get("quality") == "low" and body.get("size") == "1024*1024":
+        credits = 0.0
+    else:
+        credits = 12.0
+    return {
+        "model": model,
+        "quoted": live,
+        "estimated": True,
+        "credits": credits,
+        "balance": 27100,
+        "price_detail": {"search_key": f"{body.get('size')}_{body.get('quality')}"},
+        "warnings": [],
     }
 
 
@@ -98,6 +116,25 @@ class PlanningTest(unittest.TestCase):
         self.assertEqual(route["mode"], "fast")
         self.assertIn("fast", calls)
 
+    def test_live_quote_drives_cost_best_degradation(self) -> None:
+        with (
+            patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
+            patch("lovart_reverse.planning.service.fetch_pricing_rows", return_value=self.rows),
+            patch("lovart_reverse.planning.service.quote_or_estimate", side_effect=fake_quote),
+            patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
+        ):
+            result = plan_for_model("openai/gpt-image-2", live=True)
+        quality = next(route for route in result["routes"] if route["id"] == "quality_best")
+        cost = next(route for route in result["routes"] if route["id"] == "cost_best")
+        self.assertEqual(quality["body_patch"]["quality"], "high")
+        self.assertIn(quality["body_patch"]["size"], {"3840*2160", "2160*3840"})
+        self.assertEqual(quality["quote"]["credits"], 80.0)
+        self.assertEqual(cost["body_patch"]["quality"], "low")
+        self.assertEqual(cost["body_patch"]["size"], "1024*1024")
+        self.assertTrue(cost["quote"]["exact"])
+        self.assertTrue(cost["zero_credit"])
+        self.assertIn("quality: high -> low", cost["degraded_steps"])
+
     def test_free_input_fields_are_not_fabricated(self) -> None:
         with (
             patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
@@ -120,6 +157,21 @@ class PlanningTest(unittest.TestCase):
         payload = json.loads(output.getvalue())
         self.assertTrue(payload["ok"])
         self.assertIn("routes", payload["data"])
+
+    def test_plan_cli_without_model_selects_image_candidates(self) -> None:
+        output = io.StringIO()
+        with (
+            patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
+            patch("lovart_reverse.planning.service.fetch_pricing_rows", return_value=self.rows),
+            patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
+            contextlib.redirect_stdout(output),
+        ):
+            code = main(["plan", "--intent", "image-concept", "--quote", "offline", "--candidate-limit", "2"])
+        self.assertEqual(code, 0)
+        payload = json.loads(output.getvalue())
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["planning_scope"], "all_models")
+        self.assertEqual(len(payload["data"]["routes"]), 3)
 
     def test_plan_unknown_model_errors(self) -> None:
         output = io.StringIO()

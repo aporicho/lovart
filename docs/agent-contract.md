@@ -26,13 +26,14 @@ stdout must be parsed as JSON. stderr is diagnostic only.
 lovart setup
 lovart models
 lovart config openai/gpt-image-2
+lovart plan --intent image-concept
 lovart plan openai/gpt-image-2 --intent image-concept
 lovart quote openai/gpt-image-2 --body-file request.json
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
 ```
 
-Agents must call `config`, then `plan`, before presenting model-specific options. Agents should use `--dry-run` before a new model/body shape.
+Agents must call `plan` before presenting route choices. For a fixed model, call `config`, then `plan <model>`. If the model is not fixed, call `plan --intent image-concept` to compare model candidates, then call `config <selected-model>` before offering parameter edits. Agents should use `--dry-run` before a new model/body shape.
 
 ## Config Discovery
 
@@ -74,22 +75,25 @@ Agents must not say values like `1280x720`, `portrait`, or `ultra` unless those 
 
 ## Route Planning
 
-`lovart plan <model>` returns three non-submitting routes for user-facing choice:
+`lovart plan` returns three non-submitting routes for user-facing choice. The model argument is optional:
 
-- `quality_best`: highest-quality legal settings; paid confirmation may be required.
-- `cost_best`: lowest-cost route; prioritizes zero-credit eligibility.
-- `speed_best`: fastest route; prioritizes `fast` mode.
+- `quality_best`: highest legal settings found from config-derived candidates; paid confirmation may be required.
+- `cost_best`: lowest-cost route; searches from higher quality down until quote or entitlement confirms zero credits.
+- `speed_best`: fastest route by `fast` mode, fast model variant, or fast entitlement signal; it is not measured latency.
 
 Useful flags:
 
 ```bash
+lovart plan --intent image-concept
 lovart plan openai/gpt-image-2 --intent image-concept
 lovart plan openai/gpt-image-2 --count 4
 lovart plan openai/gpt-image-2 --body-file partial-request.json
-lovart plan openai/gpt-image-2 --offline
+lovart plan openai/gpt-image-2 --quote live
+lovart plan openai/gpt-image-2 --quote auto
+lovart plan openai/gpt-image-2 --quote offline
 ```
 
-Each route includes `body_patch`, `request_body`, `estimated_credits`, `zero_credit`, `requires_paid_confirmation`, `constraints`, and `user_message`. `body_patch` never fabricates free-input fields such as `prompt` or reference image URLs. Agents merge `body_patch` with user-provided free input before running `generate --dry-run`.
+Each route includes `model`, `mode`, `body_patch`, `request_body`, `quote`, `zero_credit`, `requires_paid_confirmation`, `constraints`, `degraded_steps`, `quality_score`, `cost_score`, `speed_score`, and `user_message`. `body_patch` never fabricates free-input fields such as `prompt` or reference image URLs. When `quote.exact=true`, `quote.credits` is the live pricing result. When `quote.exact=false`, run `lovart quote` on the final request before stating exact cost. Agents merge `body_patch` with user-provided free input before running `generate --dry-run`.
 
 ## Exact Quote
 
@@ -101,7 +105,7 @@ The quote response includes:
 - `balance`: current account balance returned by Lovart.
 - `price_detail`: Lovart's cost breakdown, including normalized resolution, unit price, unit count, and surcharge fields.
 
-Agents may use `plan` to present candidate routes, but must use `quote` for exact cost and budget confirmation.
+Agents may use `plan` to present candidate routes. If the chosen route already has `quote.exact=true`, its `quote.credits` can be used for budget confirmation; otherwise use `quote` on the final request.
 
 ## Preflight Fields
 
