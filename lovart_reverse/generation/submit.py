@@ -11,6 +11,7 @@ from lovart_reverse.pricing.web_parity import generation_input_args
 
 TASKS_PATH = "/v1/generator/tasks"
 SET_UNLIMITED_PATH = "/api/canva/agent-cashier/task/set/unlimited"
+TAKE_SLOT_PATH = "/api/canva/agent-cashier/task/take/slot"
 
 
 def find_task_id(payload: Any) -> str | None:
@@ -73,8 +74,24 @@ def apply_generation_mode(mode: str, context_ids: dict[str, Any] | None = None, 
     return payload
 
 
+def take_generation_slot(context_ids: dict[str, Any] | None = None, language: str = "en") -> dict[str, Any] | None:
+    ids = saved_ids() if context_ids is None else context_ids
+    cid = ids.get("cid") or ids.get("webid") or ids.get("webId")
+    project_id = ids.get("project_id") or ids.get("projectId")
+    if not cid or not project_id:
+        return None
+    response = www_session({"accept-language": language}).post(
+        f"{WWW_BASE}{TAKE_SLOT_PATH}",
+        json={"project_id": project_id, "cid": cid},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 def submit_model(model: str, body: dict[str, Any], language: str = "en", mode: str = "auto") -> dict[str, Any]:
     if mode in {"fast", "relax"}:
         apply_generation_mode(mode, language=language)
+    take_generation_slot(language=language)
     response = lgw_request("POST", TASKS_PATH, body=task_request_payload(model, body), language=language)
     return response.json()

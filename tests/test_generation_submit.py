@@ -4,7 +4,14 @@ import unittest
 from unittest.mock import patch
 
 from lovart_reverse.errors import RemoteError
-from lovart_reverse.generation.submit import apply_generation_mode, dry_run_request, find_task_id, submit_model, task_request_payload
+from lovart_reverse.generation.submit import (
+    apply_generation_mode,
+    dry_run_request,
+    find_task_id,
+    submit_model,
+    take_generation_slot,
+    task_request_payload,
+)
 from lovart_reverse.task.client import normalize_task_response, task_info
 
 
@@ -46,10 +53,12 @@ class GenerationSubmitTest(unittest.TestCase):
     def test_submit_model_posts_lgw_generator_task_payload(self) -> None:
         with (
             patch("lovart_reverse.generation.submit.saved_ids", return_value={"cid": "cid-1", "project_id": "project-1"}),
+            patch("lovart_reverse.generation.submit.take_generation_slot", return_value={"code": 0, "data": {"status": "SUCCESS"}}) as slot,
             patch("lovart_reverse.generation.submit.lgw_request", return_value=_Response({"code": 0})) as request,
         ):
             result = submit_model("openai/gpt-image-2", {"prompt": "test"}, language="zh")
         self.assertEqual(result, {"code": 0})
+        slot.assert_called_once_with(language="zh")
         call = request.call_args
         self.assertEqual(call.args, ("POST", "/v1/generator/tasks"))
         self.assertEqual(call.kwargs["language"], "zh")
@@ -70,6 +79,15 @@ class GenerationSubmitTest(unittest.TestCase):
     def test_apply_generation_mode_requires_cid(self) -> None:
         with self.assertRaises(RemoteError):
             apply_generation_mode("fast", context_ids={}, language="zh")
+
+    def test_take_generation_slot_uses_project_and_cid(self) -> None:
+        session = patch("lovart_reverse.generation.submit.www_session").start().return_value
+        self.addCleanup(patch.stopall)
+        session.post.return_value = _Response({"code": 0, "data": {"status": "SUCCESS"}})
+        result = take_generation_slot(context_ids={"cid": "cid-1", "project_id": "project-1"}, language="zh")
+        self.assertEqual(result, {"code": 0, "data": {"status": "SUCCESS"}})
+        session.post.assert_called_once()
+        self.assertEqual(session.post.call_args.kwargs["json"], {"project_id": "project-1", "cid": "cid-1"})
 
     def test_find_task_id_accepts_generator_task_id(self) -> None:
         self.assertEqual(find_task_id({"data": {"generator_task_id": "task-123"}}), "task-123")

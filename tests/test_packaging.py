@@ -17,6 +17,11 @@ class PackagingTest(unittest.TestCase):
         self.assertIn("requests>=2.33.1", dependencies)
         self.assertTrue(all(not dependency.startswith("mitmproxy") for dependency in dependencies))
 
+    def test_gitignore_does_not_hide_package_download_module(self) -> None:
+        gitignore_lines = (ROOT / ".gitignore").read_text().splitlines()
+        self.assertIn("/downloads/", gitignore_lines)
+        self.assertNotIn("downloads/", gitignore_lines)
+
     def test_reverse_extra_declares_mitmproxy(self) -> None:
         pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text())
         reverse = pyproject["project"]["optional-dependencies"]["reverse"]
