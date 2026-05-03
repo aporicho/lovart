@@ -75,7 +75,6 @@ lovart plan --intent image-concept
 lovart plan <model>
 lovart quote <model> --body-file request.json
 lovart config --global
-lovart price <model> --body-file request.json
 lovart free <model> --body-file request.json --mode auto
 lovart generate <model> --body-file request.json --mode auto --dry-run
 lovart generate <model> --body-file request.json --mode auto --wait --download

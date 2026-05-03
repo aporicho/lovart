@@ -1,6 +1,6 @@
 # Lovart Reverse
 
-Agent-first Lovart web reverse tooling. The CLI exposes model discovery, schema validation, pricing, zero-credit entitlement checks, update drift detection, generation submission, task lookup, and downloads as stable JSON commands.
+Agent-first Lovart web reverse tooling. The CLI exposes model discovery, schema validation, live credit quotes, zero-credit entitlement checks, update drift detection, generation submission, task lookup, and downloads as stable JSON commands.
 
 Default policy: **zero-credit first**. Real generation is allowed only when preflight proves the request is covered by a zero-credit entitlement, or when the caller explicitly passes `--allow-paid --max-credits N`.
 
@@ -93,7 +93,6 @@ lovart plan openai/gpt-image-2 --intent image-concept --quote live
 lovart quote openai/gpt-image-2 --body-file request.json
 lovart config --global
 lovart schema openai/gpt-image-2
-lovart price openai/gpt-image-2 --body-file request.json --batch 10
 lovart free openai/gpt-image-2 --body-file request.json --mode auto
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
 lovart update check

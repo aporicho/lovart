@@ -1,4 +1,4 @@
-"""Credit estimation for Lovart model requests."""
+"""Offline fallback credit estimates from the static Lovart pricing table."""
 
 from __future__ import annotations
 

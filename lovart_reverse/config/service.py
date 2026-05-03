@@ -61,7 +61,7 @@ def global_config() -> dict[str, Any]:
         },
         "agent_rules": [
             "Call lovart config <model> before presenting model-specific choices.",
-            "Call lovart quote <model> with the planned request before claiming exact credit cost.",
+            "Use plan.routes[].quote when exact=true, otherwise call lovart quote <model> before claiming exact credit cost.",
             "Use only values returned in field.values for enumerable fields.",
             "Do not infer legal values from descriptions.",
             "Ask the user for enumerable=false fields unless the value is already in context.",

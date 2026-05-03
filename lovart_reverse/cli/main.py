@@ -20,10 +20,7 @@ from lovart_reverse.generation import dry_run_request, generation_preflight, sub
 from lovart_reverse.io_json import load_body
 from lovart_reverse.paths import ROOT
 from lovart_reverse.planning.service import plan_for_model
-from lovart_reverse.pricing.account import balance_summary, time_variant_summary
-from lovart_reverse.pricing.estimator import estimate
 from lovart_reverse.pricing.quote import quote
-from lovart_reverse.pricing.table import fetch_pricing_rows, rows_as_json
 from lovart_reverse.registry import load_ref_registry, model_records, request_schema, validate_body
 from lovart_reverse.setup import setup_status
 from lovart_reverse.task import task_info
@@ -68,21 +65,6 @@ def cmd_schema(args: argparse.Namespace) -> dict[str, Any]:
     if not schema:
         raise InputError("model schema not found", {"model": args.model})
     return {"source": "ref", "model": args.model, "schema": schema}
-
-
-def cmd_price(args: argparse.Namespace) -> dict[str, Any]:
-    body = _load_body_args(args)
-    rows = fetch_pricing_rows(live=not args.offline)
-    result = estimate(args.model, body, rows)
-    result["batch"] = args.batch
-    if result.get("estimated"):
-        result["batch_credits"] = float(result["credits"]) * int(args.batch)
-    if args.with_balance:
-        result["balance"] = balance_summary()
-    if args.with_time_variant:
-        result["time_variant"] = time_variant_summary()
-    result["schema_errors"] = _schema_validation(args.model, body)
-    return result
 
 
 def cmd_quote(args: argparse.Namespace) -> dict[str, Any]:
@@ -249,14 +231,6 @@ def build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--candidate-limit", type=int, default=12)
     plan.add_argument("--offline", action="store_true")
 
-    price = sub.add_parser("price")
-    price.add_argument("model")
-    _add_body_args(price)
-    price.add_argument("--batch", type=int, default=1)
-    price.add_argument("--offline", action="store_true")
-    price.add_argument("--with-balance", action="store_true")
-    price.add_argument("--with-time-variant", action="store_true")
-
     quote_cmd = sub.add_parser("quote")
     quote_cmd.add_argument("model")
     _add_body_args(quote_cmd)
@@ -316,8 +290,6 @@ def dispatch(args: argparse.Namespace) -> dict[str, Any]:
         return cmd_models(args)
     if args.command == "schema":
         return cmd_schema(args)
-    if args.command == "price":
-        return cmd_price(args)
     if args.command == "quote":
         return cmd_quote(args)
     if args.command == "free":
