@@ -60,6 +60,30 @@ def fake_preflight(model: str, body: dict[str, object], mode: str, allow_paid: b
     return preflight, None
 
 
+def patch_quote_client(side_effect=None, return_value=None):
+    class FakeQuoteClient:
+        init_count = 0
+
+        def __init__(self, language: str = "en", persistent_signer: bool = False):
+            type(self).init_count += 1
+            self.language = language
+            self.persistent_signer = persistent_signer
+            self.warnings: list[str] = []
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return None
+
+        def quote(self, model: str, body: dict[str, object]) -> dict[str, object]:
+            if side_effect is not None:
+                return side_effect(model, body, language=self.language)
+            return dict(return_value or {"model": model, "quoted": True, "credits": 0.0, "warnings": []})
+
+    return patch("lovart_reverse.jobs.orchestrator.QuoteClient", FakeQuoteClient), FakeQuoteClient
+
+
 class JobsTest(unittest.TestCase):
     def test_gpt_image_outputs_maps_to_n(self) -> None:
         jobs = expand_jobs([user_job("001", "openai/gpt-image-2", outputs=10)])
@@ -122,7 +146,8 @@ class JobsTest(unittest.TestCase):
                 credits = 0.0 if body["prompt"] == "x" else 12.0
                 return {"model": model, "quoted": True, "credits": credits, "warnings": []}
 
-            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
+            quote_client, _ = patch_quote_client(side_effect=quoted)
+            with quote_client:
                 result = quote_jobs(jobs_file, progress=False)
             self.assertEqual(result["summary"]["total_jobs"], 2)
             self.assertEqual(result["summary"]["total_credits"], 12.0)
@@ -132,6 +157,18 @@ class JobsTest(unittest.TestCase):
             self.assertTrue((Path(tmp) / "jobs_quote_full.json").exists())
             self.assertNotIn("remote_requests", result)
             self.assertNotIn("jobs", result)
+
+    def test_quote_jobs_uses_one_quote_client_for_selected_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job(str(index), prompt=str(index)) for index in range(100)])
+            quote_client, fake_client = patch_quote_client(
+                return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "payable_credits": 0.0, "warnings": []}
+            )
+            with quote_client:
+                result = quote_jobs(jobs_file, progress=False)
+            self.assertEqual(fake_client.init_count, 1)
+            self.assertEqual(result["summary"]["quoted_remote_requests"], 100)
 
     def test_quote_jobs_summarizes_user_level_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -153,7 +190,8 @@ class JobsTest(unittest.TestCase):
                 },
             ]
             write_jobs(jobs_file, jobs)
-            with patch("lovart_reverse.jobs.orchestrator.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []}):
+            quote_client, _ = patch_quote_client(return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []})
+            with quote_client:
                 result = quote_jobs(jobs_file, detail="full", progress=False)
             self.assertEqual(result["summary"]["logical_jobs"], 2)
             self.assertEqual(result["summary"]["requested_outputs"], 20)
@@ -172,7 +210,8 @@ class JobsTest(unittest.TestCase):
                 "listed_credits": 120.0,
                 "warnings": [],
             }
-            with patch("lovart_reverse.jobs.orchestrator.quote", return_value=quoted):
+            quote_client, _ = patch_quote_client(return_value=quoted)
+            with quote_client:
                 result = quote_jobs(jobs_file, progress=False)
             self.assertEqual(result["summary"]["total_credits"], 0.0)
             self.assertEqual(result["summary"]["total_payable_credits"], 0.0)
@@ -193,7 +232,8 @@ class JobsTest(unittest.TestCase):
                 "raw": {"data": "large"},
                 "warnings": [],
             }
-            with patch("lovart_reverse.jobs.orchestrator.quote", return_value=quote_result):
+            quote_client, _ = patch_quote_client(return_value=quote_result)
+            with quote_client:
                 result = quote_jobs(jobs_file, detail="requests", progress=False)
             request = result["remote_requests"][0]
             self.assertNotIn("body", request)
@@ -211,10 +251,12 @@ class JobsTest(unittest.TestCase):
                 calls.append(str(body["prompt"]))
                 return {"model": model, "quoted": True, "credits": 0.0, "payable_credits": 0.0, "warnings": []}
 
-            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
+            quote_client, fake_client = patch_quote_client(side_effect=quoted)
+            with quote_client:
                 first = quote_jobs(jobs_file, limit=1, progress=False)
                 second = quote_jobs(jobs_file, progress=False)
             self.assertEqual(calls, ["a", "b"])
+            self.assertEqual(fake_client.init_count, 2)
             self.assertEqual(first["summary"]["quoted_remote_requests"], 1)
             self.assertEqual(first["summary"]["pending_quote_remote_requests"], 1)
             self.assertEqual(second["summary"]["quoted_remote_requests"], 2)
@@ -224,12 +266,14 @@ class JobsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             jobs_file = Path(tmp) / "jobs.jsonl"
             write_jobs(jobs_file, [gpt_job("001", prompt="a")])
-            with patch("lovart_reverse.jobs.orchestrator.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []}):
+            quote_client, _ = patch_quote_client(return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []})
+            with quote_client:
                 quote_jobs(jobs_file, progress=False)
             write_jobs(jobs_file, [gpt_job("001", prompt="changed")])
             with self.assertRaises(InputError):
                 quote_jobs(jobs_file, progress=False)
-            with patch("lovart_reverse.jobs.orchestrator.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []}):
+            quote_client, _ = patch_quote_client(return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []})
+            with quote_client:
                 refreshed = quote_jobs(jobs_file, refresh=True, progress=False)
             self.assertEqual(refreshed["summary"]["quoted_remote_requests"], 1)
 
@@ -243,7 +287,8 @@ class JobsTest(unittest.TestCase):
                     raise RuntimeError("pricing failed")
                 return {"model": model, "quoted": True, "credits": 0.0, "payable_credits": 0.0, "warnings": []}
 
-            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
+            quote_client, _ = patch_quote_client(side_effect=quoted)
+            with quote_client:
                 result = quote_jobs(jobs_file, progress=False)
             self.assertEqual(result["summary"]["quoted_remote_requests"], 1)
             self.assertEqual(result["summary"]["failed_quote_remote_requests"], 1)
@@ -258,9 +303,11 @@ class JobsTest(unittest.TestCase):
                 calls.append(str(body["prompt"]))
                 raise RuntimeError("NameResolutionError: Failed to resolve 'www.lovart.ai'")
 
-            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
+            quote_client, fake_client = patch_quote_client(side_effect=quoted)
+            with quote_client:
                 result = quote_jobs(jobs_file, concurrency=2, progress=False)
             self.assertEqual(len(calls), 2)
+            self.assertEqual(fake_client.init_count, 1)
             self.assertEqual(result["summary"]["failed_quote_remote_requests"], 2)
             self.assertEqual(result["summary"]["pending_quote_remote_requests"], 3)
             self.assertEqual(result["summary"]["network_unavailable_remote_requests"], 2)
@@ -276,7 +323,8 @@ class JobsTest(unittest.TestCase):
             def network_down(model: str, body: dict[str, object], language: str = "en") -> dict[str, object]:
                 raise RuntimeError("NameResolutionError: Failed to resolve 'www.lovart.ai'")
 
-            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=network_down):
+            quote_client, _ = patch_quote_client(side_effect=network_down)
+            with quote_client:
                 first = quote_jobs(jobs_file, concurrency=1, progress=False)
             self.assertEqual(first["summary"]["failed_quote_remote_requests"], 1)
             self.assertEqual(first["summary"]["pending_quote_remote_requests"], 1)
@@ -287,7 +335,8 @@ class JobsTest(unittest.TestCase):
                 calls.append(str(body["prompt"]))
                 return {"model": model, "quoted": True, "credits": 0.0, "payable_credits": 0.0, "warnings": []}
 
-            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
+            quote_client, _ = patch_quote_client(side_effect=quoted)
+            with quote_client:
                 second = quote_jobs(jobs_file, progress=False)
             self.assertEqual(calls, ["a", "b"])
             self.assertEqual(second["summary"]["quoted_remote_requests"], 2)
@@ -298,7 +347,8 @@ class JobsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             jobs_file = Path(tmp) / "jobs.jsonl"
             write_jobs(jobs_file, [gpt_job("001", prompt="a")])
-            with patch("lovart_reverse.jobs.orchestrator.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []}):
+            quote_client, _ = patch_quote_client(return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []})
+            with quote_client:
                 result = quote_jobs(jobs_file, concurrency=99, progress=False)
             self.assertIn("capped at 4", result["warnings"][0])
 

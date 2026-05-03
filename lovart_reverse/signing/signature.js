@@ -2,6 +2,7 @@
 
 const fs = require("node:fs/promises");
 const path = require("node:path");
+const readline = require("node:readline");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const DEFAULT_WASM = path.join(
@@ -148,8 +149,34 @@ function verify(token) {
 
 async function main() {
   const args = process.argv.slice(2);
+  if (args[0] === "--stdio") {
+    const wasmPath = args[1] || DEFAULT_WASM;
+    await init(wasmPath);
+    const rl = readline.createInterface({ input: process.stdin, crlfDelay: Infinity });
+    for await (const line of rl) {
+      if (!line.trim()) {
+        continue;
+      }
+      let request;
+      try {
+        request = JSON.parse(line);
+        const signature = sign(request.timestamp, request.req_uuid, request.third || "", request.fourth || "");
+        process.stdout.write(JSON.stringify({ id: request.id, ok: true, signature }) + "\n");
+      } catch (error) {
+        process.stdout.write(
+          JSON.stringify({
+            id: request && request.id,
+            ok: false,
+            error: error && error.message ? error.message : String(error),
+          }) + "\n",
+        );
+      }
+    }
+    return;
+  }
   if (args.length < 2 || args.includes("--help") || args.includes("-h")) {
     console.error("Usage: node lovart_reverse/signing/signature.js <timestamp> <req_uuid> [third] [fourth] [wasm_path]");
+    console.error("       node lovart_reverse/signing/signature.js --stdio [wasm_path]");
     process.exit(args.length < 2 ? 2 : 0);
   }
 

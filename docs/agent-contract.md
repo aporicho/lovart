@@ -68,6 +68,8 @@ If `quote.exact=true`, `quote.credits` is exact. If false, run `lovart quote` on
 
 `lovart quote <model> --body-file request.json` calls Lovart's signed pricing endpoint.
 
+The quote client mirrors the web UI: it syncs Lovart time once per client, reuses that offset for repeated signed pricing calls, and may add internal `original_unit_data` metadata to the pricing payload. `original_unit_data` is not a user config field and must not be written into user request JSON.
+
 Important quote keys:
 
 - `quoted`
@@ -75,6 +77,7 @@ Important quote keys:
 - `payable_credits`
 - `listed_credits`
 - `credit_basis`
+- `request_shape`
 - `balance`
 - `price_detail`
 - `warnings`
@@ -137,7 +140,7 @@ Use `lovart jobs quote <jobs.jsonl> --detail requests` for compact per-request q
 
 Use `lovart jobs quote-status <run_dir>` to inspect quote progress from `jobs_quote_state.json`.
 
-If live quote cannot reach Lovart, the quote report includes `summary.network_unavailable_remote_requests`, `summary.error_counts.network_unavailable`, and `quote_blocker.code=network_unavailable`. In that case the CLI stops early, keeps remaining retryable requests pending, and the agent should fix DNS/network access to `www.lovart.ai` before rerunning the same quote command.
+If live quote cannot reach Lovart, the quote report includes `summary.network_unavailable_remote_requests`, one of `summary.error_counts.network_unavailable`, `summary.error_counts.timestamp_network_unavailable`, or `summary.error_counts.pricing_network_unavailable`, and a matching `quote_blocker.code` when the whole quote run is blocked. In that case the CLI stops early, keeps remaining retryable requests pending, and the agent should fix DNS/network access to `www.lovart.ai` before rerunning the same quote command.
 
 `lovart jobs dry-run|run|resume` return:
 

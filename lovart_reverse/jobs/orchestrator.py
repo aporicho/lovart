@@ -24,7 +24,7 @@ from lovart_reverse.jobs.state import (
     state_path,
     summarize_state,
 )
-from lovart_reverse.pricing.quote import quote
+from lovart_reverse.pricing.quote import QuoteClient, quote
 from lovart_reverse.registry import load_ref_registry, validate_body
 from lovart_reverse.task import task_info
 
@@ -79,52 +79,26 @@ def quote_jobs(
         _prepare_quote_request(registry, request)
     selected = [request for request in selected if request.get("quote_status") == "pending"]
     if selected:
-        completed_total = 0
-        network_blocked = False
-        for chunk in _chunks(selected, concurrency):
-            with ThreadPoolExecutor(max_workers=concurrency) as executor:
-                futures = {executor.submit(_safe_quote, request["model"], request["body"], language): request for request in chunk}
-                completed_chunk: list[dict[str, Any]] = []
-                for future in as_completed(futures):
-                    request = futures[future]
-                    completed_total += 1
-                    try:
-                        request["quote"] = future.result()
-                        request["quote_status"] = "quoted" if isinstance(request["quote"], dict) and request["quote"].get("quoted") else "failed"
-                        if request["quote_status"] == "failed":
-                            error_code, message = _quote_failure_code_and_message(request.get("quote"))
-                            _add_error(request, error_code, message, {"quote": request.get("quote")})
-                    except Exception as exc:
-                        request["quote_status"] = "failed"
-                        request["quote"] = _quote_exception_payload(request.get("model"), exc)
-                        error_code, message = _quote_failure_code_and_message(request.get("quote"))
-                        _add_error(request, error_code, message, {"type": exc.__class__.__name__, "message": str(exc)})
-                    completed_chunk.append(request)
-                    _refresh_job_statuses(state["jobs"])
-                    _save_quote_state(state)
-                    _quote_progress(
-                        progress,
-                        "quote_progress",
-                        {
-                            "completed_selected_remote_requests": completed_total,
-                            "selected_remote_requests": len(selected),
-                            "request_id": request.get("request_id"),
-                            "quote_status": request.get("quote_status"),
-                        },
-                    )
-                if completed_chunk and all(_request_has_network_failure(request) for request in completed_chunk):
-                    network_blocked = True
-                    state["quote_blocker"] = {
-                        "code": "network_unavailable",
-                        "message": "Lovart quote endpoint is not reachable; stopped quote early",
-                        "details": {
-                            "host": "www.lovart.ai",
-                            "completed_before_stop": completed_total,
-                            "selected_remote_requests": len(selected),
-                        },
-                    }
-                    _quote_progress(progress, "quote_failed", state["quote_blocker"])
-                    break
+        try:
+            with QuoteClient(language=language, persistent_signer=True) as quote_client:
+                client_warnings, network_blocked = _quote_selected_requests(
+                    state,
+                    selected,
+                    quote_client=quote_client,
+                    language=language,
+                    concurrency=concurrency,
+                    progress=progress,
+                )
+                warnings.extend(client_warnings)
+        except Exception as exc:
+            code = _network_error_code(exc, default="timestamp_network_unavailable")
+            state["quote_blocker"] = {
+                "code": code,
+                "message": "Lovart timestamp sync failed; quote stopped before pricing requests",
+                "details": {"type": exc.__class__.__name__, "message": str(exc), "selected_remote_requests": len(selected)},
+            }
+            _quote_progress(progress, "quote_failed", state["quote_blocker"])
+            network_blocked = True
         if network_blocked:
             warnings.append("Lovart network/DNS is unavailable; quote stopped early and remaining retryable requests were left pending")
     _refresh_job_statuses(state["jobs"])
@@ -350,13 +324,83 @@ def _safe_quote(model: str, body: dict[str, Any], language: str) -> dict[str, An
         return _quote_exception_payload(model, exc)
 
 
+def _quote_selected_requests(
+    state: dict[str, Any],
+    selected: list[dict[str, Any]],
+    *,
+    quote_client: QuoteClient,
+    language: str,
+    concurrency: int,
+    progress: bool,
+) -> tuple[list[str], bool]:
+    completed_total = 0
+    for chunk in _chunks(selected, concurrency):
+        with ThreadPoolExecutor(max_workers=concurrency) as executor:
+            futures = {
+                executor.submit(_safe_quote_with_client, quote_client, request["model"], request["body"], language): request
+                for request in chunk
+            }
+            completed_chunk: list[dict[str, Any]] = []
+            for future in as_completed(futures):
+                request = futures[future]
+                completed_total += 1
+                try:
+                    request["quote"] = future.result()
+                    request["quote_status"] = "quoted" if isinstance(request["quote"], dict) and request["quote"].get("quoted") else "failed"
+                    if request["quote_status"] == "failed":
+                        error_code, message = _quote_failure_code_and_message(request.get("quote"))
+                        _add_error(request, error_code, message, {"quote": request.get("quote")})
+                except Exception as exc:
+                    request["quote_status"] = "failed"
+                    request["quote"] = _quote_exception_payload(request.get("model"), exc)
+                    error_code, message = _quote_failure_code_and_message(request.get("quote"))
+                    _add_error(request, error_code, message, {"type": exc.__class__.__name__, "message": str(exc)})
+                completed_chunk.append(request)
+                _refresh_job_statuses(state["jobs"])
+                _save_quote_state(state)
+                _quote_progress(
+                    progress,
+                    "quote_progress",
+                    {
+                        "completed_selected_remote_requests": completed_total,
+                        "selected_remote_requests": len(selected),
+                        "request_id": request.get("request_id"),
+                        "quote_status": request.get("quote_status"),
+                    },
+                )
+            if completed_chunk and all(_request_has_network_failure(request) for request in completed_chunk):
+                state["quote_blocker"] = {
+                    "code": "network_unavailable",
+                    "message": "Lovart quote endpoint is not reachable; stopped quote early",
+                    "details": {
+                        "host": "lgw.lovart.ai",
+                        "completed_before_stop": completed_total,
+                        "selected_remote_requests": len(selected),
+                    },
+                }
+                _quote_progress(progress, "quote_failed", state["quote_blocker"])
+                return _quote_client_warnings(quote_client), True
+    return _quote_client_warnings(quote_client), False
+
+
+def _safe_quote_with_client(quote_client: QuoteClient, model: str, body: dict[str, Any], language: str) -> dict[str, Any]:
+    try:
+        return quote_client.quote(model, body)
+    except Exception as exc:
+        return _quote_exception_payload(model, exc)
+
+
+def _quote_client_warnings(quote_client: QuoteClient) -> list[str]:
+    return list(getattr(quote_client, "warnings", []) or [])
+
+
 def _chunks(items: list[dict[str, Any]], size: int) -> list[list[dict[str, Any]]]:
     return [items[index : index + size] for index in range(0, len(items), size)]
 
 
 def _quote_exception_payload(model: Any, exc: Exception) -> dict[str, Any]:
-    error_code = "network_unavailable" if _looks_like_network_error(exc) else "unknown_pricing"
-    warning = "Lovart network/DNS unavailable; credit spend is unknown" if error_code == "network_unavailable" else "live quote failed; credit spend is unknown"
+    error_code = _network_error_code(exc) if _looks_like_network_error(exc) else "unknown_pricing"
+    warning = "Lovart network/DNS unavailable; credit spend is unknown" if _is_network_error_code(error_code) else "live quote failed; credit spend is unknown"
     return {
         "model": model,
         "quoted": False,
@@ -370,13 +414,16 @@ def _quote_exception_payload(model: Any, exc: Exception) -> dict[str, Any]:
 
 def _quote_failure_code_and_message(quote_result: Any) -> tuple[str, str]:
     if _quote_result_has_network_error(quote_result):
+        quote_error = quote_result.get("quote_error") if isinstance(quote_result, dict) else None
+        if isinstance(quote_error, dict) and quote_error.get("code"):
+            return str(quote_error["code"]), "live quote failed because Lovart is not reachable"
         return "network_unavailable", "live quote failed because Lovart is not reachable"
     return "unknown_pricing", "live quote did not return an exact credit cost"
 
 
 def _request_has_network_failure(request: dict[str, Any]) -> bool:
     errors = request.get("errors")
-    if isinstance(errors, list) and any(isinstance(error, dict) and error.get("code") == "network_unavailable" for error in errors):
+    if isinstance(errors, list) and any(isinstance(error, dict) and _is_network_error_code(error.get("code")) for error in errors):
         return True
     return _quote_result_has_network_error(request.get("quote"))
 
@@ -385,9 +432,22 @@ def _quote_result_has_network_error(quote_result: Any) -> bool:
     if not isinstance(quote_result, dict):
         return False
     quote_error = quote_result.get("quote_error")
-    if isinstance(quote_error, dict) and quote_error.get("code") == "network_unavailable":
+    if isinstance(quote_error, dict) and _is_network_error_code(quote_error.get("code")):
         return True
     return _looks_like_network_error(quote_error)
+
+
+def _network_error_code(error: Any, default: str = "network_unavailable") -> str:
+    phase = getattr(error, "phase", None)
+    if phase == "timestamp":
+        return "timestamp_network_unavailable"
+    if phase == "pricing":
+        return "pricing_network_unavailable"
+    return default
+
+
+def _is_network_error_code(code: Any) -> bool:
+    return str(code or "") in {"network_unavailable", "timestamp_network_unavailable", "pricing_network_unavailable"}
 
 
 def _looks_like_network_error(error: Any) -> bool:

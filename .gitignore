@@ -1,9 +1,6 @@
 captures/
 downloads/
-runs/*/jobs_quote.json
-runs/*/jobs_quote_full.json
-runs/*/jobs_quote_state.json
-runs/*/jobs_state.json
+runs/
 ref/libtv_reverse/
 ref/lovart_static_js/
 scripts/creds.json
