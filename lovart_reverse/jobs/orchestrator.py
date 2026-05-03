@@ -52,6 +52,7 @@ NETWORK_ERROR_MARKERS = (
     "Network is unreachable",
 )
 AUTO_QUOTE_LIMIT = 100
+COMPACT_TASK_SAMPLE_LIMIT = 20
 
 
 def quote_jobs(
@@ -877,6 +878,7 @@ def _state_result(state: dict[str, Any], operation: str, *, detail: str = "full"
 def _compact_state_result(state: dict[str, Any], operation: str, *, include_requests: bool) -> dict[str, Any]:
     remote_requests = [request for _, request in _iter_remote_requests(state.get("jobs", []))]
     tasks = [_compact_task_request(request) for request in remote_requests if request.get("task_id")]
+    task_samples = _task_samples(tasks)
     failed = [_compact_task_request(request) for request in remote_requests if request.get("status") == "failed"]
     downloads = []
     for request in remote_requests:
@@ -890,7 +892,9 @@ def _compact_state_result(state: dict[str, Any], operation: str, *, include_requ
         "summary": summarize_state(state),
         "batch_gate": _compact_batch_gate(state.get("batch_gate")),
         "task_count": len(tasks),
-        "tasks": tasks,
+        "task_sample_limit": COMPACT_TASK_SAMPLE_LIMIT,
+        "tasks_truncated": len(tasks) > len(task_samples),
+        "tasks": task_samples,
         "download_count": len(downloads),
         "failed": failed,
         "timed_out": bool(state.get("timed_out")),
@@ -900,6 +904,15 @@ def _compact_state_result(state: dict[str, Any], operation: str, *, include_requ
     if include_requests:
         result["remote_requests"] = [_compact_task_request(request) for request in remote_requests]
     return result
+
+
+def _task_samples(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if len(tasks) <= COMPACT_TASK_SAMPLE_LIMIT:
+        return tasks
+    priority_statuses = {"failed", "running", "submitted"}
+    prioritized = [task for task in tasks if task.get("status") in priority_statuses]
+    remaining = [task for task in tasks if task.get("status") not in priority_statuses]
+    return (prioritized + remaining)[:COMPACT_TASK_SAMPLE_LIMIT]
 
 
 def _compact_batch_gate(batch_gate: Any) -> dict[str, Any] | None:

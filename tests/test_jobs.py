@@ -513,6 +513,28 @@ class JobsTest(unittest.TestCase):
             self.assertIn("jobs", result)
             self.assertIn("remote_requests", result)
 
+    def test_jobs_status_summary_limits_task_samples(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001")])
+            with (
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.submit_model", return_value={"task_id": "task-001"}),
+            ):
+                run_jobs(jobs_file)
+            state_file = Path(tmp) / "jobs_state.json"
+            state = json.loads(state_file.read_text())
+            request = state["jobs"][0]["remote_requests"][0]
+            state["jobs"][0]["remote_requests"] = [
+                {**request, "request_id": f"001-{index:03d}", "task_id": f"task-{index:03d}", "status": "submitted"}
+                for index in range(25)
+            ]
+            state_file.write_text(json.dumps(state))
+            result = status_jobs(Path(tmp))
+            self.assertEqual(result["task_count"], 25)
+            self.assertEqual(len(result["tasks"]), 20)
+            self.assertTrue(result["tasks_truncated"])
+
     def test_resume_downloads_already_completed_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             jobs_file = Path(tmp) / "jobs.jsonl"

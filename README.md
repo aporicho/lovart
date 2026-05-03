@@ -208,7 +208,7 @@ Generation state is stored in `runs/<project>/jobs_state.json`. Quote progress i
 
 `lovart jobs quote` defaults to a lightweight summary and does not echo prompts or full request bodies to stdout. Use `--detail requests` for compact per-request status, and `--detail full` only when you really need the complete expanded jobs and quote raw data.
 
-`lovart jobs status` also defaults to a lightweight summary. It returns compact task IDs, statuses, artifact/download counts, warnings, and safe `recommended_actions`; it does not echo prompts, full request bodies, or raw task payloads unless `--detail full` is explicitly requested.
+`lovart jobs status` also defaults to a lightweight summary. It returns counts, up to 20 compact task samples, warnings, and safe `recommended_actions`; it does not echo prompts, full request bodies, or raw task payloads unless `--detail full` is explicitly requested. Use `--detail requests` when an agent needs every compact remote request.
 
 For long-running models, especially MCP calls, use short resumable polling windows instead of one very long tool call: `lovart jobs resume <jobs.jsonl> --wait --download --timeout-seconds 90 --detail summary`. If the local wait times out, submitted `task_id`s are already saved in `jobs_state.json`; rerun `resume` or `status` to continue without resubmitting.
 

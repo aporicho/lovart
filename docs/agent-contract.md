@@ -158,8 +158,10 @@ Compact `summary` detail returns:
 
 - `summary`
 - `batch_gate`
-- `tasks`
 - `task_count`
+- `tasks`: up to 20 compact task samples, prioritizing failed/running/submitted tasks
+- `task_sample_limit`
+- `tasks_truncated`
 - `download_count`
 - `failed`
 - `timed_out`
