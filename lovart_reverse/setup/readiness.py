@@ -19,7 +19,7 @@ from lovart_reverse.update import check_update
 from lovart_reverse.update.manifest import load_manifest
 
 
-def _offline_update_status() -> dict[str, Any]:
+def offline_update_status() -> dict[str, Any]:
     manifest = load_manifest()
     return {
         "status": "offline_cached" if manifest else "missing_manifest",
@@ -32,7 +32,7 @@ def _offline_update_status() -> dict[str, Any]:
 
 def _safe_update_status(offline: bool) -> dict[str, Any]:
     if offline:
-        return _offline_update_status()
+        return offline_update_status()
     try:
         return check_update()
     except Exception as exc:

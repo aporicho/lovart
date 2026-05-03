@@ -10,7 +10,7 @@ from urllib.parse import urljoin
 import requests
 
 from lovart_reverse.discovery import generator_list, generator_schema
-from lovart_reverse.entitlement.service import fetch_unlimited
+from lovart_reverse.entitlement.checks import fetch_unlimited
 from lovart_reverse.io_json import canonical_json, hash_value, read_json, write_json
 from lovart_reverse.paths import GENERATOR_LIST_FILE, GENERATOR_SCHEMA_FILE, MANIFEST_FILE, PRICING_TABLE_FILE
 from lovart_reverse.pricing.table import fetch_pricing_payload

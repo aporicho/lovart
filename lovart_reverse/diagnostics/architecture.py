@@ -9,7 +9,7 @@ from pathlib import Path
 
 from lovart_reverse.paths import ROOT
 
-FORBIDDEN_FILE_STEMS = {"utils", "helpers", "common", "legacy", "compat", "glue"}
+FORBIDDEN_FILE_STEMS = {"utils", "helpers", "common", "service", "legacy", "compat", "glue"}
 SENSITIVE_PATTERNS = [
     re.compile(r"Bearer\s+[A-Za-z0-9._-]{20,}"),
     re.compile(r"(?i)(cookie|authorization)[\"']?\s*[:=]\s*[\"'][^\"']{20,}"),

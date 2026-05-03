@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from lovart_reverse.cli.main import main
 from lovart_reverse.config import config_for_model
-from lovart_reverse.planning.service import plan_for_model
+from lovart_reverse.planning.planner import plan_for_model
 
 
 def fake_setup(*args: object, **kwargs: object) -> dict[str, object]:
@@ -53,8 +53,8 @@ def fake_quote(model: str, body: dict[str, object], live: bool = True) -> dict[s
 class PlanningTest(unittest.TestCase):
     def test_gpt_image_2_returns_three_routes_with_legal_values(self) -> None:
         with (
-            patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
+            patch("lovart_reverse.planning.planner.setup_status", side_effect=fake_setup),
+            patch("lovart_reverse.planning.planner.free_check", side_effect=fake_free),
         ):
             result = plan_for_model("openai/gpt-image-2", intent="image-concept", live=False)
         self.assertEqual([route["id"] for route in result["routes"]], ["quality_best", "cost_best", "speed_best"])
@@ -67,8 +67,8 @@ class PlanningTest(unittest.TestCase):
 
     def test_cost_best_prefers_zero_credit_route(self) -> None:
         with (
-            patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
+            patch("lovart_reverse.planning.planner.setup_status", side_effect=fake_setup),
+            patch("lovart_reverse.planning.planner.free_check", side_effect=fake_free),
         ):
             result = plan_for_model("openai/gpt-image-2", live=False)
         route = next(route for route in result["routes"] if route["id"] == "cost_best")
@@ -79,8 +79,8 @@ class PlanningTest(unittest.TestCase):
 
     def test_quality_best_requires_paid_confirmation_when_not_free(self) -> None:
         with (
-            patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
+            patch("lovart_reverse.planning.planner.setup_status", side_effect=fake_setup),
+            patch("lovart_reverse.planning.planner.free_check", side_effect=fake_free),
         ):
             result = plan_for_model("openai/gpt-image-2", live=False)
         route = next(route for route in result["routes"] if route["id"] == "quality_best")
@@ -96,8 +96,8 @@ class PlanningTest(unittest.TestCase):
             return fake_free(model, body, mode=mode, live=live)
 
         with (
-            patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.free_check", side_effect=recording_free),
+            patch("lovart_reverse.planning.planner.setup_status", side_effect=fake_setup),
+            patch("lovart_reverse.planning.planner.free_check", side_effect=recording_free),
         ):
             result = plan_for_model("openai/gpt-image-2", live=False)
         route = next(route for route in result["routes"] if route["id"] == "speed_best")
@@ -106,9 +106,9 @@ class PlanningTest(unittest.TestCase):
 
     def test_live_quote_drives_cost_best_degradation(self) -> None:
         with (
-            patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.quote_or_unknown", side_effect=fake_quote),
-            patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
+            patch("lovart_reverse.planning.planner.setup_status", side_effect=fake_setup),
+            patch("lovart_reverse.planning.planner.quote_or_unknown", side_effect=fake_quote),
+            patch("lovart_reverse.planning.planner.free_check", side_effect=fake_free),
         ):
             result = plan_for_model("openai/gpt-image-2", live=True)
         quality = next(route for route in result["routes"] if route["id"] == "quality_best")
@@ -124,8 +124,8 @@ class PlanningTest(unittest.TestCase):
 
     def test_free_input_fields_are_not_fabricated(self) -> None:
         with (
-            patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
+            patch("lovart_reverse.planning.planner.setup_status", side_effect=fake_setup),
+            patch("lovart_reverse.planning.planner.free_check", side_effect=fake_free),
         ):
             result = plan_for_model("openai/gpt-image-2", partial_body={"prompt": "凡人流修仙概念设计"}, live=False)
         for route in result["routes"]:
@@ -135,7 +135,7 @@ class PlanningTest(unittest.TestCase):
     def test_plan_cli_json_envelope(self) -> None:
         output = io.StringIO()
         with (
-            patch("lovart_reverse.cli.main.plan_for_model", return_value={"model": "openai/gpt-image-2", "routes": []}),
+            patch("lovart_reverse.cli.application.plan_for_model", return_value={"model": "openai/gpt-image-2", "routes": []}),
             contextlib.redirect_stdout(output),
         ):
             code = main(["plan", "openai/gpt-image-2", "--intent", "image-concept"])
@@ -147,8 +147,8 @@ class PlanningTest(unittest.TestCase):
     def test_plan_cli_without_model_selects_image_candidates(self) -> None:
         output = io.StringIO()
         with (
-            patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
+            patch("lovart_reverse.planning.planner.setup_status", side_effect=fake_setup),
+            patch("lovart_reverse.planning.planner.free_check", side_effect=fake_free),
             contextlib.redirect_stdout(output),
         ):
             code = main(["plan", "--intent", "image-concept", "--quote", "offline", "--candidate-limit", "2"])

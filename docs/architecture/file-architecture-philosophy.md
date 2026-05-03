@@ -21,12 +21,23 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `lovart_reverse/downloads/` owns artifact downloads.
 - `lovart_reverse/update/` owns online drift detection, metadata sync, and manifest comparison.
 - `lovart_reverse/capture/` owns mitm capture support and replay.
-- `lovart_reverse/cli/` is the only command-line implementation.
+- `lovart_reverse/cli/` is the only command-line implementation. `cli/main.py` stays a thin console-script entry point; command parsing and dispatch live in named CLI application modules.
+
+## Primary Module Names
+
+- `config/schema_config.py` turns Lovart request schema into agent-facing config fields.
+- `discovery/generators.py` fetches live generator list and schema metadata.
+- `entitlement/checks.py` checks fast zero-credit and relaxed unlimited eligibility.
+- `setup/readiness.py` reports setup, auth, metadata, signer, and runtime readiness.
+- `update/drift.py` compares online Lovart state with local metadata snapshots.
+- `planning/planner.py` builds non-submitting quality, cost, and speed routes.
+- `jobs/orchestrator.py` coordinates user-level batch quote, dry-run, run, status, and resume.
+- `cli/application.py` owns argparse wiring and command dispatch; `cli/main.py` only delegates to it.
 
 ## Rules
 
 - `__init__.py` files export module APIs only. Business logic lives in named modules.
-- Do not add vague modules named `utils.py`, `helpers.py`, `common.py`, `legacy.py`, `compat.py`, or `glue.py`.
+- Do not add vague modules named `utils.py`, `helpers.py`, `common.py`, `service.py`, `legacy.py`, `compat.py`, or `glue.py`.
 - Business modules must not import `lovart_reverse.cli`.
 - CLI stdout must be JSON only. Diagnostics and live fallback warnings go to stderr.
 - `scripts/` is limited to a single development entry point, `scripts/lovart.py`.

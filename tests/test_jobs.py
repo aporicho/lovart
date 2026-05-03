@@ -12,7 +12,7 @@ from lovart_reverse.cli.main import main
 from lovart_reverse.errors import CreditRiskError, InputError
 from lovart_reverse.jobs.expansion import expand_jobs
 from lovart_reverse.jobs.records import load_job_records
-from lovart_reverse.jobs.service import quote_jobs, resume_jobs, run_jobs
+from lovart_reverse.jobs.orchestrator import quote_jobs, resume_jobs, run_jobs
 
 
 def write_jobs(path: Path, jobs: list[dict[str, object]]) -> None:
@@ -122,7 +122,7 @@ class JobsTest(unittest.TestCase):
                 credits = 0.0 if body["prompt"] == "x" else 12.0
                 return {"model": model, "quoted": True, "credits": credits, "warnings": []}
 
-            with patch("lovart_reverse.jobs.service.quote", side_effect=quoted):
+            with patch("lovart_reverse.jobs.orchestrator.quote", side_effect=quoted):
                 result = quote_jobs(jobs_file)
             self.assertEqual(result["summary"]["total_jobs"], 2)
             self.assertEqual(result["summary"]["total_credits"], 12.0)
@@ -148,7 +148,7 @@ class JobsTest(unittest.TestCase):
                 },
             ]
             write_jobs(jobs_file, jobs)
-            with patch("lovart_reverse.jobs.service.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []}):
+            with patch("lovart_reverse.jobs.orchestrator.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 0.0, "warnings": []}):
                 result = quote_jobs(jobs_file)
             self.assertEqual(result["summary"]["logical_jobs"], 2)
             self.assertEqual(result["summary"]["requested_outputs"], 20)
@@ -160,8 +160,8 @@ class JobsTest(unittest.TestCase):
             jobs_file = Path(tmp) / "jobs.jsonl"
             write_jobs(jobs_file, [gpt_job("001", prompt="paid")])
             with (
-                patch("lovart_reverse.jobs.service.generation_preflight", side_effect=fake_preflight),
-                patch("lovart_reverse.jobs.service.submit_model") as submit,
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.submit_model") as submit,
             ):
                 with self.assertRaises(CreditRiskError):
                     run_jobs(jobs_file)
@@ -182,9 +182,9 @@ class JobsTest(unittest.TestCase):
                 return {"status": "completed", "artifacts": [], "raw": {}}
 
             with (
-                patch("lovart_reverse.jobs.service.generation_preflight", side_effect=fake_preflight),
-                patch("lovart_reverse.jobs.service.submit_model", side_effect=submit),
-                patch("lovart_reverse.jobs.service.task_info", side_effect=task),
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.submit_model", side_effect=submit),
+                patch("lovart_reverse.jobs.orchestrator.task_info", side_effect=task),
             ):
                 result = run_jobs(jobs_file, wait=True, poll_interval=0)
             self.assertEqual(events, ["submit:a", "submit:b", "task:task-a", "task:task-b"])
@@ -196,14 +196,14 @@ class JobsTest(unittest.TestCase):
             jobs_file = Path(tmp) / "jobs.jsonl"
             write_jobs(jobs_file, [gpt_job("001")])
             with (
-                patch("lovart_reverse.jobs.service.generation_preflight", side_effect=fake_preflight),
-                patch("lovart_reverse.jobs.service.submit_model", return_value={"task_id": "task-001"}),
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.submit_model", return_value={"task_id": "task-001"}),
             ):
                 run_jobs(jobs_file)
             with (
-                patch("lovart_reverse.jobs.service.generation_preflight", side_effect=fake_preflight),
-                patch("lovart_reverse.jobs.service.submit_model") as submit,
-                patch("lovart_reverse.jobs.service.task_info", return_value={"status": "completed", "artifacts": [], "raw": {}}),
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.submit_model") as submit,
+                patch("lovart_reverse.jobs.orchestrator.task_info", return_value={"status": "completed", "artifacts": [], "raw": {}}),
             ):
                 result = resume_jobs(jobs_file, wait=True, poll_interval=0)
             submit.assert_not_called()
@@ -214,8 +214,8 @@ class JobsTest(unittest.TestCase):
             jobs_file = Path(tmp) / "jobs.jsonl"
             write_jobs(jobs_file, [gpt_job("001")])
             with (
-                patch("lovart_reverse.jobs.service.generation_preflight", side_effect=fake_preflight),
-                patch("lovart_reverse.jobs.service.submit_model", return_value={"task_id": "task-001"}),
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.submit_model", return_value={"task_id": "task-001"}),
             ):
                 run_jobs(jobs_file)
             write_jobs(jobs_file, [gpt_job("001", prompt="changed")])
@@ -225,7 +225,7 @@ class JobsTest(unittest.TestCase):
     def test_jobs_cli_json_envelope(self) -> None:
         output = io.StringIO()
         with (
-            patch("lovart_reverse.cli.main.dry_run_jobs", return_value={"operation": "dry_run", "summary": {}}),
+            patch("lovart_reverse.cli.application.dry_run_jobs", return_value={"operation": "dry_run", "summary": {}}),
             contextlib.redirect_stdout(output),
         ):
             code = main(["jobs", "dry-run", "runs/fanren/jobs.jsonl"])

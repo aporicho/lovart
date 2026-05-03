@@ -47,7 +47,7 @@ class QuoteTest(unittest.TestCase):
     def test_quote_cli_json_envelope(self) -> None:
         output = io.StringIO()
         with (
-            patch("lovart_reverse.cli.main.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 12}),
+            patch("lovart_reverse.cli.application.quote", return_value={"model": "openai/gpt-image-2", "quoted": True, "credits": 12}),
             contextlib.redirect_stdout(output),
         ):
             code = main(["quote", "openai/gpt-image-2", "--body", '{"prompt":"x","quality":"medium","size":"2048*2048"}'])

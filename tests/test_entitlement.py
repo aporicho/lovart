@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from lovart_reverse.entitlement.service import free_check
+from lovart_reverse.entitlement.checks import free_check
 
 
 FAST_PAYLOAD = {
@@ -24,7 +24,7 @@ FAST_PAYLOAD = {
 
 class EntitlementTest(unittest.TestCase):
     def test_fast_zero_credit_matches_alias_and_extra_item(self) -> None:
-        with patch("lovart_reverse.entitlement.service.fetch_unlimited", return_value=(FAST_PAYLOAD, "fixture")):
+        with patch("lovart_reverse.entitlement.checks.fetch_unlimited", return_value=(FAST_PAYLOAD, "fixture")):
             result = free_check(
                 "openai/gpt-image-2",
                 {"prompt": "x", "quality": "low", "size": "1024*1024"},

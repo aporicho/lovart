@@ -16,7 +16,7 @@ from lovart_reverse.errors import (
 )
 from lovart_reverse.generation.gate import generation_gate
 from lovart_reverse.registry import load_ref_registry, validate_body
-from lovart_reverse.setup.service import _offline_update_status
+from lovart_reverse.setup.readiness import offline_update_status
 from lovart_reverse.update import check_update
 
 
@@ -25,7 +25,7 @@ RISKY_UPDATE_KEYS = {"generator_schema", "pricing", "entitlements"}
 
 def _update_status(live: bool) -> dict[str, Any]:
     if not live:
-        return _offline_update_status()
+        return offline_update_status()
     try:
         return check_update()
     except Exception as exc:
