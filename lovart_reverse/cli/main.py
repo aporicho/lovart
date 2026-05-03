@@ -19,6 +19,7 @@ from lovart_reverse.errors import InputError, LovartError
 from lovart_reverse.generation import dry_run_request, generation_preflight, submit_model
 from lovart_reverse.io_json import load_body
 from lovart_reverse.paths import ROOT
+from lovart_reverse.planning import plan_for_model
 from lovart_reverse.pricing.account import balance_summary, time_variant_summary
 from lovart_reverse.pricing.estimator import estimate
 from lovart_reverse.pricing.table import fetch_pricing_rows, rows_as_json
@@ -102,6 +103,11 @@ def cmd_config(args: argparse.Namespace) -> dict[str, Any]:
     if not args.model:
         raise InputError("model is required unless --global is used")
     return config_for_model(args.model, include_all=args.include_all, example=args.example)
+
+
+def cmd_plan(args: argparse.Namespace) -> dict[str, Any]:
+    body = _load_body_args(args)
+    return plan_for_model(args.model, intent=args.intent, count=args.count, partial_body=body, live=not args.offline)
 
 
 def cmd_generate(args: argparse.Namespace) -> dict[str, Any]:
@@ -218,6 +224,13 @@ def build_parser() -> argparse.ArgumentParser:
     config.add_argument("--example", choices=["defaults", "zero_credit"])
     config.add_argument("--global", action="store_true", dest="global_config")
 
+    plan = sub.add_parser("plan")
+    plan.add_argument("model")
+    plan.add_argument("--intent", default="general")
+    plan.add_argument("--count", type=int, default=1)
+    _add_body_args(plan)
+    plan.add_argument("--offline", action="store_true")
+
     price = sub.add_parser("price")
     price.add_argument("model")
     _add_body_args(price)
@@ -272,6 +285,8 @@ def dispatch(args: argparse.Namespace) -> dict[str, Any]:
         return cmd_setup(args)
     if args.command == "config":
         return cmd_config(args)
+    if args.command == "plan":
+        return cmd_plan(args)
     if args.command == "auth":
         return cmd_auth(args)
     if args.command == "models":

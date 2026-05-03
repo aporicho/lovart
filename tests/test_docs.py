@@ -13,6 +13,7 @@ class DocsTest(unittest.TestCase):
         for command in (
             "lovart setup",
             "lovart config",
+            "lovart plan",
             "lovart generate",
             "lovart update sync --metadata-only",
             "lovart reverse capture",

@@ -54,6 +54,13 @@ def global_config() -> dict[str, Any]:
             "downloads": str(DOWNLOADS_DIR),
             "root_env": "LOVART_REVERSE_ROOT",
         },
+        "planning_flags": [
+            "--body-file",
+            "--body",
+            "--intent",
+            "--count",
+            "--offline",
+        ],
         "generation_flags": [
             "--body-file",
             "--body",

@@ -24,6 +24,7 @@ List models and inspect exact legal config values:
 ```bash
 lovart models
 lovart config openai/gpt-image-2
+lovart plan openai/gpt-image-2 --intent image-concept
 ```
 
 If setup reports missing auth, capture a browser request and extract credentials:
@@ -85,6 +86,7 @@ Generated files are saved under `downloads/<task_id>/` when `--download` is used
 lovart setup
 lovart models
 lovart config openai/gpt-image-2
+lovart plan openai/gpt-image-2 --intent image-concept
 lovart config --global
 lovart schema openai/gpt-image-2
 lovart price openai/gpt-image-2 --body-file request.json --batch 10

@@ -26,11 +26,12 @@ stdout must be parsed as JSON. stderr is diagnostic only.
 lovart setup
 lovart models
 lovart config openai/gpt-image-2
+lovart plan openai/gpt-image-2 --intent image-concept
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
 ```
 
-Agents must call `config` before presenting model-specific options. Agents should use `--dry-run` before a new model/body shape.
+Agents must call `config`, then `plan`, before presenting model-specific options. Agents should use `--dry-run` before a new model/body shape.
 
 ## Config Discovery
 
@@ -69,6 +70,25 @@ For example, an agent may say:
 - `prompt` is free input and must be supplied by the user or generated from the user's request.
 
 Agents must not say values like `1280x720`, `portrait`, or `ultra` unless those exact values are returned in `field.values`.
+
+## Route Planning
+
+`lovart plan <model>` returns three non-submitting routes for user-facing choice:
+
+- `quality_best`: highest-quality legal settings; paid confirmation may be required.
+- `cost_best`: lowest-cost route; prioritizes zero-credit eligibility.
+- `speed_best`: fastest route; prioritizes `fast` mode.
+
+Useful flags:
+
+```bash
+lovart plan openai/gpt-image-2 --intent image-concept
+lovart plan openai/gpt-image-2 --count 4
+lovart plan openai/gpt-image-2 --body-file partial-request.json
+lovart plan openai/gpt-image-2 --offline
+```
+
+Each route includes `body_patch`, `request_body`, `estimated_credits`, `zero_credit`, `requires_paid_confirmation`, `constraints`, and `user_message`. `body_patch` never fabricates free-input fields such as `prompt` or reference image URLs. Agents merge `body_patch` with user-provided free input before running `generate --dry-run`.
 
 ## Preflight Fields
 

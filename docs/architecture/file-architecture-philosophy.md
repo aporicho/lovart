@@ -12,6 +12,7 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `lovart_reverse/registry/` owns model records, schema lookup, and request validation.
 - `lovart_reverse/pricing/` owns pricing tables, balance, peak/off-peak data, and estimates.
 - `lovart_reverse/entitlement/` owns fast zero-credit and relaxed unlimited checks.
+- `lovart_reverse/planning/` owns non-submitting route planning from config, pricing, entitlement, and readiness.
 - `lovart_reverse/generation/` owns dry-run previews, paid gate evaluation, and submission.
 - `lovart_reverse/setup/` owns one-shot readiness checks for auth, refs, signer, update status, and runtime paths.
 - `lovart_reverse/task/` owns task status normalization.
