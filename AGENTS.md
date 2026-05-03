@@ -22,11 +22,7 @@ This file is only the hard-rule checklist for coding agents.
 - After a partial batch run, use `lovart jobs resume`, not `lovart jobs run`.
 - Do not modify `ref/` unless the user explicitly asks for reverse-maintenance work.
 
-## Role Method References
-
-- Concept design: `docs/concepts/概念设计师.md`
-- AIGC prompt design: `docs/concepts/AIGC提示词设计师.md`
-- Lovart CLI usage method: `docs/concepts/LovartCLI生成专家.md`
-
 For command fields and JSON shapes, use `docs/agent-contract.md`.
 For installation and MCP configuration, use `docs/agent-install.md`.
+
+Creative expert methods are maintained outside this repository. This project only defines Lovart execution rules, CLI/MCP contracts, safety gates, and reverse-maintenance workflow.

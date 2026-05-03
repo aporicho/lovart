@@ -219,11 +219,10 @@ An agent understands this project if it can answer:
 - `AGENTS.md`: short hard rules for coding agents.
 - `docs/agent-install.md`: install and MCP/CLI agent setup.
 - `docs/agent-contract.md`: field-level CLI JSON reference.
-- `docs/concepts/概念设计师.md`: concept design role method.
-- `docs/concepts/AIGC提示词设计师.md`: prompt design role method.
-- `docs/concepts/LovartCLI生成专家.md`: Lovart CLI usage role method.
 - `docs/reverse_workflow.md`: reverse-maintenance workflow.
 - `docs/architecture/file-architecture-philosophy.md`: package architecture rules.
+
+Creative expert methods are intentionally maintained outside this repository. Lovart is the execution backend: CLI contract, safety gates, quoting, jobs, downloads, and reverse-maintenance evidence.
 
 ## Runtime Safety
 
