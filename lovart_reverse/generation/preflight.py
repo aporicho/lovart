@@ -15,7 +15,6 @@ from lovart_reverse.errors import (
     UnknownPricingError,
 )
 from lovart_reverse.generation.gate import generation_gate
-from lovart_reverse.pricing.table import PriceRow, fetch_pricing_rows
 from lovart_reverse.registry import load_ref_registry, validate_body
 from lovart_reverse.setup.service import _offline_update_status
 from lovart_reverse.update import check_update
@@ -42,14 +41,13 @@ def _update_status(live: bool) -> dict[str, Any]:
 def _gate_result(
     model: str,
     body: dict[str, Any],
-    rows: list[PriceRow],
     mode: str,
     allow_paid: bool,
     max_credits: float | None,
     live: bool,
 ) -> tuple[dict[str, Any], LovartError | None]:
     try:
-        return generation_gate(model, body, rows, mode=mode, allow_paid=allow_paid, max_credits=max_credits, live=live), None
+        return generation_gate(model, body, mode=mode, allow_paid=allow_paid, max_credits=max_credits, live=live), None
     except (UnknownPricingError, CreditRiskError) as exc:
         return {"allowed": False, "reason": exc.code, "error": {"code": exc.code, "message": exc.message, "details": exc.details}}, exc
 
@@ -65,8 +63,7 @@ def generation_preflight(
     auth = auth_status()
     update = _update_status(live=live)
     schema_errors = validate_body(load_ref_registry(), model, body)
-    rows = fetch_pricing_rows(live=live)
-    gate, gate_error = _gate_result(model, body, rows, mode, allow_paid, max_credits, live=live)
+    gate, gate_error = _gate_result(model, body, mode, allow_paid, max_credits, live=live)
     changes = update.get("changes") or {}
     recommended_actions = list(update.get("recommended_actions") or [])
     blocking_error: LovartError | None = None

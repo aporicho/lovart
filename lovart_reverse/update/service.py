@@ -273,15 +273,13 @@ def sync_metadata() -> dict[str, Any]:
 
 def _post_sync_checks() -> dict[str, Any]:
     from lovart_reverse.entitlement import free_check
-    from lovart_reverse.pricing.estimator import estimate
-    from lovart_reverse.pricing.table import fetch_pricing_rows
+    from lovart_reverse.pricing.table import fetch_pricing_payload
 
     registry_count = len(model_records(load_ref_registry()))
-    rows = fetch_pricing_rows(live=False)
-    pricing = estimate("openai/gpt-image-2", {"prompt": "x", "quality": "low", "size": "1024*1024"}, rows)
+    pricing_payload = fetch_pricing_payload(live=False)
     entitlement = free_check("openai/gpt-image-2", {"prompt": "x", "quality": "low", "size": "1024*1024"}, mode="auto", live=False)
     return {
         "registry_models": registry_count,
-        "pricing_estimated": bool(pricing.get("estimated")),
+        "pricing_table_cached": pricing_payload is not None,
         "entitlement_checked": "zero_credit" in entitlement,
     }

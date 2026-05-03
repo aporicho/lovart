@@ -36,11 +36,11 @@ class QuoteTest(unittest.TestCase):
         with (
             patch("lovart_reverse.generation.gate.free_check", return_value={"zero_credit": False}),
             patch(
-                "lovart_reverse.generation.gate.quote_or_estimate",
-                return_value={"quoted": True, "estimated": True, "credits": 0.0, "price_detail": {"search_key": "2K_low"}},
+                "lovart_reverse.generation.gate.quote_or_unknown",
+                return_value={"quoted": True, "credits": 0.0, "price_detail": {"search_key": "2K_low"}},
             ),
         ):
-            result = generation_gate("openai/gpt-image-2", {"prompt": "x"}, [], mode="auto", allow_paid=False, max_credits=None, live=True)
+            result = generation_gate("openai/gpt-image-2", {"prompt": "x"}, mode="auto", allow_paid=False, max_credits=None, live=True)
         self.assertTrue(result["allowed"])
         self.assertEqual(result["reason"], "quote_zero_credit")
 

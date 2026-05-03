@@ -9,7 +9,6 @@ from unittest.mock import patch
 from lovart_reverse.cli.main import main
 from lovart_reverse.config import config_for_model
 from lovart_reverse.planning.service import plan_for_model
-from lovart_reverse.pricing.table import PriceRow
 
 
 def fake_setup(*args: object, **kwargs: object) -> dict[str, object]:
@@ -34,7 +33,7 @@ def fake_free(model: str, body: dict[str, object], mode: str = "auto", live: boo
     }
 
 
-def fake_quote(model: str, body: dict[str, object], rows: list[PriceRow], live: bool = True) -> dict[str, object]:
+def fake_quote(model: str, body: dict[str, object], live: bool = True) -> dict[str, object]:
     if body.get("quality") == "high" and body.get("size") in {"3840*2160", "2160*3840"}:
         credits = 80.0
     elif body.get("quality") == "low" and body.get("size") == "1024*1024":
@@ -44,7 +43,6 @@ def fake_quote(model: str, body: dict[str, object], rows: list[PriceRow], live: 
     return {
         "model": model,
         "quoted": live,
-        "estimated": True,
         "credits": credits,
         "balance": 27100,
         "price_detail": {"search_key": f"{body.get('size')}_{body.get('quality')}"},
@@ -53,16 +51,9 @@ def fake_quote(model: str, body: dict[str, object], rows: list[PriceRow], live: 
 
 
 class PlanningTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.rows = [
-            PriceRow("GPT Image 2 1K", 1.0, "1 credits/image, low, no ref image", "image-model"),
-            PriceRow("GPT Image 2 2K", 2.0, "2 credits/image, medium, no ref image", "image-model"),
-        ]
-
     def test_gpt_image_2_returns_three_routes_with_legal_values(self) -> None:
         with (
             patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.fetch_pricing_rows", return_value=self.rows),
             patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
         ):
             result = plan_for_model("openai/gpt-image-2", intent="image-concept", live=False)
@@ -77,7 +68,6 @@ class PlanningTest(unittest.TestCase):
     def test_cost_best_prefers_zero_credit_route(self) -> None:
         with (
             patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.fetch_pricing_rows", return_value=self.rows),
             patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
         ):
             result = plan_for_model("openai/gpt-image-2", live=False)
@@ -90,7 +80,6 @@ class PlanningTest(unittest.TestCase):
     def test_quality_best_requires_paid_confirmation_when_not_free(self) -> None:
         with (
             patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.fetch_pricing_rows", return_value=self.rows),
             patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
         ):
             result = plan_for_model("openai/gpt-image-2", live=False)
@@ -108,7 +97,6 @@ class PlanningTest(unittest.TestCase):
 
         with (
             patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.fetch_pricing_rows", return_value=self.rows),
             patch("lovart_reverse.planning.service.free_check", side_effect=recording_free),
         ):
             result = plan_for_model("openai/gpt-image-2", live=False)
@@ -119,8 +107,7 @@ class PlanningTest(unittest.TestCase):
     def test_live_quote_drives_cost_best_degradation(self) -> None:
         with (
             patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.fetch_pricing_rows", return_value=self.rows),
-            patch("lovart_reverse.planning.service.quote_or_estimate", side_effect=fake_quote),
+            patch("lovart_reverse.planning.service.quote_or_unknown", side_effect=fake_quote),
             patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
         ):
             result = plan_for_model("openai/gpt-image-2", live=True)
@@ -138,7 +125,6 @@ class PlanningTest(unittest.TestCase):
     def test_free_input_fields_are_not_fabricated(self) -> None:
         with (
             patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.fetch_pricing_rows", return_value=self.rows),
             patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
         ):
             result = plan_for_model("openai/gpt-image-2", partial_body={"prompt": "凡人流修仙概念设计"}, live=False)
@@ -162,7 +148,6 @@ class PlanningTest(unittest.TestCase):
         output = io.StringIO()
         with (
             patch("lovart_reverse.planning.service.setup_status", side_effect=fake_setup),
-            patch("lovart_reverse.planning.service.fetch_pricing_rows", return_value=self.rows),
             patch("lovart_reverse.planning.service.free_check", side_effect=fake_free),
             contextlib.redirect_stdout(output),
         ):

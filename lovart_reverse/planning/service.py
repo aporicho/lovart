@@ -12,8 +12,7 @@ from lovart_reverse.config import config_for_model
 from lovart_reverse.entitlement import free_check
 from lovart_reverse.errors import InputError, SchemaInvalidError
 from lovart_reverse.planning.field_roles import MEDIA_INPUT_FIELDS
-from lovart_reverse.pricing.quote import quote_or_estimate
-from lovart_reverse.pricing.table import PriceRow, fetch_pricing_rows
+from lovart_reverse.pricing.quote import quote_or_unknown
 from lovart_reverse.pricing.traits import bucket_rank, size_bucket
 from lovart_reverse.registry import ModelRecord, load_ref_registry, model_records, validate_body
 from lovart_reverse.setup import setup_status
@@ -77,7 +76,6 @@ def plan_for_model(
 
     readiness = setup_status(offline=quote_mode == "offline")
     effective_live = _effective_live(quote_mode, readiness)
-    rows = fetch_pricing_rows(live=effective_live)
 
     candidates: list[Candidate] = []
     model_summaries: list[dict[str, Any]] = []
@@ -106,13 +104,13 @@ def plan_for_model(
         raise SchemaInvalidError("no plannable model candidates", {"model": model, "intent": intent, "rejected": rejected})
 
     quote_cache: dict[str, dict[str, Any]] = {}
-    quality = _select_quality_route(candidates, rows, effective_live, quote_cache)
-    cost = _select_cost_route(candidates, rows, effective_live, quote_cache)
-    speed = _select_speed_route(candidates, rows, effective_live, quote_cache)
+    quality = _select_quality_route(candidates, effective_live, quote_cache)
+    cost = _select_cost_route(candidates, effective_live, quote_cache)
+    speed = _select_speed_route(candidates, effective_live, quote_cache)
     routes = [
-        _route_payload("quality_best", "质量最高路线", quality, quality, rows, effective_live, quote_cache, readiness),
-        _route_payload("cost_best", "花钱最少路线", cost, quality, rows, effective_live, quote_cache, readiness),
-        _route_payload("speed_best", "速度最快路线", speed, quality, rows, effective_live, quote_cache, readiness),
+        _route_payload("quality_best", "质量最高路线", quality, quality, effective_live, quote_cache, readiness),
+        _route_payload("cost_best", "花钱最少路线", cost, quality, effective_live, quote_cache, readiness),
+        _route_payload("speed_best", "速度最快路线", speed, quality, effective_live, quote_cache, readiness),
     ]
 
     fields = _agent_fields(config_for_model(records[0].model)["fields"]) if len(records) == 1 else {}
@@ -287,19 +285,17 @@ def _ranked_values(key: str, values: list[Any], field: dict[str, Any]) -> list[A
 
 def _select_quality_route(
     candidates: list[Candidate],
-    rows: list[PriceRow],
     live: bool,
     quote_cache: dict[str, dict[str, Any]],
 ) -> Candidate:
-    for candidate in sorted(candidates, key=lambda item: (-item.quality_score, _credit_sort(item, rows, live, quote_cache), item.model)):
-        if _quote_success(candidate, rows, live, quote_cache) or not live:
+    for candidate in sorted(candidates, key=lambda item: (-item.quality_score, _credit_sort(item, live, quote_cache), item.model)):
+        if _quote_success(candidate, live, quote_cache) or not live:
             return candidate
     return sorted(candidates, key=lambda item: (-item.quality_score, item.model))[0]
 
 
 def _select_cost_route(
     candidates: list[Candidate],
-    rows: list[PriceRow],
     live: bool,
     quote_cache: dict[str, dict[str, Any]],
 ) -> Candidate:
@@ -307,8 +303,8 @@ def _select_cost_route(
     best_known: Candidate | None = None
     best_key: tuple[float, float, str] | None = None
     for candidate in ranked:
-        pricing = _pricing(candidate, rows, live, quote_cache)
-        if live and not _quote_success(candidate, rows, live, quote_cache):
+        pricing = _pricing(candidate, live, quote_cache)
+        if live and not _quote_success(candidate, live, quote_cache):
             continue
         credits = _credits(pricing)
         if _candidate_zero_credit(candidate, pricing, live):
@@ -324,13 +320,12 @@ def _select_cost_route(
 
 def _select_speed_route(
     candidates: list[Candidate],
-    rows: list[PriceRow],
     live: bool,
     quote_cache: dict[str, dict[str, Any]],
 ) -> Candidate:
-    ranked = sorted(candidates, key=lambda item: (-item.speed_score, _credit_sort(item, rows, live, quote_cache), -item.quality_score, item.model))
+    ranked = sorted(candidates, key=lambda item: (-item.speed_score, _credit_sort(item, live, quote_cache), -item.quality_score, item.model))
     for candidate in ranked:
-        if _quote_success(candidate, rows, live, quote_cache) or not live:
+        if _quote_success(candidate, live, quote_cache) or not live:
             return candidate
     return ranked[0]
 
@@ -340,12 +335,11 @@ def _route_payload(
     label: str,
     candidate: Candidate,
     quality_candidate: Candidate,
-    rows: list[PriceRow],
     live: bool,
     quote_cache: dict[str, dict[str, Any]],
     readiness: dict[str, Any],
 ) -> dict[str, Any]:
-    pricing = _pricing(candidate, rows, live, quote_cache)
+    pricing = _pricing(candidate, live, quote_cache)
     route_mode = "fast" if route_id == "speed_best" else candidate.mode
     entitlement = _safe_free_check(candidate.model, candidate.quote_request_body, route_mode, live)
     credits = _credits(pricing)
@@ -386,8 +380,6 @@ def _route_payload(
             "price_detail": pricing.get("price_detail"),
             "quote_error": pricing.get("quote_error"),
         },
-        "estimated": bool(pricing.get("estimated")) or zero_credit,
-        "estimated_credits": 0 if zero_credit else credits,
         "zero_credit": zero_credit,
         "requires_paid_confirmation": not zero_credit,
         "real_generation_enabled": bool(readiness.get("real_generation_enabled")),
@@ -405,21 +397,21 @@ def _route_payload(
     }
 
 
-def _pricing(candidate: Candidate, rows: list[PriceRow], live: bool, quote_cache: dict[str, dict[str, Any]]) -> dict[str, Any]:
+def _pricing(candidate: Candidate, live: bool, quote_cache: dict[str, dict[str, Any]]) -> dict[str, Any]:
     key = _canonical_body(candidate.model, candidate.quote_request_body)
     if key not in quote_cache:
-        quote_cache[key] = quote_or_estimate(candidate.model, candidate.quote_request_body, rows, live=live)
+        quote_cache[key] = quote_or_unknown(candidate.model, candidate.quote_request_body, live=live)
     return quote_cache[key]
 
 
-def _quote_success(candidate: Candidate, rows: list[PriceRow], live: bool, quote_cache: dict[str, dict[str, Any]]) -> bool:
+def _quote_success(candidate: Candidate, live: bool, quote_cache: dict[str, dict[str, Any]]) -> bool:
     if not live:
         return True
-    return bool(_pricing(candidate, rows, live, quote_cache).get("quoted"))
+    return bool(_pricing(candidate, live, quote_cache).get("quoted"))
 
 
-def _credit_sort(candidate: Candidate, rows: list[PriceRow], live: bool, quote_cache: dict[str, dict[str, Any]]) -> float:
-    credits = _credits(_pricing(candidate, rows, live, quote_cache))
+def _credit_sort(candidate: Candidate, live: bool, quote_cache: dict[str, dict[str, Any]]) -> float:
+    credits = _credits(_pricing(candidate, live, quote_cache))
     return credits if credits is not None else 999999.0
 
 

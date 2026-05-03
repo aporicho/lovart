@@ -84,5 +84,5 @@ def setup_status(offline: bool = False) -> dict[str, Any]:
         "signer": signer,
         "update": update,
         "recommended_actions": recommended_actions,
-        "allowed_when_not_ready": ["models", "schema", "price", "free", "generate --dry-run", "update", "reverse"],
+        "allowed_when_not_ready": ["models", "schema", "quote", "free", "generate --dry-run", "update", "reverse"],
     }
