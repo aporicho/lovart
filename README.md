@@ -1,8 +1,8 @@
 # Lovart Reverse
 
-Agent-first Lovart web reverse tooling. The CLI exposes model discovery, schema validation, live credit quotes, zero-credit entitlement checks, update drift detection, generation submission, task lookup, and downloads as stable JSON commands.
+Agent-first Lovart web reverse tooling. The CLI exposes model discovery, schema validation, live credit quotes, zero-credit entitlement checks, update drift detection, generation submission, local batch jobs, task lookup, and downloads as stable JSON commands.
 
-Default policy: **zero-credit first**. Real generation is allowed only when preflight proves the request is covered by a zero-credit entitlement, or when the caller explicitly passes `--allow-paid --max-credits N`.
+Default policy: **zero-credit first**. Real generation is allowed only when preflight proves the request is covered by a zero-credit entitlement, or when the caller explicitly passes `--allow-paid --max-credits N`. Batch generation requires `--allow-paid --max-total-credits N` when any job costs credits.
 
 ## 5-Minute Quickstart
 
@@ -64,6 +64,30 @@ Paid generation must be explicit:
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --allow-paid --max-credits 5 --wait --download
 ```
 
+## Batch Quickstart
+
+Agents convert prompt documents into `jobs.jsonl`; humans should not need to hand-write batch JSON. Each line is one Lovart generation request:
+
+```json
+{"job_id":"001","title":"青竹峰晨雾中的韩立","model":"openai/gpt-image-2","mode":"auto","body":{"prompt":"...","quality":"high","size":"1024*1024","n":1}}
+```
+
+Quote, dry-run, submit the whole batch, then wait and download:
+
+```bash
+lovart jobs quote runs/fanren/jobs.jsonl
+lovart jobs dry-run runs/fanren/jobs.jsonl
+lovart jobs run runs/fanren/jobs.jsonl --wait --download
+lovart jobs status runs/fanren
+lovart jobs resume runs/fanren/jobs.jsonl --wait --download
+```
+
+Paid batch generation must include a total budget:
+
+```bash
+lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wait --download
+```
+
 ## JSON Contract
 
 stdout is JSON only. Diagnostics go to stderr.
@@ -91,6 +115,11 @@ lovart config openai/gpt-image-2
 lovart plan --intent image-concept
 lovart plan openai/gpt-image-2 --intent image-concept --quote live
 lovart quote openai/gpt-image-2 --body-file request.json
+lovart jobs quote runs/fanren/jobs.jsonl
+lovart jobs dry-run runs/fanren/jobs.jsonl
+lovart jobs run runs/fanren/jobs.jsonl --wait --download
+lovart jobs status runs/fanren
+lovart jobs resume runs/fanren/jobs.jsonl --wait --download
 lovart config --global
 lovart schema openai/gpt-image-2
 lovart free openai/gpt-image-2 --body-file request.json --mode auto
@@ -100,7 +129,7 @@ lovart update sync --metadata-only
 lovart doctor
 ```
 
-See `docs/agent-contract.md` for Claude Code, Codex, and opencode usage. See `docs/reverse_workflow.md` for capture and reverse-maintenance work.
+See `AGENTS.md` for the machine entry contract, `docs/concepts/LovartCLI生成专家.md` for generation methodology, `docs/agent-contract.md` for Claude Code, Codex, and opencode usage, and `docs/reverse_workflow.md` for capture and reverse-maintenance work.
 
 ## Safety
 
@@ -110,6 +139,8 @@ Ignored runtime paths:
 - `scripts/creds.json`
 - `captures/`
 - `downloads/`
+- `runs/*/jobs_quote.json`
+- `runs/*/jobs_state.json`
 - `.lovart-chrome-profile/`
 - `.mitmproxy/`
 - `.venv/`

@@ -31,6 +31,9 @@ lovart plan openai/gpt-image-2 --intent image-concept
 lovart quote openai/gpt-image-2 --body-file request.json
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
+lovart jobs quote runs/fanren/jobs.jsonl
+lovart jobs dry-run runs/fanren/jobs.jsonl
+lovart jobs run runs/fanren/jobs.jsonl --wait --download
 ```
 
 Agents must call `plan` before presenting route choices. For a fixed model, call `config`, then `plan <model>`. If the model is not fixed, call `plan --intent image-concept` to compare model candidates, then call `config <selected-model>` before offering parameter edits. Agents should use `--dry-run` before a new model/body shape.
@@ -132,6 +135,43 @@ Agents may use `plan` to present candidate routes. If the chosen route already h
 
 Downloads are written to `downloads/<task_id>/`.
 
+## Batch Jobs
+
+`lovart jobs` is the stable local queue interface for batch generation. It does not require Lovart to expose a native batch endpoint. Agents build a JSONL file and let the CLI manage quote, dry-run, submission, task polling, downloads, and resume.
+
+Each JSONL line is one job:
+
+```json
+{"job_id":"001","title":"青竹峰晨雾中的韩立","model":"openai/gpt-image-2","mode":"auto","body":{"prompt":"...","quality":"high","size":"1024*1024","n":1}}
+```
+
+Commands:
+
+```bash
+lovart jobs quote runs/fanren/jobs.jsonl
+lovart jobs dry-run runs/fanren/jobs.jsonl
+lovart jobs run runs/fanren/jobs.jsonl --wait --download
+lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wait --download
+lovart jobs status runs/fanren
+lovart jobs resume runs/fanren/jobs.jsonl --wait --download
+```
+
+`jobs run` uses a two-stage contract: the entire batch must pass schema validation, live quote, update/signing readiness, and paid-budget gate before any job is submitted. After that, all pending jobs are submitted first; once task IDs are recorded, the CLI polls and downloads results.
+
+Batch state is stored at `runs/<project>/jobs_state.json`. Agents must use `jobs resume` after interruption so submitted jobs with existing `task_id` values are not submitted again.
+
+Batch statuses:
+
+- `pending`
+- `submitted`
+- `running`
+- `completed`
+- `downloaded`
+- `failed`
+- `skipped`
+
+The jobs envelope includes `summary`, `batch_gate`, `submitted`, `tasks`, `downloads`, `failed`, `timed_out`, `state_file`, and full per-job state.
+
 ## Paid Safety
 
 The default path allows zero-credit generation only. Paid generation requires both:
@@ -141,6 +181,14 @@ The default path allows zero-credit generation only. Paid generation requires bo
 ```
 
 Agents must not infer or invent a budget. The user must provide it.
+
+For batches, paid generation requires both:
+
+```bash
+--allow-paid --max-total-credits N
+```
+
+The batch is refused if any job has unknown pricing, if the total quote exceeds `N`, or if paid jobs exist without explicit budget authorization.
 
 ## Reverse-Maintenance Boundary
 

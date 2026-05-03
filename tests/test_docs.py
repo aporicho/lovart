@@ -15,11 +15,22 @@ class DocsTest(unittest.TestCase):
             "lovart config",
             "lovart plan",
             "lovart quote",
+            "lovart jobs quote",
+            "lovart jobs dry-run",
+            "lovart jobs run",
+            "lovart jobs status",
+            "lovart jobs resume",
             "lovart generate",
             "lovart update sync --metadata-only",
             "lovart reverse capture",
         ):
             self.assertIn(command, text)
+
+    def test_lovart_cli_expert_doc_exists(self) -> None:
+        text = (ROOT / "docs" / "concepts" / "LovartCLI生成专家.md").read_text()
+        self.assertIn("lovart jobs quote", text)
+        self.assertIn("lovart jobs resume", text)
+        self.assertIn("不读取 `.lovart/creds.json`", text)
 
 
 if __name__ == "__main__":

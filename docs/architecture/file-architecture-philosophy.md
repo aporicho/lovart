@@ -14,6 +14,7 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `lovart_reverse/entitlement/` owns fast zero-credit and relaxed unlimited checks.
 - `lovart_reverse/planning/` owns non-submitting route planning from config, pricing, entitlement, and readiness.
 - `lovart_reverse/generation/` owns dry-run previews, paid gate evaluation, and submission.
+- `lovart_reverse/jobs/` owns local batch queue parsing, whole-batch quote/preflight, submission orchestration, state, resume, and batch downloads.
 - `lovart_reverse/setup/` owns one-shot readiness checks for auth, refs, signer, update status, and runtime paths.
 - `lovart_reverse/task/` owns task status normalization.
 - `lovart_reverse/assets/` owns upload APIs only after capture evidence confirms them.

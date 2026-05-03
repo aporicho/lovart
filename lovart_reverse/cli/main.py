@@ -16,8 +16,9 @@ from lovart_reverse.config import config_for_model, global_config
 from lovart_reverse.discovery import generator_list, generator_schema
 from lovart_reverse.downloads import download_artifacts
 from lovart_reverse.errors import InputError, LovartError
-from lovart_reverse.generation import dry_run_request, generation_preflight, submit_model
+from lovart_reverse.generation import dry_run_request, find_task_id, generation_preflight, submit_model
 from lovart_reverse.io_json import load_body
+from lovart_reverse.jobs import dry_run_jobs, quote_jobs, resume_jobs, run_jobs, status_jobs
 from lovart_reverse.paths import ROOT
 from lovart_reverse.planning.service import plan_for_model
 from lovart_reverse.pricing.quote import quote
@@ -124,7 +125,7 @@ def cmd_generate(args: argparse.Namespace) -> dict[str, Any]:
     if blocking_error:
         raise blocking_error
     response = submit_model(args.model, body, language=args.language)
-    task_id = _find_task_id(response)
+    task_id = find_task_id(response)
     data: dict[str, Any] = {
         "preflight": preflight,
         "submitted": True,
@@ -143,26 +144,49 @@ def cmd_generate(args: argparse.Namespace) -> dict[str, Any]:
     return data
 
 
-def _find_task_id(payload: Any) -> str | None:
-    if isinstance(payload, dict):
-        for key in ("task_id", "taskId", "id"):
-            value = payload.get(key)
-            if isinstance(value, str):
-                return value
-        for value in payload.values():
-            found = _find_task_id(value)
-            if found:
-                return found
-    elif isinstance(payload, list):
-        for value in payload:
-            found = _find_task_id(value)
-            if found:
-                return found
-    return None
-
-
 def cmd_task(args: argparse.Namespace) -> dict[str, Any]:
     return task_info(args.task_id)
+
+
+def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
+    if args.jobs_cmd == "quote":
+        return quote_jobs(args.jobs_file, out_dir=args.out_dir, language=args.language)
+    if args.jobs_cmd == "dry-run":
+        return dry_run_jobs(
+            args.jobs_file,
+            out_dir=args.out_dir,
+            allow_paid=args.allow_paid,
+            max_total_credits=args.max_total_credits,
+            language=args.language,
+        )
+    if args.jobs_cmd == "run":
+        return run_jobs(
+            args.jobs_file,
+            out_dir=args.out_dir,
+            allow_paid=args.allow_paid,
+            max_total_credits=args.max_total_credits,
+            language=args.language,
+            wait=args.wait,
+            download=args.download,
+            timeout_seconds=args.timeout_seconds,
+            poll_interval=args.poll_interval,
+        )
+    if args.jobs_cmd == "resume":
+        return resume_jobs(
+            args.jobs_file,
+            out_dir=args.out_dir,
+            allow_paid=args.allow_paid,
+            max_total_credits=args.max_total_credits,
+            language=args.language,
+            wait=args.wait,
+            download=args.download,
+            retry_failed=args.retry_failed,
+            timeout_seconds=args.timeout_seconds,
+            poll_interval=args.poll_interval,
+        )
+    if args.jobs_cmd == "status":
+        return status_jobs(args.run_dir)
+    raise ValueError("unknown jobs command")
 
 
 def cmd_update(args: argparse.Namespace) -> dict[str, Any]:
@@ -265,6 +289,42 @@ def build_parser() -> argparse.ArgumentParser:
     task = sub.add_parser("task")
     task.add_argument("task_id")
 
+    jobs = sub.add_parser("jobs")
+    jobs_sub = jobs.add_subparsers(dest="jobs_cmd", required=True)
+    jobs_quote = jobs_sub.add_parser("quote")
+    jobs_quote.add_argument("jobs_file", type=Path)
+    jobs_quote.add_argument("--out-dir", type=Path)
+    jobs_quote.add_argument("--language", default="en")
+    jobs_dry_run = jobs_sub.add_parser("dry-run")
+    jobs_dry_run.add_argument("jobs_file", type=Path)
+    jobs_dry_run.add_argument("--out-dir", type=Path)
+    jobs_dry_run.add_argument("--allow-paid", action="store_true")
+    jobs_dry_run.add_argument("--max-total-credits", type=float)
+    jobs_dry_run.add_argument("--language", default="en")
+    jobs_run = jobs_sub.add_parser("run")
+    jobs_run.add_argument("jobs_file", type=Path)
+    jobs_run.add_argument("--out-dir", type=Path)
+    jobs_run.add_argument("--allow-paid", action="store_true")
+    jobs_run.add_argument("--max-total-credits", type=float)
+    jobs_run.add_argument("--language", default="en")
+    jobs_run.add_argument("--wait", action="store_true")
+    jobs_run.add_argument("--download", action="store_true")
+    jobs_run.add_argument("--timeout-seconds", type=float, default=3600)
+    jobs_run.add_argument("--poll-interval", type=float, default=5)
+    jobs_status = jobs_sub.add_parser("status")
+    jobs_status.add_argument("run_dir", type=Path)
+    jobs_resume = jobs_sub.add_parser("resume")
+    jobs_resume.add_argument("jobs_file", type=Path)
+    jobs_resume.add_argument("--out-dir", type=Path)
+    jobs_resume.add_argument("--allow-paid", action="store_true")
+    jobs_resume.add_argument("--max-total-credits", type=float)
+    jobs_resume.add_argument("--language", default="en")
+    jobs_resume.add_argument("--wait", action="store_true")
+    jobs_resume.add_argument("--download", action="store_true")
+    jobs_resume.add_argument("--retry-failed", action="store_true")
+    jobs_resume.add_argument("--timeout-seconds", type=float, default=3600)
+    jobs_resume.add_argument("--poll-interval", type=float, default=5)
+
     reverse = sub.add_parser("reverse")
     reverse_sub = reverse.add_subparsers(dest="reverse_cmd", required=True)
     capture = reverse_sub.add_parser("capture")
@@ -298,6 +358,8 @@ def dispatch(args: argparse.Namespace) -> dict[str, Any]:
         return cmd_generate(args)
     if args.command == "task":
         return cmd_task(args)
+    if args.command == "jobs":
+        return cmd_jobs(args)
     if args.command == "update":
         return cmd_update(args)
     if args.command == "reverse":
