@@ -538,6 +538,7 @@ class JobsTest(unittest.TestCase):
     def test_resume_downloads_already_completed_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             jobs_file = Path(tmp) / "jobs.jsonl"
+            download_dir = Path(tmp) / "images"
             write_jobs(jobs_file, [gpt_job("001")])
             artifact = {"content": "https://a.lovart.ai/artifacts/generator/test.png"}
             with (
@@ -550,9 +551,26 @@ class JobsTest(unittest.TestCase):
                 patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
                 patch("lovart_reverse.jobs.orchestrator.download_artifacts", return_value=[{"path": "/tmp/test.png"}]) as download,
             ):
-                result = resume_jobs(jobs_file, download=True, detail="summary")
-            download.assert_called_once_with([artifact], task_id="task-001")
+                result = resume_jobs(jobs_file, download=True, download_dir=download_dir, detail="summary")
+            download.assert_called_once_with([artifact], output_dir=download_dir, task_id="task-001")
             self.assertEqual(result["summary"]["status_counts"]["downloaded"], 1)
+            self.assertEqual(result["download_dir"], str(download_dir))
+
+    def test_download_failure_keeps_completed_status(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            jobs_file = Path(tmp) / "jobs.jsonl"
+            write_jobs(jobs_file, [gpt_job("001")])
+            artifact = {"content": "https://a.lovart.ai/artifacts/generator/test.png"}
+            with (
+                patch("lovart_reverse.jobs.orchestrator.generation_preflight", side_effect=fake_preflight),
+                patch("lovart_reverse.jobs.orchestrator.submit_model", return_value={"task_id": "task-001"}),
+                patch("lovart_reverse.jobs.orchestrator.task_info", return_value={"status": "completed", "artifacts": [artifact], "raw": {}}),
+                patch("lovart_reverse.jobs.orchestrator.download_artifacts", side_effect=RuntimeError("Could not resolve host: a.lovart.ai")),
+            ):
+                result = run_jobs(jobs_file, wait=True, download=True, poll_interval=0, detail="requests")
+            self.assertEqual(result["summary"]["status_counts"]["completed"], 1)
+            self.assertEqual(result["remote_requests"][0]["last_error"]["code"], "download_failed")
+            self.assertEqual(result["remote_requests"][0]["download_count"], 0)
 
     def test_resume_rejects_changed_jobs_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -625,6 +643,18 @@ class JobsTest(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["data"]["operation"], "quote_status")
         self.assertEqual(str(status_command.call_args.kwargs["jobs_file"]), "runs/fanren/jobs.jsonl")
+
+    def test_jobs_run_cli_accepts_download_dir(self) -> None:
+        output = io.StringIO()
+        with (
+            patch("lovart_reverse.cli.application.jobs_run_command", return_value={"operation": "run", "summary": {}}) as run_command,
+            contextlib.redirect_stdout(output),
+        ):
+            code = main(["jobs", "run", "runs/fanren/jobs.jsonl", "--download", "--download-dir", "runs/fanren/images"])
+        self.assertEqual(code, 0)
+        payload = json.loads(output.getvalue())
+        self.assertTrue(payload["ok"])
+        self.assertEqual(str(run_command.call_args.kwargs["download_dir"]), "runs/fanren/images")
 
 
 if __name__ == "__main__":

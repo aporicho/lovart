@@ -199,6 +199,7 @@ def run_jobs(
     language: str = "en",
     wait: bool = False,
     download: bool = False,
+    download_dir: Path | None = None,
     timeout_seconds: float = 3600,
     poll_interval: float = 5,
     detail: str = "full",
@@ -212,12 +213,20 @@ def run_jobs(
     state = _new_state(jobs_file, out_dir)
     _preflight_remote_requests(state, allow_paid=allow_paid, max_total_credits=max_total_credits, language=language)
     _ensure_batch_allowed(state, allow_paid=allow_paid, max_total_credits=max_total_credits)
+    _set_download_dir(state, download_dir)
     save_state(state)
     _submit_pending(state, language=language)
     if wait:
-        _wait_for_submitted(state, language=language, download=download, timeout_seconds=timeout_seconds, poll_interval=poll_interval)
+        _wait_for_submitted(
+            state,
+            language=language,
+            download=download,
+            download_dir=download_dir,
+            timeout_seconds=timeout_seconds,
+            poll_interval=poll_interval,
+        )
     elif download:
-        _download_completed_artifacts(state)
+        _download_completed_artifacts(state, download_dir=download_dir)
     return _state_result(state, "run", detail=detail)
 
 
@@ -230,6 +239,7 @@ def resume_jobs(
     language: str = "en",
     wait: bool = False,
     download: bool = False,
+    download_dir: Path | None = None,
     retry_failed: bool = False,
     timeout_seconds: float = 3600,
     poll_interval: float = 5,
@@ -254,12 +264,20 @@ def resume_jobs(
         statuses={"pending"},
     )
     _ensure_batch_allowed(state, allow_paid=allow_paid, max_total_credits=max_total_credits, statuses={"pending"})
+    _set_download_dir(state, download_dir)
     save_state(state)
     _submit_pending(state, language=language)
     if wait:
-        _wait_for_submitted(state, language=language, download=download, timeout_seconds=timeout_seconds, poll_interval=poll_interval)
+        _wait_for_submitted(
+            state,
+            language=language,
+            download=download,
+            download_dir=download_dir,
+            timeout_seconds=timeout_seconds,
+            poll_interval=poll_interval,
+        )
     elif download:
-        _download_completed_artifacts(state)
+        _download_completed_artifacts(state, download_dir=download_dir)
     return _state_result(state, "resume", detail=detail)
 
 
@@ -765,6 +783,7 @@ def _wait_for_submitted(
     *,
     language: str,
     download: bool,
+    download_dir: Path | None,
     timeout_seconds: float,
     poll_interval: float,
 ) -> None:
@@ -787,8 +806,7 @@ def _wait_for_submitted(
                 if remote_status in COMPLETED_REMOTE_STATUSES:
                     request["status"] = "completed"
                     if download and request["artifacts"]:
-                        request["downloads"] = download_artifacts(request["artifacts"], task_id=str(request["task_id"]))
-                        request["status"] = "downloaded"
+                        _download_request_artifacts(request, state, download_dir=download_dir)
                 elif remote_status in FAILED_REMOTE_STATUSES:
                     request["status"] = "failed"
                     _add_error(request, "task_failed", "remote Lovart task failed", {"task": current})
@@ -812,11 +830,23 @@ def _wait_for_submitted(
         time.sleep(poll_interval)
     state["timed_out"] = timed_out
     if download:
-        _download_completed_artifacts(state)
+        _download_completed_artifacts(state, download_dir=download_dir)
     save_state(state)
 
 
-def _download_completed_artifacts(state: dict[str, Any]) -> None:
+def _set_download_dir(state: dict[str, Any], download_dir: Path | None) -> None:
+    if download_dir is not None:
+        state["download_dir"] = str(download_dir)
+
+
+def _effective_download_dir(state: dict[str, Any], download_dir: Path | None) -> Path | None:
+    if download_dir is not None:
+        return download_dir
+    saved = state.get("download_dir")
+    return Path(str(saved)) if saved else None
+
+
+def _download_completed_artifacts(state: dict[str, Any], *, download_dir: Path | None = None) -> None:
     changed = False
     for _, request in _iter_remote_requests(state.get("jobs", [])):
         if request.get("status") != "completed" or request.get("downloads"):
@@ -825,12 +855,34 @@ def _download_completed_artifacts(state: dict[str, Any]) -> None:
         artifacts = request.get("artifacts")
         if not task_id or not isinstance(artifacts, list) or not artifacts:
             continue
-        request["downloads"] = download_artifacts(artifacts, task_id=str(task_id))
-        request["status"] = "downloaded"
-        changed = True
+        if _download_request_artifacts(request, state, download_dir=download_dir):
+            changed = True
+        else:
+            changed = True
     if changed:
         _refresh_job_statuses(state["jobs"])
         save_state(state)
+
+
+def _download_request_artifacts(request: dict[str, Any], state: dict[str, Any], *, download_dir: Path | None = None) -> bool:
+    task_id = request.get("task_id")
+    artifacts = request.get("artifacts")
+    if not task_id or not isinstance(artifacts, list) or not artifacts:
+        return False
+    try:
+        output_dir = _effective_download_dir(state, download_dir)
+        if output_dir is None:
+            request["downloads"] = download_artifacts(artifacts, task_id=str(task_id))
+        else:
+            request["downloads"] = download_artifacts(artifacts, output_dir=output_dir, task_id=str(task_id))
+        request["status"] = "downloaded"
+        request["download_error"] = None
+        return True
+    except Exception as exc:
+        request["status"] = "completed"
+        request["download_error"] = {"type": exc.__class__.__name__, "message": str(exc)}
+        _add_error(request, "download_failed", "artifact download failed; task remains completed and can be resumed", request["download_error"])
+        return False
 
 
 def _state_result(state: dict[str, Any], operation: str, *, detail: str = "full") -> dict[str, Any]:
@@ -852,6 +904,7 @@ def _state_result(state: dict[str, Any], operation: str, *, detail: str = "full"
         "jobs_file_hash": state.get("jobs_file_hash"),
         "run_dir": state.get("run_dir"),
         "state_file": state.get("state_file"),
+        "download_dir": state.get("download_dir"),
         "summary": summarize_state(state),
         "batch_gate": state.get("batch_gate"),
         "submitted": submitted,
@@ -889,6 +942,7 @@ def _compact_state_result(state: dict[str, Any], operation: str, *, include_requ
         "jobs_file_hash": state.get("jobs_file_hash"),
         "run_dir": state.get("run_dir"),
         "state_file": state.get("state_file"),
+        "download_dir": state.get("download_dir"),
         "summary": summarize_state(state),
         "batch_gate": _compact_batch_gate(state.get("batch_gate")),
         "task_count": len(tasks),

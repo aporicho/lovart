@@ -167,9 +167,9 @@ lovart config seedream/seedream-5-0
 lovart jobs quote runs/fanren/jobs.jsonl --limit 25
 lovart jobs quote-status runs/fanren
 lovart jobs dry-run runs/fanren/jobs.jsonl
-lovart jobs run runs/fanren/jobs.jsonl --wait --download --detail summary
+lovart jobs run runs/fanren/jobs.jsonl --wait --download --download-dir runs/fanren/images --detail summary
 lovart jobs status runs/fanren
-lovart jobs resume runs/fanren/jobs.jsonl --wait --download --timeout-seconds 90 --detail summary
+lovart jobs resume runs/fanren/jobs.jsonl --wait --download --download-dir runs/fanren/images --timeout-seconds 90 --detail summary
 ```
 
 Paid batch generation must include a total budget:
@@ -210,7 +210,9 @@ Generation state is stored in `runs/<project>/jobs_state.json`. Quote progress i
 
 `lovart jobs status` also defaults to a lightweight summary. It returns counts, up to 20 compact task samples, warnings, and safe `recommended_actions`; it does not echo prompts, full request bodies, or raw task payloads unless `--detail full` is explicitly requested. Use `--detail requests` when an agent needs every compact remote request.
 
-For long-running models, especially MCP calls, use short resumable polling windows instead of one very long tool call: `lovart jobs resume <jobs.jsonl> --wait --download --timeout-seconds 90 --detail summary`. If the local wait times out, submitted `task_id`s are already saved in `jobs_state.json`; rerun `resume` or `status` to continue without resubmitting.
+For long-running models, especially MCP calls, use short resumable polling windows instead of one very long tool call: `lovart jobs resume <jobs.jsonl> --wait --download --download-dir <images-dir> --timeout-seconds 90 --detail summary`. If the local wait times out, submitted `task_id`s are already saved in `jobs_state.json`; rerun `resume` or `status` to continue without resubmitting.
+
+`--download` writes artifact files locally. Without `--download-dir`, files go under the runtime downloads directory, normally `downloads/<task_id>/`. With `--download-dir`, files go under `<download-dir>/<task_id>/`. Download failures keep the remote task marked `completed` and are resumable with `jobs resume --download`.
 
 Batch quote reuses one web-style pricing client for each command run: Lovart time is synced once, signed pricing requests reuse that offset, and internal `original_unit_data` may be added only to the pricing payload. Users and agents should not put `original_unit_data` in request JSON.
 

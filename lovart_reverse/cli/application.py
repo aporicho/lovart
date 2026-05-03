@@ -165,6 +165,7 @@ def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
             language=args.language,
             wait=args.wait,
             download=args.download,
+            download_dir=args.download_dir,
             timeout_seconds=args.timeout_seconds,
             poll_interval=args.poll_interval,
             detail=args.detail,
@@ -178,6 +179,7 @@ def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
             language=args.language,
             wait=args.wait,
             download=args.download,
+            download_dir=args.download_dir,
             retry_failed=args.retry_failed,
             timeout_seconds=args.timeout_seconds,
             poll_interval=args.poll_interval,
@@ -339,6 +341,7 @@ def build_parser() -> argparse.ArgumentParser:
     jobs_run.add_argument("--language", default="en")
     jobs_run.add_argument("--wait", action="store_true")
     jobs_run.add_argument("--download", action="store_true")
+    jobs_run.add_argument("--download-dir", type=Path)
     jobs_run.add_argument("--timeout-seconds", type=float, default=3600)
     jobs_run.add_argument("--poll-interval", type=float, default=5)
     jobs_run.add_argument("--detail", choices=["summary", "requests", "full"], default="full")
@@ -353,6 +356,7 @@ def build_parser() -> argparse.ArgumentParser:
     jobs_resume.add_argument("--language", default="en")
     jobs_resume.add_argument("--wait", action="store_true")
     jobs_resume.add_argument("--download", action="store_true")
+    jobs_resume.add_argument("--download-dir", type=Path)
     jobs_resume.add_argument("--retry-failed", action="store_true")
     jobs_resume.add_argument("--timeout-seconds", type=float, default=3600)
     jobs_resume.add_argument("--poll-interval", type=float, default=5)

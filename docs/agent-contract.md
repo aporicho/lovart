@@ -163,6 +163,7 @@ Compact `summary` detail returns:
 - `task_sample_limit`
 - `tasks_truncated`
 - `download_count`
+- `download_dir`
 - `failed`
 - `timed_out`
 - `warnings`
@@ -199,6 +200,8 @@ Important `remote_requests[]` keys:
 - `downloads`
 
 For MCP, do not rely on a single long `jobs_run` or `jobs_resume` call to wait for slow models. The MCP wrapper caps wait windows at 90 seconds and returns saved state plus recommended next actions. Agents should call `lovart_jobs_resume` repeatedly, or call `lovart_jobs_status`, until the summary shows no `submitted` or `running` remote requests. Existing `task_id`s in state must never be resubmitted with `jobs run`.
+
+For batch artifact persistence, pass `download=true`. Pass `download_dir` when the user expects files in a project folder; otherwise downloads use the runtime default `downloads/<task_id>/`. Download failures are recorded as `download_failed`, leave the remote request status as `completed`, and can be retried with `jobs_resume` plus `download=true`.
 
 Batch state is stored at `runs/<project>/jobs_state.json` with `jobs_file_hash`. If the source `jobs.jsonl` changes, `resume` refuses to continue.
 

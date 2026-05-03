@@ -60,11 +60,15 @@ class McpTest(unittest.TestCase):
 
     def test_jobs_resume_caps_mcp_wait_and_uses_compact_detail(self) -> None:
         with patch("lovart_reverse.mcp.server.jobs_resume_command", return_value={"operation": "resume", "warnings": []}) as resume:
-            result = call_tool_envelope("lovart_jobs_resume", {"jobs_file": "runs/x/jobs.jsonl", "wait": True, "timeout_seconds": 999})
+            result = call_tool_envelope(
+                "lovart_jobs_resume",
+                {"jobs_file": "runs/x/jobs.jsonl", "wait": True, "timeout_seconds": 999, "download_dir": "runs/x/images"},
+            )
         self.assertTrue(result["ok"])
         self.assertIn("capped", result["data"]["warnings"][0])
         self.assertEqual(resume.call_args.kwargs["timeout_seconds"], 90.0)
         self.assertEqual(resume.call_args.kwargs["detail"], "summary")
+        self.assertEqual(str(resume.call_args.kwargs["download_dir"]), "runs/x/images")
 
     def test_jobs_status_uses_summary_detail_by_default(self) -> None:
         with patch("lovart_reverse.mcp.server.jobs_status_command", return_value={"operation": "status"}) as status:
