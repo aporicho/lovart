@@ -121,6 +121,26 @@ class CliTest(unittest.TestCase):
         self.assertEqual(payload["error"]["code"], "auth_missing")
         submit.assert_not_called()
 
+    def test_generate_offline_real_submit_is_rejected(self) -> None:
+        output = io.StringIO()
+        with (
+            patch("lovart_reverse.commands.facade.submit_model") as submit,
+            contextlib.redirect_stdout(output),
+        ):
+            code = main(
+                [
+                    "generate",
+                    "openai/gpt-image-2",
+                    "--offline",
+                    "--body",
+                    '{"prompt":"test","quality":"low","size":"1024*1024"}',
+                ]
+            )
+        self.assertEqual(code, 2)
+        payload = json.loads(output.getvalue())
+        self.assertEqual(payload["error"]["code"], "unknown_pricing")
+        submit.assert_not_called()
+
     def test_generate_stale_signer_errors_before_submit(self) -> None:
         output = io.StringIO()
         with (

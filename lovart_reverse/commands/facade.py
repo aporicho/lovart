@@ -14,6 +14,7 @@ from lovart_reverse.capture.runtime import reverse_extra_status
 from lovart_reverse.config import config_for_model, global_config
 from lovart_reverse.discovery import generator_list
 from lovart_reverse.downloads import download_artifacts
+from lovart_reverse.errors import InputError, UnknownPricingError
 from lovart_reverse.generation import dry_run_request, find_task_id, generation_preflight, submit_model
 from lovart_reverse.io_json import hash_bytes
 from lovart_reverse.jobs import dry_run_jobs, quote_jobs, quote_status, resume_jobs, run_jobs, status_jobs
@@ -166,8 +167,6 @@ def config_command(model: str | None = None, include_all: bool = False, example:
     if global_:
         return global_config()
     if not model:
-        from lovart_reverse.errors import InputError
-
         raise InputError("model is required unless --global is used")
     return config_for_model(model, include_all=include_all, example=example)
 
@@ -224,6 +223,11 @@ def generate_command(
         return {"submitted": False, "preflight": preflight, "request": request}
     if blocking_error:
         raise blocking_error
+    if offline:
+        raise UnknownPricingError(
+            "offline mode cannot submit real generation; rerun without --offline so live pricing and update checks can run",
+            {"model": model, "request": request},
+        )
     response = submit_model(model, body, language=language)
     task_id = find_task_id(response)
     data: dict[str, Any] = {
