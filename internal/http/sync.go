@@ -2,19 +2,70 @@ package http
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-
-	"github.com/aporicho/lovart/internal/signing"
+	"io"
+	nethttp "net/http"
+	"time"
 )
 
-// SyncTime synchronizes the local clock with the Lovart server.
-// Must be called once before making signed requests.
+const timeSyncURL = "https://www.lovart.ai/api/www/lovart/time/utc/timestamp"
+
+// SyncTime synchronizes the local clock with the Lovart server using the
+// client's credentials (cookie + token required).
 func (c *Client) SyncTime(ctx context.Context) error {
-	offset, err := signing.SyncTime()
+	before := time.Now().UnixMilli()
+
+	req, err := nethttp.NewRequestWithContext(ctx, "GET",
+		fmt.Sprintf("%s?_t=%d", timeSyncURL, before), nil)
 	if err != nil {
-		return fmt.Errorf("http: time sync: %w", err)
+		return fmt.Errorf("http: time sync request: %w", err)
 	}
-	c.offsetMS = offset
+
+	for k, v := range defaultHeaders {
+		req.Header.Set(k, v)
+	}
+	c.setAuthHeaders(req)
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return fmt.Errorf("http: time sync request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	after := time.Now().UnixMilli()
+	rtt := after - before
+
+	data, err := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	if err != nil {
+		return fmt.Errorf("http: read time sync response: %w", err)
+	}
+
+	var result struct {
+		Code int `json:"code"`
+		Data struct {
+			Timestamp string `json:"timestamp"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(data, &result); err != nil {
+		return fmt.Errorf("http: parse time sync response: %w (body: %.200s)", err, string(data))
+	}
+
+	if result.Code != 0 {
+		return fmt.Errorf("http: time sync returned code %d (body: %.200s)", result.Code, string(data))
+	}
+
+	tsStr := result.Data.Timestamp
+	if tsStr == "" || tsStr == "0" {
+		return fmt.Errorf("http: time sync returned zero/empty timestamp (body: %.200s)", string(data))
+	}
+
+	var serverTS int64
+	if _, scanErr := fmt.Sscanf(tsStr, "%d", &serverTS); scanErr != nil {
+		return fmt.Errorf("http: parse timestamp %q: %w", tsStr, scanErr)
+	}
+
+	c.offsetMS = serverTS - (before + rtt/2)
 	return nil
 }
 

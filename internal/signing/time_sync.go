@@ -10,14 +10,26 @@ import (
 
 const timeSyncURL = "https://www.lovart.ai/api/www/lovart/time/utc/timestamp"
 
-// SyncTime fetches the Lovart server time via HTTP and computes the offset
-// between server and local clock in milliseconds.
+// SyncTime fetches the Lovart server time and computes the offset between
+// server and local clock in milliseconds. The cookie header is required by Lovart.
 //
 // Returns the offset to add to local timestamps: timestamp = local_ms + offset_ms.
-func SyncTime() (int64, error) {
+func SyncTime(cookie string) (int64, error) {
 	before := time.Now().UnixMilli()
 
-	resp, err := nethttp.Get(fmt.Sprintf("%s?_t=%d", timeSyncURL, before))
+	req, err := nethttp.NewRequest("GET", fmt.Sprintf("%s?_t=%d", timeSyncURL, before), nil)
+	if err != nil {
+		return 0, fmt.Errorf("signing: time sync request: %w", err)
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
+	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Origin", "https://www.lovart.ai")
+	req.Header.Set("Referer", "https://www.lovart.ai/canvas")
+	if cookie != "" {
+		req.Header.Set("Cookie", cookie)
+	}
+
+	resp, err := nethttp.DefaultClient.Do(req)
 	if err != nil {
 		return 0, fmt.Errorf("signing: time sync request: %w", err)
 	}
@@ -37,12 +49,12 @@ func SyncTime() (int64, error) {
 		} `json:"data"`
 	}
 	if err := json.Unmarshal(data, &result); err != nil {
-		return 0, fmt.Errorf("signing: parse time sync response: %w", err)
+		return 0, fmt.Errorf("signing: parse time sync response: %w (body: %.200s)", err, string(data))
 	}
 
 	serverTS := result.Data.Timestamp
 	if serverTS == 0 {
-		return 0, fmt.Errorf("signing: time sync returned zero timestamp")
+		return 0, fmt.Errorf("signing: time sync returned zero timestamp (body: %.200s)", string(data))
 	}
 
 	// offset = server_time - (local_before + rtt/2)
