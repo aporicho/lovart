@@ -131,7 +131,11 @@ func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]a
 			Status          string `json:"status"`
 			GeneratorTaskID string `json:"generator_task_id"`
 			Artifacts       []struct {
-				Content string `json:"content"`
+				Content  string `json:"content"`
+				Metadata struct {
+					Width  int `json:"width"`
+					Height int `json:"height"`
+				} `json:"metadata"`
 			} `json:"artifacts"`
 		} `json:"data"`
 	}
@@ -158,10 +162,17 @@ func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]a
 	}
 	if resp.Data.Status == "completed" {
 		var urls []string
+		var details []map[string]any
 		for _, a := range resp.Data.Artifacts {
 			urls = append(urls, a.Content)
+			details = append(details, map[string]any{
+				"url":    a.Content,
+				"width":  a.Metadata.Width,
+				"height": a.Metadata.Height,
+			})
 		}
 		result["artifacts"] = urls
+		result["artifact_details"] = details
 	}
 
 	return result, nil

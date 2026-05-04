@@ -7,6 +7,7 @@ import (
 	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/errors"
 	"github.com/aporicho/lovart/internal/generation"
+	"github.com/aporicho/lovart/internal/project"
 	"github.com/spf13/cobra"
 )
 
@@ -103,6 +104,34 @@ func newGenerateCmd() *cobra.Command {
 				} else {
 					output["task"] = task
 					output["status"] = task["status"]
+
+					// Add generated images to project canvas.
+					if task["status"] == "completed" && projectID != "" && cid != "" {
+						details, _ := task["artifact_details"].([]map[string]any)
+						var images []project.CanvasImage
+						for _, d := range details {
+							url, _ := d["url"].(string)
+							w, _ := d["width"].(float64)
+							h, _ := d["height"].(float64)
+							if url != "" {
+								if w == 0 { w = 1024 }
+								if h == 0 { h = 1024 }
+								images = append(images, project.CanvasImage{
+									TaskID: result.TaskID,
+									URL:    url,
+									Width:  int(w),
+									Height: int(h),
+								})
+							}
+						}
+						if len(images) > 0 {
+							if err := project.AddToCanvas(ctx, client, projectID, cid, images); err != nil {
+								output["canvas_error"] = err.Error()
+							} else {
+								output["canvas_updated"] = true
+							}
+						}
+					}
 				}
 			}
 
