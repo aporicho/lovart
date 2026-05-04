@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"fmt"
+	"io"
 	"math"
 
 	"github.com/aporicho/lovart/internal/config"
@@ -12,32 +13,33 @@ import (
 
 // QuoteSummary holds the aggregated batch pricing result.
 type QuoteSummary struct {
-	TotalJobs        int           `json:"total_jobs"`
-	TotalPrice       float64       `json:"total_price"`
-	Balance          float64       `json:"balance"`
-	BalanceAfter     float64       `json:"balance_after"`
-	CanAfford        bool          `json:"can_afford"`
-	SignatureGroups  int           `json:"signature_groups"`
-	QuotedRequests   int           `json:"quoted_requests"`
-	CacheHits        int           `json:"cache_hits"`
-	Jobs             []JobQuote    `json:"jobs"`
+	TotalJobs       int        `json:"total_jobs"`
+	TotalPrice      float64    `json:"total_price"`
+	Balance         float64    `json:"balance"`
+	BalanceAfter    float64    `json:"balance_after"`
+	CanAfford       bool       `json:"can_afford"`
+	SignatureGroups int        `json:"signature_groups"`
+	QuotedRequests  int        `json:"quoted_requests"`
+	CacheHits       int        `json:"cache_hits"`
+	Jobs            []JobQuote `json:"jobs"`
 }
 
 // JobQuote is the pricing result for a single job.
 type JobQuote struct {
-	JobID          string               `json:"job_id"`
-	Title          string               `json:"title,omitempty"`
-	Model          string               `json:"model"`
-	Outputs        int                  `json:"outputs"`
-	ActualOutputs  int                  `json:"actual_outputs,omitempty"`
-	APICalls       int                  `json:"api_calls"`
-	Price          float64              `json:"price"`
-	Cached         bool                 `json:"cached"`
-	PriceDetail    *pricing.PriceDetail `json:"price_detail,omitempty"`
+	JobID         string               `json:"job_id"`
+	Title         string               `json:"title,omitempty"`
+	Model         string               `json:"model"`
+	Outputs       int                  `json:"outputs"`
+	ActualOutputs int                  `json:"actual_outputs,omitempty"`
+	APICalls      int                  `json:"api_calls"`
+	Price         float64              `json:"price"`
+	Cached        bool                 `json:"cached"`
+	PriceDetail   *pricing.PriceDetail `json:"price_detail,omitempty"`
 }
 
 // QuoteJobs runs batch pricing for all jobs in a JSONL file.
-func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string) (*QuoteSummary, error) {
+// Progress is written to progress (can be nil). Results are returned in the summary.
+func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string, progress io.Writer) (*QuoteSummary, error) {
 	jobs, err := ParseJobsFile(jobsFile)
 	if err != nil {
 		return nil, fmt.Errorf("jobs quote: %w", err)
@@ -53,6 +55,8 @@ func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string) (*Quot
 	}
 	var balance float64
 
+	totalJobs := len(jobs)
+
 	for i, job := range jobs {
 		sig := CostSignature(job)
 
@@ -64,7 +68,6 @@ func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string) (*Quot
 			cached = true
 			summary.CacheHits++
 		} else {
-			// Expand to determine the representative sub-request for pricing.
 			subs, _ := Expand(job.Model, job.Outputs, job.Body)
 			apiCalls := len(subs)
 
@@ -80,12 +83,10 @@ func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string) (*Quot
 			result = r
 			summary.QuotedRequests++
 
-			// Store balance from first quote.
 			if i == 0 {
 				balance = result.Balance
 			}
 
-			// Compute total price for this job.
 			jobPrice := computeJobPrice(result, apiCalls, job.Model, job.Outputs)
 			result = &pricing.QuoteResult{
 				Price:       jobPrice,
@@ -93,12 +94,9 @@ func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string) (*Quot
 				PriceDetail: result.PriceDetail,
 			}
 
-			// Use apiCalls from expand
-			_ = apiCalls
 			cache.Set(sig, result)
 		}
 
-		// Compute job-level actual_outputs and api_calls.
 		subs, _ := Expand(job.Model, job.Outputs, job.Body)
 		apiCalls := len(subs)
 		actualOutputs := computeActualOutputs(job.Model, job.Outputs, subs)
@@ -115,6 +113,22 @@ func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string) (*Quot
 			PriceDetail:   &result.PriceDetail,
 		})
 		summary.TotalPrice += result.Price
+
+		// Progress to stderr.
+		if progress != nil {
+			status := "quote"
+			if cached {
+				status = "cache"
+			}
+			fmt.Fprintf(progress, "\r  报价中 [%d/%d] %s (%s)  cached: %d | quoted: %d",
+				i+1, totalJobs, status, job.Model, summary.CacheHits, summary.QuotedRequests)
+		}
+	}
+
+	if progress != nil {
+		fmt.Fprintf(progress, "\n")
+		fmt.Fprintf(progress, "  报价完成: %d 个 job, %d 个签名组, %d 次 API 调用, %d 次缓存命中, 总价 %.0f 积分\n",
+			totalJobs, cache.Size(), summary.QuotedRequests, summary.CacheHits, summary.TotalPrice)
 	}
 
 	summary.Balance = balance
@@ -131,22 +145,17 @@ func computeJobPrice(quote *pricing.QuoteResult, apiCalls int, model string, out
 	cap := config.OutputCapability(model)
 
 	if cap.IsFixedBatch {
-		// Each API call produces batchSize images, priced at unit_price.
 		batchCount := int(math.Ceil(float64(outputs) / float64(cap.BatchSize)))
 		return float64(batchCount) * quote.PriceDetail.UnitPrice
 	}
 
 	if cap.MultiField != "" {
-		// Multi-output model: the quote already accounts for n=outputs (or max).
-		// If split across multiple calls, each call has its own price.
 		if apiCalls <= 1 {
 			return quote.Price
 		}
-		// Split: price per call = total / apiCalls (approximation)
 		return quote.Price
 	}
 
-	// Single image: each call = unit_price.
 	return float64(outputs) * quote.PriceDetail.UnitPrice
 }
 
@@ -156,7 +165,6 @@ func computeActualOutputs(model string, outputs int, subs []SubRequest) int {
 	if cap.IsFixedBatch {
 		return len(subs) * cap.BatchSize
 	}
-	// For multi-output and single models, actual = requested.
 	n := 0
 	for _, s := range subs {
 		n += s.N

@@ -41,7 +41,7 @@ func newJobsQuoteCmd() *cobra.Command {
 				return nil
 			}
 
-			result, err := jobs.QuoteJobs(ctx, client, jobsFile)
+			result, err := jobs.QuoteJobs(ctx, client, jobsFile, cmd.ErrOrStderr())
 			if err != nil {
 				printEnvelope(envelope.Err(errors.CodeInternal, "quote jobs", map[string]any{"error": err.Error()}))
 				return nil
