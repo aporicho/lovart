@@ -1,0 +1,55 @@
+{
+  "captured_at": "20260504T123805Z",
+  "request": {
+    "method": "GET",
+    "url": "https://assets-persist.lovart.ai/img/lovart-avatar.png?x-oss-process=image/resize,w_60,m_lfit/format,webp",
+    "path": "/img/lovart-avatar.png?x-oss-process=image/resize,w_60,m_lfit/format,webp",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "no-cors",
+      "sec-fetch-dest": "image",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "cookie": "_gcl_au=1.1.1217701663.1777897152, _ga=GA1.1.1703026730.1777897154, _twpid=tw.1777897155913.929714704779794751, _fbp=fb.1.1777897156124.802390599120227687, _clck=ri5c18%5E2%5Eg5r%5E1%5E2315, _cbp=fb.1.1777897156124.802390599120227687, _hjSession_6446279=eyJpZCI6Ijc5YWRmYTAwLWFkYjQtNDk3OS1hYmUxLTA3NmQxYzdmZDE0MyIsImMiOjE3Nzc4OTcxNTc4NTcsInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjoxLCJzcCI6MH0=, _hjSessionUser_6446279=eyJpZCI6ImNkYWVkMjc2LWMwNTUtNTkzOS1iMWY3LTNmODZjNzI2ZjYwOSIsImNyZWF0ZWQiOjE3Nzc4OTcxNTc4NTYsImV4aXN0aW5nIjp0cnVlfQ==, _pin_unauth=dWlkPU0yVXpPVGxpTnpZdE4yRTJNeTAwTldSa0xXSmxNak10TURVeE5URTBPVFpsTldZeA, _tt_enable_cookie=1, _ttp=01KQSFW1BWC4PVJ2BKG0HG304M_.tt.1, _clsk=1czjr80%5E1777898228192%5E3%5E0%5Es.clarity.ms%2Fcollect, _iidt=s66NT8m5Oxp3VckKs44xWoh/YgKHpjDA+/Yt9oXHs7DwMUu82fUn349rRkAAl6s4PAUxf/rXRBwzvw==, _vid_t=xK+vlAOoBp/gy5h9jYMGefgui2sF2T+PDilTEmR+BLNc3X774V329V4lvbE8fXDXBMvjz9575jEnfQ==, __cf_bm=RSy2wJFV_G3WDSaCywrmsMooRhNaneRMNazRmUljvhI-1777898228.908169-1.0.1.1-TYSsJPkXTEFcWF644z5onanWki2w4usJdCO1cglsvbnmSf0ctzTFiTlAuMSVsrGbNWN.VAW192eMeoU7Htawx4HdDgsnNijvmfw7w08KmYKP7MDlWtfJ5G022zvIofru, ttcsid=1777898227070::KoSM47wXn_CrD7oyUYtF.1.1777898231728.0::1.-6869.625::4641.1.537.418::0.0.0, ttcsid_D4E29RJC77U4DODN4QHG=1777898227070::_uuwdDrVBqjCko4qgBW_.1.1777898231728.1, pt_3bg8mqij=deviceId%3D0b295d10-8383-4ede-8617-46465862891e%26sessionId%3D9b767495-8282-48a0-85f8-93c792e48cb6%26accountId%3D%26vn%3D1%26pvn%3D2%26lastActionTime%3D1777898231734%26, _uetsid=778ecfa047b311f18bcf73b2b04222cb, _uetvid=778ecb8047b311f1a3178de0d2dd7f47, _ga_04J3EGQBWL=GS2.1.s1777897153$o1$g1$t1777898279$j1$l0$h0, _ga_XENJJC28ZM=GS2.1.s1777897153$o1$g1$t1777898279$j1$l0$h0, _ga_MRB1ZRXEK1=GS2.1.s1777897154$o1$g1$t1777898279$j1$l0$h1266398542",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 12:38:05 GMT",
+      "content-type": "image/webp",
+      "content-length": "1570",
+      "server": "cloudflare",
+      "content-security-policy": "sandbox allow-scripts",
+      "x-oss-request-id": "698131A55486FA3638883D0E",
+      "etag": "\"F4149AEF3375944AAAC89C622C218347\"",
+      "last-modified": "Thu, 15 May 2025 15:03:41 GMT",
+      "x-oss-object-type": "Normal",
+      "x-oss-storage-class": "Standard",
+      "x-oss-version-id": "null",
+      "x-oss-hash-crc64ecma": "1862301499137293477",
+      "x-oss-server-time": "24",
+      "accept-ranges": "bytes",
+      "age": "1482191",
+      "expires": "Mon, 04 May 2026 16:38:05 GMT",
+      "cache-control": "public, max-age=14400",
+      "cf-cache-status": "HIT",
+      "set-cookie": "__cf_bm=9triN3LbJaveKxQ_hQRIMlyUOZ9Q3KG3Q3b62ohRT.4-1777898285.0953283-1.0.1.1-1cA3wrSfu_enTkrBuxhTVsQuYz2hF_vo1P5f40_veZ8PBt_JioTPIPaG88zNV3.Z8CkUgTSJy4hfqFjYHK3oQiYUJwBxoEkWtjjTLvXYG5h6.Pa1KyNkQbPj5.d8cGcS; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 13:08:05 GMT",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, HEAD",
+      "access-control-allow-origin": "*",
+      "access-control-expose-headers": "ETag, x-oss-request-id, x-oss-version-id",
+      "access-control-max-age": "0",
+      "cf-ray": "9f678f79d919e2fe-HKG"
+    },
+    "body": "RIFF\u001a\u0006\u0000\u0000WEBPVP8X\n\u0000\u0000\u0000\u0010\u0000\u0000\u0000;\u0000\u0000;\u0000\u0000ALPHX\u0001\u0000\u0000\u0001ÛÚÚ\u0013é\u0011:Ì4ã$z.Hé\u0002Ö±\u0005 cBJ qdæ\u001b·ïk \"&\u0000\u000bëQöY·Ý8vmýE\u001aø:é¦§ý&uyå@\u000e²¿§\u0015Þ:vA+\u0017ö\nñV?%K©9±ÌÕEVæ\u0002VCl\u001bkÙ\u0010ãÆ¡VÄºR§åÄ<\u0010ûx}âw¶ÿ+H`ñG\"ý7ÊQÆþM@BÃRJ\tÀ\u001d¤\f\u000eØ\u0014ØÈÙ@ëåôzD£LRö!é³T·ÚNR7J\u001aeuºVR[Kª?%}d²HR¤÷rz\r\u001b9\u001b \u0002Î ep\u0001RJ\u0000\b¥\u0004/ØË8*o|\u0019\u001eÞ\u0017\u0012\nükùìÿ\u0010óK05çc²ZñªÔi0\u001aN¹VÃ§±0ß¬¸T\u0006Ts\u001e¹Ózç\u0018ËÛÅZU½ã\u001a{\u001fk+A9,3!Xºé¦ÓoR\u0007|µ(û¨Ûn\u001c»¶þÌ\"\u001d\u000b\u0003VP8 \u0004\u0000\u0000P\u0017\u0000\u0001*<\u0000<\u0000>m4H¤\"¢!\"\u000b0\rl\u0000±%A~\u0001Ë¼¥%û\u0006ü\u0004ëúq`\u001f¤\u001d*üÀ~Êu\u0000ô\u0000ÿ\rþg¬ËÐ\u0003ËsØÛ÷ÒÇ4\u0003ûwl_áø]¸ÿ2&$\u000778\n&ï\u0006òç?é/`?Ö²¾³Êí\u001fzóî-GB\u00142½Àn\u001fy¤hd%ëz:º,õêêà\u0012ã±è\u0013{9O·\u0016\u0018/\f\r/÷Û0âÓ{ÝVº diùgË\"^}¼4ùøjÍËoýè\u0000\u0000þåÛ{b=¨§©åéè\u001dÝâÚâè_t¬á;³Ññqâ@4òE¯ðøì'·¢Á¨-$\u0001Hëwv.\u0006r«ðÁ£à;öV\u0019èd\n«\u000e\u0000\u001b;orå'íW\u0017ß-r\t'ößã\r\u0002ÚøYÿ\u0016²¸î¼Av~\nÂrzgåãv6î#C\\Irkl§õS\u001bpÂÂÀgP\\«6àKtîþo\u000f§«±)Ô\u0017r9\u0017Wúá\u0007{¢PÈÏõòC¤pØ'Cò*Î\u001dÎ2ÕÔD;íÓ\u000f@7#àÎ\u0014Mhl\u0018A\t<÷4(sÐ´m,õÉå?¸©4sëL\u0003¢eÖøçý\u0004÷~\u0012ufc4vO\f¼sª#j++u3õüöü9D¥}¥\u000bil(\u0006î·R<mÞTÇ\u0010×Þ±î7´\u0000\u001d\u001aë\u0019Zy=øÊù\u0005enRüC[mæû[\u0002#1ø¨ª¸$¦ÙðEß§]\b§wúÊn)$×Â9ÂjJÆ,y%ÿI7k\u0000ëù[®3\f³1ð\u001b¯É;&\u0018ª¤õìWÞ\u0005xåóîqì(ôôL£ÞVØÀåê½²BjtÊæà¨Kp\fÁBÍÙédÓJ«\u0004Ôâ.ý§Ïi\u001fã\u0006 0É\u0010\u001cÞ\u0019\u0004Å/\u001b\u001b\u000eéÉ>ß ¨¢\u0006Ô J\u001ebÄBS \u0006ª\u0010\fÌ¡\u0019ºüe(Oþ¡?\"¨ÖÊ&,ñw¤JæÝmUoýk¸TE\u0002>u7u¯Këau6i¨Î 5®´\u000fn\u001coDÞ\t\u0019Y.CI}Z5¶\u001f4#`\u000bµ@û÷\"s\u001bÝO\u0003cMÜ\u001c¿!\u0019\u000e¯H[Ò\u0005^Àm\u001b\bÜs0¯ÚW<Îo\u0005°Å\u0002ÝËÇüù¬\u0014ÿ¡?Ï·ÀÑK\tDî*ÖC[÷\u0001<ÜGì/<\u001aÔ\u001c_äS`¼p 7®²èa\u0013xÙµ½pËYÛp\u0017?MõËè¡O[\tã¡jÏlG`ÿ\u0005±§«é\u0007\nÚ\u0016§º¹Ñ!Iw}GI\u0001RGúu¨Ü\b·T¸¸}«ÂÞ\u0018\u0002¨¯Æ¥ËS°þ¥+£²øÄ\u0019ùÕ\u0006\u0014¹>44KéýíâçþT\u000ed%í1\u001b3ä²\u001b8*úfwö¸ÐªÌP<¦Ò¸¿[¸Sªá«¦Ù½aùïß¦ìM\"Ö]{Øò\t·\u0001°ô\u0010 !Ì^\t,\u0000<V_?c\u001e8þÿ¥ÙªªñQxÒ,,\u001aÿ?ø\u001f3È8Òñt¡D\tË:Ç5¢0²2\u001dÊÓbàSzÜ×Ïö)W«°Ø\\ÖäùHëÈ?tÿ\u0012X|¨,ñç wZ\u0012_bdP·:I²ÿÕg\u0013\u0005\u0007ý|·\u0017þµdq¦ÁbWm×\u0017#ÎÁs\u001d¢ï(@\u0000\u0000"
+  },
+  "response_body": "RIFF\u001a\u0006\u0000\u0000WEBPVP8X\n\u0000\u0000\u0000\u0010\u0000\u0000\u0000;\u0000\u0000;\u0000\u0000ALPHX\u0001\u0000\u0000\u0001ÛÚÚ\u0013é\u0011:Ì4ã$z.Hé\u0002Ö±\u0005 cBJ qdæ\u001b·ïk \"&\u0000\u000bëQöY·Ý8vmýE\u001aø:é¦§ý&uyå@\u000e²¿§\u0015Þ:vA+\u0017ö\nñV?%K©9±ÌÕEVæ\u0002VCl\u001bkÙ\u0010ãÆ¡VÄºR§åÄ<\u0010ûx}âw¶ÿ+H`ñG\"ý7ÊQÆþM@BÃRJ\tÀ\u001d¤\f\u000eØ\u0014ØÈÙ@ëåôzD£LRö!é³T·ÚNR7J\u001aeuºVR[Kª?%}d²HR¤÷rz\r\u001b9\u001b \u0002Î ep\u0001RJ\u0000\b¥\u0004/ØË8*o|\u0019\u001eÞ\u0017\u0012\nükùìÿ\u0010óK05çc²ZñªÔi0\u001aN¹VÃ§±0ß¬¸T\u0006Ts\u001e¹Ózç\u0018ËÛÅZU½ã\u001a{\u001fk+A9,3!Xºé¦ÓoR\u0007|µ(û¨Ûn\u001c»¶þÌ\"\u001d\u000b\u0003VP8 \u0004\u0000\u0000P\u0017\u0000\u0001*<\u0000<\u0000>m4H¤\"¢!\"\u000b0\rl\u0000±%A~\u0001Ë¼¥%û\u0006ü\u0004ëúq`\u001f¤\u001d*üÀ~Êu\u0000ô\u0000ÿ\rþg¬ËÐ\u0003ËsØÛ÷ÒÇ4\u0003ûwl_áø]¸ÿ2&$\u000778\n&ï\u0006òç?é/`?Ö²¾³Êí\u001fzóî-GB\u00142½Àn\u001fy¤hd%ëz:º,õêêà\u0012ã±è\u0013{9O·\u0016\u0018/\f\r/÷Û0âÓ{ÝVº diùgË\"^}¼4ùøjÍËoýè\u0000\u0000þåÛ{b=¨§©åéè\u001dÝâÚâè_t¬á;³Ññqâ@4òE¯ðøì'·¢Á¨-$\u0001Hëwv.\u0006r«ðÁ£à;öV\u0019èd\n«\u000e\u0000\u001b;orå'íW\u0017ß-r\t'ößã\r\u0002ÚøYÿ\u0016²¸î¼Av~\nÂrzgåãv6î#C\\Irkl§õS\u001bpÂÂÀgP\\«6àKtîþo\u000f§«±)Ô\u0017r9\u0017Wúá\u0007{¢PÈÏõòC¤pØ'Cò*Î\u001dÎ2ÕÔD;íÓ\u000f@7#àÎ\u0014Mhl\u0018A\t<÷4(sÐ´m,õÉå?¸©4sëL\u0003¢eÖøçý\u0004÷~\u0012ufc4vO\f¼sª#j++u3õüöü9D¥}¥\u000bil(\u0006î·R<mÞTÇ\u0010×Þ±î7´\u0000\u001d\u001aë\u0019Zy=øÊù\u0005enRüC[mæû[\u0002#1ø¨ª¸$¦ÙðEß§]\b§wúÊn)$×Â9ÂjJÆ,y%ÿI7k\u0000ëù[®3\f³1ð\u001b¯É;&\u0018ª¤õìWÞ\u0005xåóîqì(ôôL£ÞVØÀåê½²BjtÊæà¨Kp\fÁBÍÙédÓJ«\u0004Ôâ.ý§Ïi\u001fã\u0006 0É\u0010\u001cÞ\u0019\u0004Å/\u001b\u001b\u000eéÉ>ß ¨¢\u0006Ô J\u001ebÄBS \u0006ª\u0010\fÌ¡\u0019ºüe(Oþ¡?\"¨ÖÊ&,ñw¤JæÝmUoýk¸TE\u0002>u7u¯Këau6i¨Î 5®´\u000fn\u001coDÞ\t\u0019Y.CI}Z5¶\u001f4#`\u000bµ@û÷\"s\u001bÝO\u0003cMÜ\u001c¿!\u0019\u000e¯H[Ò\u0005^Àm\u001b\bÜs0¯ÚW<Îo\u0005°Å\u0002ÝËÇüù¬\u0014ÿ¡?Ï·ÀÑK\tDî*ÖC[÷\u0001<ÜGì/<\u001aÔ\u001c_äS`¼p 7®²èa\u0013xÙµ½pËYÛp\u0017?MõËè¡O[\tã¡jÏlG`ÿ\u0005±§«é\u0007\nÚ\u0016§º¹Ñ!Iw}GI\u0001RGúu¨Ü\b·T¸¸}«ÂÞ\u0018\u0002¨¯Æ¥ËS°þ¥+£²øÄ\u0019ùÕ\u0006\u0014¹>44KéýíâçþT\u000ed%í1\u001b3ä²\u001b8*úfwö¸ÐªÌP<¦Ò¸¿[¸Sªá«¦Ù½aùïß¦ìM\"Ö]{Øò\t·\u0001°ô\u0010 !Ì^\t,\u0000<V_?c\u001e8þÿ¥ÙªªñQxÒ,,\u001aÿ?ø\u001f3È8Òñt¡D\tË:Ç5¢0²2\u001dÊÓbàSzÜ×Ïö)W«°Ø\\ÖäùHëÈ?tÿ\u0012X|¨,ñç wZ\u0012_bdP·:I²ÿÕg\u0013\u0005\u0007ý|·\u0017þµdq¦ÁbWm×\u0017#ÎÁs\u001d¢ï(@\u0000\u0000"
+}

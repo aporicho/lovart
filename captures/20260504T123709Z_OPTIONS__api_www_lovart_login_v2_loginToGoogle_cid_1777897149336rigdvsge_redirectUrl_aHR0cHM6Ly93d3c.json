@@ -1,0 +1,45 @@
+{
+  "captured_at": "20260504T123709Z",
+  "request": {
+    "method": "OPTIONS",
+    "url": "https://api.lovart.ai/api/www/lovart/login/v2/loginToGoogle?cid=1777897149336rigdvsge&redirectUrl=aHR0cHM6Ly93d3cubG92YXJ0LmFpL2NhbnZhcz9scz0x&timestamp=1777898228896",
+    "path": "/api/www/lovart/login/v2/loginToGoogle?cid=1777897149336rigdvsge&redirectUrl=aHR0cHM6Ly93d3cubG92YXJ0LmFpL2NhbnZhcz9scz0x&timestamp=1777898228896",
+    "headers": {
+      "accept": "*/*",
+      "access-control-request-method": "GET",
+      "access-control-request-headers": "webid,x-language,x-lvt-fp-request-id",
+      "origin": "https://www.lovart.ai",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh-CN,zh;q=0.9",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 12:37:09 GMT",
+      "content-length": "0",
+      "eagleeye-traceid": "8501a5b404a1715a3d04a26b453a7353",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "set-cookie": "acw_tc=e7ce2024-ff79-4e2f-a958-b47200c2d3fd429d9cfc319d74330e073e60aa18057c;path=/;HttpOnly;Max-Age=1800, __cf_bm=9CGIaH9wC1IkSkrdPNqRS47lBLb3yoMJql9TaKZ7NkU-1777898228.9061852-1.0.1.1-43BdhNiTnRHBZWiqh4iBgiddArvsKCrtp7BpqGOEjME5rRdx_d18U4Ube3Hv7c6nsQDeQslTEHOuYcBrFMAQUXsNqstN1TPWmTTL6H6ccyuGE6kMrTAOvhRgGlgflypY; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 13:07:09 GMT",
+      "req-cost-time": "1",
+      "req-arrive-time": "1777898229022",
+      "resp-start-time": "1777898229023",
+      "x-envoy-upstream-service-time": "0",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9f678e1aae92ae9e-HKG"
+    },
+    "body": null
+  },
+  "response_body": null
+}

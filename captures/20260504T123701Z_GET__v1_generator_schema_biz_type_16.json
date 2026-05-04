@@ -1,0 +1,62 @@
+{
+  "captured_at": "20260504T123701Z",
+  "request": {
+    "method": "GET",
+    "url": "https://lgw.lovart.ai/v1/generator/schema?biz_type=16",
+    "path": "/v1/generator/schema?biz_type=16",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-req-uuid": "8afc28923a78440da63215157f3a496c",
+      "x-send-timestamp": "1777898220178",
+      "x-client-signature": "1:777380b9c46cfb64366c8ade7f22216d03589eb39411c032667632fc81157ad2",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 401,
+    "headers": {
+      "date": "Mon, 04 May 2026 12:37:01 GMT",
+      "content-type": "application/json; charset=utf-8",
+      "content-length": "56",
+      "x-request-id": "066a6154-85f3-49f9-b7da-23cab27dfd2d",
+      "vary": "Origin",
+      "access-control-allow-credentials": "true",
+      "access-control-expose-headers": "*",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "799914584a9452b6b7789b4e44daaaad",
+      "x-kong-response-latency": "0",
+      "server": "cloudflare",
+      "x-kong-request-id": "eb22273444588621e248e076a4bb5a60",
+      "req-cost-time": "1",
+      "req-arrive-time": "1777898220995",
+      "resp-start-time": "1777898220997",
+      "x-envoy-upstream-service-time": "0",
+      "set-cookie": "acw_tc=066a6154-85f3-49f9-b7da-23cab27dfd2ded0ea86de927250f29456fa3d9d69526;path=/;HttpOnly;Max-Age=1800, __cf_bm=F6ovvoXa0Mm0o8CTOavtoGOlFtHtkmeoOYHbKQ5CT3U-1777898220.8717575-1.0.1.1-3Dm.EVSlwu..l7PVXlqOvN7W1ogL7yWMV57Axd4Qgb3ZnnWFlDIlQ0yFYsOyQtJoi9O2XE1X9zwLPqDKf2ryL65eN7Ryb_1CcuX2CZowhpHcNxlTHccdh1DMZmj6keLr; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 13:07:01 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9f678de87e8c1372-HKG"
+    },
+    "body": {
+      "message": "Missing token header",
+      "code": "UNAUTHORIZED"
+    }
+  },
+  "response_body": {
+    "message": "Missing token header",
+    "code": "UNAUTHORIZED"
+  }
+}

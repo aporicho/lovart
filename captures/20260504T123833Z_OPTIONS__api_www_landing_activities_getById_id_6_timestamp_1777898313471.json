@@ -1,0 +1,45 @@
+{
+  "captured_at": "20260504T123833Z",
+  "request": {
+    "method": "OPTIONS",
+    "url": "https://api.lovart.ai/api/www/landing-activities/getById?id=6&timestamp=1777898313471",
+    "path": "/api/www/landing-activities/getById?id=6&timestamp=1777898313471",
+    "headers": {
+      "accept": "*/*",
+      "access-control-request-method": "GET",
+      "access-control-request-headers": "token,webid,x-language",
+      "origin": "https://www.lovart.ai",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 12:38:33 GMT",
+      "content-length": "0",
+      "eagleeye-traceid": "5275811fd57d9268fcc4ac1b890617b6",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "req-cost-time": "1",
+      "req-arrive-time": "1777898313674",
+      "resp-start-time": "1777898313675",
+      "x-envoy-upstream-service-time": "0",
+      "set-cookie": "acw_tc=915484b6-5d0f-48f5-872a-c298da1da1ac05f05e98698e76c53a79f91f0941d45c;path=/;HttpOnly;Max-Age=1800, __cf_bm=3S37scKQ6CQCSpJ5OFcliA14V.OX0A4v3YOXJe_G6EE-1777898313.5481853-1.0.1.1-F.eh38OJHWlkFEOK7tWpXybaWx49pVxMEI59tA.C.MOP3eDllmBYdLNGYha33sUDCKA5FP4fYL3odf2Kg.fUBzJ5LHA5.sRUg9irZRpl7VyMUX0lLtkRKBltCVbApM2U; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 13:08:33 GMT",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9f67902bac4b1083-HKG"
+    },
+    "body": null
+  },
+  "response_body": null
+}

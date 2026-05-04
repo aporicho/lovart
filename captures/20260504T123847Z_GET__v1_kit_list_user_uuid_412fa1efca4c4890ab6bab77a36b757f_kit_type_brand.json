@@ -1,0 +1,95 @@
+{
+  "captured_at": "20260504T123847Z",
+  "request": {
+    "method": "GET",
+    "url": "https://lgw.lovart.ai/v1/kit/list?user_uuid=412fa1efca4c4890ab6bab77a36b757f&kit_type=brand",
+    "path": "/v1/kit/list?user_uuid=412fa1efca4c4890ab6bab77a36b757f&kit_type=brand",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-send-timestamp": "1777898326391",
+      "x-req-uuid": "80d51d34dc224cb9be21791b9c9fae2f",
+      "x-client-signature": "1:f50f26e5e93706978268d8ca8b18cc5dc0ed19118bac700d6d49df71dfa5eb69",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 12:38:47 GMT",
+      "content-type": "application/json",
+      "access-control-expose-headers": "*",
+      "vary": "Origin,Origin",
+      "server": "cloudflare",
+      "x-request-id": "4f8bcf1e-4702-40aa-b485-0b66a0800478",
+      "access-control-allow-credentials": "true",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "4c857409e6ea96d958c5388c449eff83",
+      "x-kong-upstream-latency": "12",
+      "x-kong-proxy-latency": "7",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "7316e21b5ab406130d76e84e0d6e796c",
+      "req-cost-time": "19",
+      "req-arrive-time": "1777898327278",
+      "resp-start-time": "1777898327298",
+      "x-envoy-upstream-service-time": "19",
+      "set-cookie": "acw_tc=4f8bcf1e-4702-40aa-b485-0b66a0800478d6ce19e7d5df4139555f5d3d324c809b;path=/;HttpOnly;Max-Age=1800, __cf_bm=C1nGX70m3xGlJESlKLuv5ChlCbbHKqlTSaAXzTjf7tc-1777898327.1557565-1.0.1.1-RWGEPiHRapHr6M2RsKqOiXQuYYupazQCXtcFCJst0PswhIm9Xy7dFapetPnWwQsQhXmAe63m7VdgWnNONqEhKL0r4Bsz0HI9Jo91IlGJgNxtcoHiTSWt4XHPN.omWiMF; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 13:08:47 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f679080bcbb332a-HKG"
+    },
+    "body": {
+      "code": "SUCCESS",
+      "data": {
+        "items": [
+          {
+            "id": "kit_a309ca4b",
+            "kit_type": "brand",
+            "name": "[Sample] Lovart Brand Kit",
+            "created_by": "493468416e664f18bbba32d7b7dfe42d",
+            "permission": "viewer",
+            "cover_url": "https://a.lovart.ai/context-forge/kits/kit_a309ca4b/logo/b3bf6eea.png",
+            "asset_counts": {},
+            "created_at": 1774178957
+          }
+        ],
+        "total": 1
+      },
+      "msg": ""
+    }
+  },
+  "response_body": {
+    "code": "SUCCESS",
+    "data": {
+      "items": [
+        {
+          "id": "kit_a309ca4b",
+          "kit_type": "brand",
+          "name": "[Sample] Lovart Brand Kit",
+          "created_by": "493468416e664f18bbba32d7b7dfe42d",
+          "permission": "viewer",
+          "cover_url": "https://a.lovart.ai/context-forge/kits/kit_a309ca4b/logo/b3bf6eea.png",
+          "asset_counts": {},
+          "created_at": 1774178957
+        }
+      ],
+      "total": 1
+    },
+    "msg": ""
+  }
+}

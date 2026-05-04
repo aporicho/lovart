@@ -138,20 +138,34 @@ def run_capture_session(
     sys.stderr.write(f"lovart reverse start: cleaned {cleaned} previous captures\n")
     sys.stderr.write(f"lovart reverse start: captures {plan['captures_dir']}\n")
 
-    mitm = subprocess.Popen(plan["mitmdump_command"], stdout=sys.stderr, stderr=sys.stderr)
+    mitmdump_env = os.environ.copy()
+    # Ensure mitmdump's Python can find the lovart_reverse package (the addon imports from it).
+    py_root = str(PACKAGE_DIR.parent.resolve())
+    existing = mitmdump_env.get("PYTHONPATH", "")
+    mitmdump_env["PYTHONPATH"] = f"{py_root}:{existing}" if existing else py_root
+
+    mitm = subprocess.Popen(
+        plan["mitmdump_command"],
+        stdout=sys.stderr,
+        stderr=sys.stderr,
+        env=mitmdump_env,
+        cwd=py_root,
+    )
     time.sleep(1.0)
     if mitm.poll() is not None:
         raise InputError("mitmdump exited during startup", {"returncode": mitm.returncode, "proxy": plan["proxy"]})
 
     browser_started = False
+    browser_proc = None
     if plan["browser_command"]:
         Path(plan["profile_dir"]).mkdir(parents=True, exist_ok=True)
-        subprocess.Popen(plan["browser_command"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        browser_proc = subprocess.Popen(plan["browser_command"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         browser_started = True
         sys.stderr.write("lovart reverse start: Chrome launched with capture proxy\n")
     else:
         sys.stderr.write(f"lovart reverse start: open {url} manually through {plan['proxy']}\n")
     sys.stderr.write("lovart reverse start: press Ctrl-C here when the browser test is done\n")
+    sys.stderr.write("lovart reverse start: Chrome will be closed automatically\n")
 
     interrupted = False
     try:
@@ -164,6 +178,15 @@ def run_capture_session(
         except subprocess.TimeoutExpired:
             mitm.kill()
             returncode = mitm.wait(timeout=5)
+    finally:
+        # Always close the browser when the capture session ends.
+        if browser_proc is not None and browser_proc.poll() is None:
+            browser_proc.terminate()
+            try:
+                browser_proc.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                browser_proc.kill()
+            sys.stderr.write("lovart reverse start: Chrome closed\n")
 
     after = sorted(CAPTURES_DIR.glob("*.json"), key=lambda path: path.stat().st_mtime)
     new_files = [path.name for path in after]
