@@ -37,13 +37,25 @@ func AddToCanvas(ctx context.Context, client *http.Client, projectID, cid string
 		return fmt.Errorf("canvas: query: %w", err)
 	}
 
-	// 2. Decode existing canvas.
-	store, err := decodeCanvas(canvasData)
+	// 2. Decode the full canvas document.
+	fullDoc, store, err := decodeCanvas(canvasData)
 	if err != nil {
 		return fmt.Errorf("canvas: decode: %w", err)
 	}
 	if store == nil {
 		store = make(map[string]any)
+		// If no document, create minimal structure.
+		if fullDoc == nil {
+			fullDoc = map[string]any{
+				"tldrawSnapshot": map[string]any{
+					"document": map[string]any{
+						"store":  store,
+						"schema": map[string]any{"schemaVersion": 2, "sequences": []any{}},
+					},
+					"session": map[string]any{},
+				},
+			}
+		}
 	}
 
 	// 3. Compute layout.
@@ -62,8 +74,8 @@ func AddToCanvas(ctx context.Context, client *http.Client, projectID, cid string
 		store[node["id"].(string)] = node
 	}
 
-	// 5. Re-encode and save.
-	newCanvas, err := encodeCanvas(store)
+	// 5. Re-encode preserving the full document structure.
+	newCanvas, err := encodeCanvas(fullDoc)
 	if err != nil {
 		return fmt.Errorf("canvas: encode: %w", err)
 	}
@@ -126,10 +138,10 @@ func saveCanvas(ctx context.Context, client *http.Client, projectID, cid, canvas
 	return nil
 }
 
-// decodeCanvas parses a SHAKKERDATA string into a tldraw store map.
-func decodeCanvas(data string) (map[string]any, error) {
+// decodeCanvas parses a SHAKKERDATA string and returns the full document and its store.
+func decodeCanvas(data string) (map[string]any, map[string]any, error) {
 	if data == "" || len(data) < len(canvasPrefix) {
-		return make(map[string]any), nil
+		return nil, make(map[string]any), nil
 	}
 
 	raw := data[len(canvasPrefix):]
@@ -137,44 +149,47 @@ func decodeCanvas(data string) (map[string]any, error) {
 
 	decoded, err := base64.StdEncoding.DecodeString(padded)
 	if err != nil {
-		return nil, fmt.Errorf("canvas: base64 decode: %w", err)
+		return nil, nil, fmt.Errorf("canvas: base64 decode: %w", err)
 	}
 
 	reader, err := gzip.NewReader(bytes.NewReader(decoded))
 	if err != nil {
-		return nil, fmt.Errorf("canvas: gzip reader: %w", err)
+		return nil, nil, fmt.Errorf("canvas: gzip reader: %w", err)
 	}
 	defer reader.Close()
 
 	decompressed, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, fmt.Errorf("canvas: gzip read: %w", err)
+		return nil, nil, fmt.Errorf("canvas: gzip read: %w", err)
 	}
 
-	var doc struct {
-		Snapshot struct {
-			Document struct {
-				Store map[string]any `json:"store"`
-			} `json:"document"`
-		} `json:"tldrawSnapshot"`
-	}
+	var doc map[string]any
 	if err := json.Unmarshal(decompressed, &doc); err != nil {
-		return nil, fmt.Errorf("canvas: json parse: %w", err)
+		return nil, nil, fmt.Errorf("canvas: json parse: %w", err)
 	}
 
-	return doc.Snapshot.Document.Store, nil
+	// Navigate to the store.
+	snapshot, _ := doc["tldrawSnapshot"].(map[string]any)
+	if snapshot == nil {
+		return doc, make(map[string]any), nil
+	}
+
+	document, _ := snapshot["document"].(map[string]any)
+	if document == nil {
+		return doc, make(map[string]any), nil
+	}
+
+	store, _ := document["store"].(map[string]any)
+	if store == nil {
+		store = make(map[string]any)
+		document["store"] = store
+	}
+
+	return doc, store, nil
 }
 
-// encodeCanvas serializes a tldraw store map back to a SHAKKERDATA string.
-func encodeCanvas(store map[string]any) (string, error) {
-	doc := map[string]any{
-		"tldrawSnapshot": map[string]any{
-			"document": map[string]any{
-				"store": store,
-			},
-		},
-	}
-
+// encodeCanvas serializes the full canvas document back to a SHAKKERDATA string.
+func encodeCanvas(doc map[string]any) (string, error) {
 	jsonBytes, err := json.Marshal(doc)
 	if err != nil {
 		return "", fmt.Errorf("canvas: json marshal: %w", err)
@@ -192,8 +207,6 @@ func encodeCanvas(store map[string]any) (string, error) {
 }
 
 // computeLayout determines where to place new nodes on the canvas.
-// New content is appended to the right of the existing rightmost content,
-// at the same vertical position as the top of existing content.
 func computeLayout(store map[string]any) (int, int) {
 	maxRight := 0
 	for _, v := range store {
