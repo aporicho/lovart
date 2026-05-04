@@ -131,7 +131,7 @@ func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]a
 			Status          string `json:"status"`
 			GeneratorTaskID string `json:"generator_task_id"`
 			Artifacts       []struct {
-				URL string `json:"url"`
+				Content string `json:"content"`
 			} `json:"artifacts"`
 		} `json:"data"`
 	}
@@ -159,7 +159,7 @@ func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]a
 	if resp.Data.Status == "completed" {
 		var urls []string
 		for _, a := range resp.Data.Artifacts {
-			urls = append(urls, a.URL)
+			urls = append(urls, a.Content)
 		}
 		result["artifacts"] = urls
 	}
