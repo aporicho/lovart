@@ -3,6 +3,7 @@ package generation
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aporicho/lovart/internal/http"
 	"github.com/aporicho/lovart/internal/pricing"
@@ -136,13 +137,19 @@ func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]a
 	}
 
 	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
 		if err := client.GetJSON(ctx, http.LGWBase, path, &resp); err != nil {
 			return nil, fmt.Errorf("generation: poll: %w", err)
 		}
 		if resp.Data.Status == "completed" || resp.Data.Status == "failed" {
 			break
 		}
-		// Simple poll — production would use select + ctx.Done().
+		time.Sleep(2 * time.Second)
 	}
 
 	result := map[string]any{
