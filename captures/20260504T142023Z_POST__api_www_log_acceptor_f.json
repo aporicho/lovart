@@ -1,0 +1,493 @@
+{
+  "captured_at": "20260504T142023Z",
+  "request": {
+    "method": "POST",
+    "url": "https://www.lovart.ai/api/www/log/acceptor/f",
+    "path": "/api/www/log/acceptor/f",
+    "headers": {
+      "content-length": "9888",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "accept": "application/json, text/plain, */*",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "content-type": "application/json",
+      "sec-ch-ua-mobile": "?0",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/canvas?projectId=ac43b109715f40ceaea87a301c6b5597",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "cookie": "webid=1777897149336rigdvsge, _gcl_au=1.1.1217701663.1777897152, _ga=GA1.1.1703026730.1777897154, __color_mode=dark, __locale=zh, _twpid=tw.1777897155913.929714704779794751, _fbp=fb.1.1777897156124.802390599120227687, _clck=ri5c18%5E2%5Eg5r%5E1%5E2315, _cbp=fb.1.1777897156124.802390599120227687, _hjSessionUser_6446279=eyJpZCI6ImNkYWVkMjc2LWMwNTUtNTkzOS1iMWY3LTNmODZjNzI2ZjYwOSIsImNyZWF0ZWQiOjE3Nzc4OTcxNTc4NTYsImV4aXN0aW5nIjp0cnVlfQ==, _pin_unauth=dWlkPU0yVXpPVGxpTnpZdE4yRTJNeTAwTldSa0xXSmxNak10TURVeE5URTBPVFpsTldZeA, _tt_enable_cookie=1, _ttp=01KQSFW1BWC4PVJ2BKG0HG304M_.tt.1, _iidt=s66NT8m5Oxp3VckKs44xWoh/YgKHpjDA+/Yt9oXHs7DwMUu82fUn349rRkAAl6s4PAUxf/rXRBwzvw==, _vid_t=xK+vlAOoBp/gy5h9jYMGefgui2sF2T+PDilTEmR+BLNc3X774V329V4lvbE8fXDXBMvjz9575jEnfQ==, usertoken=eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY, refreshToken=0fc5dcc5acbd41ef93db6a5c8269e2f3, useruuid=412fa1efca4c4890ab6bab77a36b757f, intercom-device-id-xyxalc2q=e010bf2a-01b8-4750-bccc-5a746a0e3ac5, ttcsid_D4E29RJC77U4DODN4QHG=1777901936850::pFiaF7raYKS1PAlN-4SP.2.1777901996322.1, intercom-session-xyxalc2q=UGROYVQvOFd3V2dETUFSOGw4c2p1Z1RoSG9zOHRnNlAvL2VBa1VycUxPUmpFZFhPMEdjcnhRc1Yra3AzYU1pcURzcms1RVN4Mk9iWHk5L0d2NkVpQThmWTExTXkzK29IMHIrWlRIdWZiOGg3NE1MVCtsK1ZzYlVwbTBmS0ZEaEJ5T0xXT2Q5TmcwVjRjaGFaVE5nUDRJUUdpY3EvTWt2TEprbkZmcXd5cFcxOHZjVzAxUDI4OWM1RkJKSHU2dW1GSXVIM0V1WGcyY1Y2UWR0T3JFT2c3Zz09LS1SRGpsdXN4Qisvc2xwM2FnUEc3WDl3PT0=--3fb04e3ceb116eaf78ad2ac771ab7bf0e2608be4, ttcsid=1777901936850::UDB8ql4mLirYuZKwvqef.2.1777901996322.0::1.59263.59131::70972.20.513.166::69639.8.0, acw_tc=8ae76f24-0524-48f4-a541-c6a7627a97d3576a7cd106c9977e8871b9970ab78fae, _hjSession_6446279=eyJpZCI6IjIyOWJlNmQzLTE0OTgtNDIxNy1hN2JlLTljYTFlMTQyNjhhOSIsImMiOjE3Nzc5MDQ0MDMzMDAsInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjowLCJzcCI6MH0=, pt_3bg8mqij=deviceId%3D0b295d10-8383-4ede-8617-46465862891e%26sessionId%3D065ff1a7-6c40-48a9-8fa0-a61ccf6aa8e4%26accountId%3D%26vn%3D3%26pvn%3D2%26lastActionTime%3D1777904411452%26, _ga_04J3EGQBWL=GS2.1.s1777904387$o3$g1$t1777904413$j34$l0$h0, _ga_XENJJC28ZM=GS2.1.s1777904387$o3$g1$t1777904413$j34$l0$h0, _ga_MRB1ZRXEK1=GS2.1.s1777904387$o3$g1$t1777904413$j34$l0$h827976058, _uetsid=778ecfa047b311f18bcf73b2b04222cb, _uetvid=778ecb8047b311f1a3178de0d2dd7f47, _clsk=1kft778%5E1777904418634%5E3%5E1%5Ez.clarity.ms%2Fcollect, statsig_custom={%22effective%22:1%2C%22accountLevel%22:50%2C%22accountLevelName%22:%22Ultimate%22%2C%22packageType%22:%22TRAIN%22%2C%22type%22:4%2C%22startTime%22:%222026-04-30%22%2C%22endTime%22:%222027-05-01%22}, __cf_bm=v3Ewm_GU5zF2WlWPcIUM7lVngKyCYk2IhuGGjqkIT7M-1777904421.3538034-1.0.1.1-vnwfkNnGcHLNO5yBKrhKT4HEHnIERq2zskytVhmuPfpEBljpD9y.huZNKHYdUfSOSekDi_rkSMyBN1buCAkZ5c71tN1xmCrjKNR.ogr8s7hZcjw9QjYUIYrOZpabllRT",
+      "priority": "u=1, i"
+    },
+    "body": {
+      "tz": "Asia/Shanghai",
+      "langs": [
+        "zh",
+        "en",
+        "zh-CN"
+      ],
+      "uuid": "412fa1efca4c4890ab6bab77a36b757f",
+      "cid": "1777897149336rigdvsge",
+      "ct": 1777904423319,
+      "region": "oversea",
+      "pageUrl": "https://www.lovart.ai/canvas?projectId=ac43b109715f40ceaea87a301c6b5597",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "referer": "https://www.lovart.ai/zh/projects",
+      "e": "canvas.img.load.stats",
+      "var": {
+        "count": 49,
+        "stats": [
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/OwbVYPueFt62bP7O.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1180.4,
+            "total": 1180.4
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/sKdXVBWbR14XJs62.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1183.3,
+            "total": 1183.3
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/YnRvpHrB8fIKz47X.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1188,
+            "total": 1188
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/T0fWZe3DXuDtarwA.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1188.2,
+            "total": 1188.2
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/1PX3J6mqx06DPrh2.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1188.3,
+            "total": 1188.3
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/zXPaGnIXvsHzYb0w.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1188.3,
+            "total": 1188.3
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/y3nkQBr3j9JcnUCT.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1188.4,
+            "total": 1188.4
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/aOhTEC7MNQ7pPUSu.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1188.4,
+            "total": 1188.4
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/lKbp06GfPfGFTR1U.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1188.4,
+            "total": 1188.4
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/HdNa01dUAw1byYY2.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1188.5,
+            "total": 1188.5
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/aCxrDx6FPFE6HFku.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1188.5,
+            "total": 1188.5
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/WBi5kfDJk310zaB8.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1195.2,
+            "total": 1195.2
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/ox6grhtHo6AJSGXZ.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1195.4,
+            "total": 1195.4
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/IEPQTKMhlDAhTlYV.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1196.7,
+            "total": 1196.7
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/VHlqoHrutmHzGVv8.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1197.4,
+            "total": 1197.4
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/tKG9WWI5nGEVkHvx.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1197.8,
+            "total": 1197.8
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/jgA1QWi24u56K3dQ.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1198.6,
+            "total": 1198.6
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/wyZu8zbHlsHzoUZ6.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1196.3,
+            "total": 1196.3
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/IkigvbOhGzFjUs8L.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1196.8,
+            "total": 1196.8
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/vdiThQhSSB4x6zAW.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1301.5,
+            "total": 1301.5
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/nKJ7s9Bgn0FNI8s4.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1302.6,
+            "total": 1302.6
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/qKjH8mbyrW74NPZZ.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1303.4,
+            "total": 1303.4
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/zyge4nsZLgBOSVT0.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1308.6,
+            "total": 1308.6
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/LeMlzApLR3CliLM3.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1309.1,
+            "total": 1309.1
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/4y3CGD3swNANn7Nv.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1330.3,
+            "total": 1330.3
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/PMKR03fgQaDJccgv.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1333.7,
+            "total": 1333.7
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/4kOH23BKdjAttFmu.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1337.1,
+            "total": 1337.1
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/rUZjLaBA5d9od2Mb.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1338.6,
+            "total": 1338.6
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/JLi6Vk6WUiAYnHGh.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1341.3,
+            "total": 1341.3
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/wi8RFSedwEETInlf.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1344.5,
+            "total": 1344.5
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/eDVqKbSe8r37T9Hv.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1345.4,
+            "total": 1345.4
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/hZE2nmvh955c0V1Z.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1347.6,
+            "total": 1347.6
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/VlxU0lIE60IeLijy.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1348.8,
+            "total": 1348.8
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/EoXPz3xPml7dd0Z6.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1343.7,
+            "total": 1343.7
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/pB1cTdG1vJ9wXh5Z.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1346.1,
+            "total": 1346.1
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/f9p1YCeb7X7NVgei.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1347.8,
+            "total": 1347.8
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/d9h3KwI9N572khrA.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1348.8,
+            "total": 1348.8
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/9u3P74uoePwB0woM.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1349.5,
+            "total": 1349.5
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/S7uBgDOw9gKfwhIg.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1349.8,
+            "total": 1349.8
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/h7ooXQou9zBiGLOZ.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1352.5,
+            "total": 1352.5
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/YkCXU0Dnm99ZcEIz.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1349.1,
+            "total": 1349.1
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/F7nJyZCtfMHvN1Ax.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1350.1,
+            "total": 1350.1
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/GZatKZzB76AsJhWc.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1350.6,
+            "total": 1350.6
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/caiqstzpi7IuftzV.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1352.3,
+            "total": 1352.3
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/CvqIvbTnk7KLJn3W.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1352.4,
+            "total": 1352.4
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/28LZPeQdwUK7MwAh.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1354.5,
+            "total": 1354.5
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/PvVxmesGAY2WyUN9.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1357.3,
+            "total": 1357.3
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/MVYAXw0Id3CIXkD5.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1358.6,
+            "total": 1358.6
+          },
+          {
+            "url": "https://a.lovart.ai/artifacts/generator/GecpAPqCxrJjsWln.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+            "queue": 0,
+            "stall": 0,
+            "ttfb": 0,
+            "download": 1359.7,
+            "total": 1359.7
+          }
+        ],
+        "sumQueue": 0,
+        "avgQueue": 0,
+        "sumStall": 0,
+        "avgStall": 0,
+        "sumTtfb": 0,
+        "avgTtfb": 0,
+        "sumDownload": 62848.2,
+        "avgDownload": 1282.62,
+        "sumTotal": 62848.2,
+        "avgTotal": 1282.62,
+        "now": 11845,
+        "build_version": "1018-d024246e",
+        "canvas_type": "new",
+        "credits": 26918,
+        "accountLevel": "Ultimate",
+        "accountType": 4,
+        "dpr": 2,
+        "sw": 2048,
+        "sh": 1152,
+        "region": "oversea"
+      },
+      "sw": 2048,
+      "sh": 1152,
+      "dpr": 2
+    }
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 14:20:23 GMT",
+      "content-type": "application/json",
+      "eagleeye-traceid": "d577fe7a21bb24bade2e8e0de9369b0c",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "vary": "Origin,Access-Control-Request-Method,Access-Control-Request-Headers",
+      "req-cost-time": "12",
+      "req-arrive-time": "1777904423595",
+      "resp-start-time": "1777904423607",
+      "x-envoy-upstream-service-time": "0",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f682556b8ade885-HKG"
+    },
+    "body": {
+      "code": 0,
+      "msg": null,
+      "data": null
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "msg": null,
+    "data": null
+  }
+}

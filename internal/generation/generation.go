@@ -46,7 +46,7 @@ func Preflight(ctx context.Context, client *http.Client, model string, body map[
 		}, nil
 	}
 
-	credits := quote.PayableCredits
+	credits := quote.Price
 	paidRequired := credits > 0
 	canSubmit := true
 	var actions []string

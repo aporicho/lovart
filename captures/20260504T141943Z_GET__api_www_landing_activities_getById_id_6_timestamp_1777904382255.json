@@ -1,0 +1,82 @@
+{
+  "captured_at": "20260504T141943Z",
+  "request": {
+    "method": "GET",
+    "url": "https://api.lovart.ai/api/www/landing-activities/getById?id=6&timestamp=1777904382255",
+    "path": "/api/www/landing-activities/getById?id=6&timestamp=1777904382255",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-language": "zh",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "accept": "application/json, text/plain, */*",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "webid": "1777897149336rigdvsge",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 14:19:43 GMT",
+      "content-type": "application/json",
+      "eagleeye-traceid": "3c7a30286b2bc4920970932a160b1d13",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "req-cost-time": "6",
+      "req-arrive-time": "1777904383354",
+      "resp-start-time": "1777904383360",
+      "x-envoy-upstream-service-time": "5",
+      "set-cookie": "acw_tc=0df6a358-ce43-43e3-9be1-40a8cf173e941080d9541f6fa34d16c42246e6a97b78;path=/;HttpOnly;Max-Age=1800, __cf_bm=d7QHgxt107q1l68j.3RwdBWo6S3t.xKhJIhdu5tv.r8-1777904383.2193522-1.0.1.1-NRRF.t.s0s7X920rSjqycWJOn0gAWQpZE6DUOHe7F4S1retEP0r4g9hGZag7CSs3GwrqHtxbN5zus33RHLZ3OBeoVulueYO4lbDrJJjvEf0tWKXgJjBZ1UKofKJ8EWIM; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 14:49:43 GMT",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f68245b1c820725-HKG"
+    },
+    "body": {
+      "code": 0,
+      "msg": null,
+      "data": {
+        "picUrl": "",
+        "buttonText": "Lovart - Product Action Modal for Homepage",
+        "jumpType": "text",
+        "comfyModelId": null,
+        "comfyVersionId": null,
+        "modelId": null,
+        "versionId": null,
+        "imageBatchId": null,
+        "linkUrl": "{\n  \"type\": \"video\",\n  \"url\": \"https://assets-persist.lovart.ai/web/model/a8b5877adfd242b3b0d6b4203125e50c/557a81c157f283db021189fc3683781f43ce0cbf6361c76ada0efb8591ef201f.mp4\", \n  \"title\": \"Create a Video Using Kling 2.1\",\n  \"buttonText\": \"Try it Now\",\n  \"link\": \"/canvas?utm_source=home&utm_campaign=1&newProject=true&agentChatTip=%7B%22position%22%3A%22input%22%2C%22prompt%22%3A%22Create%20video%20with%20Kling%202.1%2C%22%2C%22title%22%3A%22Try%20Kling%202.1%20Video%22%2C%22desc%22%3A%22Super%20fast%20video%20generation%20with%20ultra-realistic%2C%20cinematic%20motion.%22%2C%22image%22%3A%22%22%2C%22poster%22%3A%22https%3A%2F%2Fassets-persist.lovart.ai%2Fweb%2Fmodel%2Fa8b5877adfd242b3b0d6b4203125e50c%2F4986de47b2e903aa1047a92243b4a409907c5d6298c366325bb8a9e54ff78984.png%22%2C%22video%22%3A%22https%3A%2F%2Fassets-persist.lovart.ai%2Fweb%2Fmodel%2Fa8b5877adfd242b3b0d6b4203125e50c%2Faf5199b7fc11f883ba3d99993d4e3c1fd9d8277d3b8bfbb77c2aeb8d2bbd5a24.mp4%22%2C%22learnMore%22%3A%22%22%7D\",\n  \"startTime\": \"2025-06-16T22:46:59+08:00\",\n  \"endTime\": \"2025-06-17T22:46:59+08:00\",\n  \"configId\": \"1\"\n}",
+        "needCallBack": "0",
+        "callBackEventType": null
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "msg": null,
+    "data": {
+      "picUrl": "",
+      "buttonText": "Lovart - Product Action Modal for Homepage",
+      "jumpType": "text",
+      "comfyModelId": null,
+      "comfyVersionId": null,
+      "modelId": null,
+      "versionId": null,
+      "imageBatchId": null,
+      "linkUrl": "{\n  \"type\": \"video\",\n  \"url\": \"https://assets-persist.lovart.ai/web/model/a8b5877adfd242b3b0d6b4203125e50c/557a81c157f283db021189fc3683781f43ce0cbf6361c76ada0efb8591ef201f.mp4\", \n  \"title\": \"Create a Video Using Kling 2.1\",\n  \"buttonText\": \"Try it Now\",\n  \"link\": \"/canvas?utm_source=home&utm_campaign=1&newProject=true&agentChatTip=%7B%22position%22%3A%22input%22%2C%22prompt%22%3A%22Create%20video%20with%20Kling%202.1%2C%22%2C%22title%22%3A%22Try%20Kling%202.1%20Video%22%2C%22desc%22%3A%22Super%20fast%20video%20generation%20with%20ultra-realistic%2C%20cinematic%20motion.%22%2C%22image%22%3A%22%22%2C%22poster%22%3A%22https%3A%2F%2Fassets-persist.lovart.ai%2Fweb%2Fmodel%2Fa8b5877adfd242b3b0d6b4203125e50c%2F4986de47b2e903aa1047a92243b4a409907c5d6298c366325bb8a9e54ff78984.png%22%2C%22video%22%3A%22https%3A%2F%2Fassets-persist.lovart.ai%2Fweb%2Fmodel%2Fa8b5877adfd242b3b0d6b4203125e50c%2Faf5199b7fc11f883ba3d99993d4e3c1fd9d8277d3b8bfbb77c2aeb8d2bbd5a24.mp4%22%2C%22learnMore%22%3A%22%22%7D\",\n  \"startTime\": \"2025-06-16T22:46:59+08:00\",\n  \"endTime\": \"2025-06-17T22:46:59+08:00\",\n  \"configId\": \"1\"\n}",
+      "needCallBack": "0",
+      "callBackEventType": null
+    }
+  }
+}

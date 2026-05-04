@@ -1,0 +1,54 @@
+{
+  "captured_at": "20260504T142021Z",
+  "request": {
+    "method": "GET",
+    "url": "https://web-static3.lovart.ai/lovart_canvas_online/static/media/over.bf6d8f77.wav",
+    "path": "/lovart_canvas_online/static/media/over.bf6d8f77.wav",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-encoding": "identity;q=1, *;q=0",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "*/*",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "no-cors",
+      "sec-fetch-dest": "audio",
+      "referer": "https://www.lovart.ai/",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "cookie": "_gcl_au=1.1.1217701663.1777897152, _ga=GA1.1.1703026730.1777897154, _twpid=tw.1777897155913.929714704779794751, _fbp=fb.1.1777897156124.802390599120227687, _clck=ri5c18%5E2%5Eg5r%5E1%5E2315, _cbp=fb.1.1777897156124.802390599120227687, _hjSessionUser_6446279=eyJpZCI6ImNkYWVkMjc2LWMwNTUtNTkzOS1iMWY3LTNmODZjNzI2ZjYwOSIsImNyZWF0ZWQiOjE3Nzc4OTcxNTc4NTYsImV4aXN0aW5nIjp0cnVlfQ==, _pin_unauth=dWlkPU0yVXpPVGxpTnpZdE4yRTJNeTAwTldSa0xXSmxNak10TURVeE5URTBPVFpsTldZeA, _tt_enable_cookie=1, _ttp=01KQSFW1BWC4PVJ2BKG0HG304M_.tt.1, _iidt=s66NT8m5Oxp3VckKs44xWoh/YgKHpjDA+/Yt9oXHs7DwMUu82fUn349rRkAAl6s4PAUxf/rXRBwzvw==, _vid_t=xK+vlAOoBp/gy5h9jYMGefgui2sF2T+PDilTEmR+BLNc3X774V329V4lvbE8fXDXBMvjz9575jEnfQ==, intercom-device-id-xyxalc2q=e010bf2a-01b8-4750-bccc-5a746a0e3ac5, ttcsid_D4E29RJC77U4DODN4QHG=1777901936850::pFiaF7raYKS1PAlN-4SP.2.1777901996322.1, intercom-session-xyxalc2q=UGROYVQvOFd3V2dETUFSOGw4c2p1Z1RoSG9zOHRnNlAvL2VBa1VycUxPUmpFZFhPMEdjcnhRc1Yra3AzYU1pcURzcms1RVN4Mk9iWHk5L0d2NkVpQThmWTExTXkzK29IMHIrWlRIdWZiOGg3NE1MVCtsK1ZzYlVwbTBmS0ZEaEJ5T0xXT2Q5TmcwVjRjaGFaVE5nUDRJUUdpY3EvTWt2TEprbkZmcXd5cFcxOHZjVzAxUDI4OWM1RkJKSHU2dW1GSXVIM0V1WGcyY1Y2UWR0T3JFT2c3Zz09LS1SRGpsdXN4Qisvc2xwM2FnUEc3WDl3PT0=--3fb04e3ceb116eaf78ad2ac771ab7bf0e2608be4, ttcsid=1777901936850::UDB8ql4mLirYuZKwvqef.2.1777901996322.0::1.59263.59131::70972.20.513.166::69639.8.0, _hjSession_6446279=eyJpZCI6IjIyOWJlNmQzLTE0OTgtNDIxNy1hN2JlLTljYTFlMTQyNjhhOSIsImMiOjE3Nzc5MDQ0MDMzMDAsInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjowLCJzcCI6MH0=, pt_3bg8mqij=deviceId%3D0b295d10-8383-4ede-8617-46465862891e%26sessionId%3D065ff1a7-6c40-48a9-8fa0-a61ccf6aa8e4%26accountId%3D%26vn%3D3%26pvn%3D2%26lastActionTime%3D1777904411452%26, _ga_04J3EGQBWL=GS2.1.s1777904387$o3$g1$t1777904413$j34$l0$h0, _ga_XENJJC28ZM=GS2.1.s1777904387$o3$g1$t1777904413$j34$l0$h0, _ga_MRB1ZRXEK1=GS2.1.s1777904387$o3$g1$t1777904413$j34$l0$h827976058, _uetsid=778ecfa047b311f18bcf73b2b04222cb, _uetvid=778ecb8047b311f1a3178de0d2dd7f47, _clsk=1kft778%5E1777904418634%5E3%5E1%5Ez.clarity.ms%2Fcollect, __cf_bm=l62brMKs.2jMy8YyWKelyid6tzHKoxOvRp9dYDC8lfg-1777904420.488379-1.0.1.1-7Nv73qKBGqXMjn9rR3aSwp2Dd9H5xFeRTeGNJJyj_hN2VPOHQFFJnlOAK3D.9a16hS0Z_2Rws71ttpSqBw3Jw199vyrDZ1m22iosUt5Keh.FBsNZQNyiCfpuiujTpto5",
+      "range": "bytes=0-138317",
+      "if-none-match": "\"074BA5F3FC37AD36154E6F1514909B7E\"",
+      "if-modified-since": "Sat, 28 Feb 2026 14:31:13 GMT",
+      "priority": "i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 304,
+    "headers": {
+      "date": "Mon, 04 May 2026 14:20:21 GMT",
+      "server": "cloudflare",
+      "x-oss-server-time": "5",
+      "age": "987746",
+      "x-oss-request-id": "69A2FD4F5117043738B651B4",
+      "vary": "Origin",
+      "content-md5": "B0ul8/w3rTYVTm8VFJCbfg==",
+      "etag": "\"074BA5F3FC37AD36154E6F1514909B7E\"",
+      "last-modified": "Sat, 28 Feb 2026 14:31:13 GMT",
+      "x-oss-object-type": "Normal",
+      "x-oss-hash-crc64ecma": "17517923332493172239",
+      "x-oss-storage-class": "Standard",
+      "expires": "Mon, 04 May 2026 18:20:21 GMT",
+      "cache-control": "public, max-age=14400",
+      "cf-cache-status": "HIT",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, HEAD",
+      "access-control-allow-origin": "*",
+      "access-control-expose-headers": "ETag, x-oss-request-id, x-oss-version-id",
+      "access-control-max-age": "0",
+      "cf-ray": "9f68254a3c9409ed-HKG"
+    },
+    "body": null
+  },
+  "response_body": null
+}

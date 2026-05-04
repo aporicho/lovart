@@ -1,0 +1,55 @@
+{
+  "captured_at": "20260504T142021Z",
+  "request": {
+    "method": "GET",
+    "url": "https://a.lovart.ai/artifacts/generator/IEPQTKMhlDAhTlYV.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+    "path": "/artifacts/generator/IEPQTKMhlDAhTlYV.png?x-oss-process=image/resize,w_512,m_lfit/format,webp",
+    "headers": {
+      "origin": "https://www.lovart.ai",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "image",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "if-none-match": "\"0095D3CB6FD5EA3EDEFEEE7E3C368DFF\"",
+      "if-modified-since": "Fri, 01 May 2026 10:18:22 GMT",
+      "priority": "i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 304,
+    "headers": {
+      "date": "Mon, 04 May 2026 14:20:20 GMT",
+      "server": "cloudflare",
+      "x-oss-server-time": "251",
+      "age": "273691",
+      "x-oss-request-id": "69F47E09AB0213323730F9A5",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, HEAD",
+      "access-control-expose-headers": "ETag, x-oss-request-id, x-oss-version-id",
+      "access-control-max-age": "0",
+      "etag": "\"0095D3CB6FD5EA3EDEFEEE7E3C368DFF\"",
+      "last-modified": "Fri, 01 May 2026 10:18:22 GMT",
+      "x-oss-object-type": "Normal",
+      "x-oss-storage-class": "Standard",
+      "x-oss-version-id": "CAEQnQIYgYDAmOqXjO8ZIiBiMzRjZTk3N2YzZWQ0MjA3YWYxYjUyMzJiNWUxOTNkOQ--",
+      "x-oss-hash-crc64ecma": "5419235915637573429",
+      "expires": "Mon, 04 May 2026 18:20:20 GMT",
+      "cache-control": "public, max-age=14400",
+      "cf-cache-status": "HIT",
+      "set-cookie": "__cf_bm=BYH7Oodu3PVLxGiNVHkoiT8LqbOfZL1bT9lceNRqC10-1777904420.9785626-1.0.1.1-cO0WvSAUHYIlU5Hbi.G8ca2L3vg7IRFmZai9QCcGsTsiJfM2yooPtk7pCE.0HK6gfc4D8lzmAv5hjKTaF07jhZItd64imn5EQJldujFKQURtyOgySsV24yv1f7dhH3H4; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 14:50:20 GMT",
+      "content-disposition": "attachment",
+      "content-security-policy": "sandbox allow-scripts",
+      "cf-ray": "9f68254719eb038b-HKG"
+    },
+    "body": null
+  },
+  "response_body": null
+}

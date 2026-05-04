@@ -1,0 +1,47 @@
+{
+  "captured_at": "20260504T141944Z",
+  "request": {
+    "method": "GET",
+    "url": "https://fpm.lovart.ai/web/v4/KvMVoA0DpoxR9lGKe7mM?ci=jsl/4.0.3",
+    "path": "/web/v4/KvMVoA0DpoxR9lGKe7mM?ci=jsl/4.0.3",
+    "headers": {
+      "origin": "https://www.lovart.ai",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "*/*",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "script",
+      "referer": "https://web-static3.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "if-none-match": "W/\"BNjZFH9jKuD9wTo7WA87Q39Rdwg\"",
+      "priority": "u=1"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 304,
+    "headers": {
+      "date": "Mon, 04 May 2026 14:19:44 GMT",
+      "accept-ranges": "bytes",
+      "access-control-allow-origin": "*",
+      "age": "307406",
+      "alt-svc": "h3=\":443\"; ma=86400",
+      "cache-control": "public, max-age=3487, s-maxage=622762",
+      "cf-cache-status": "HIT",
+      "cf-ray": "9f6824617f5b8792-IAD",
+      "cross-origin-resource-policy": "cross-origin",
+      "etag": "\"BNjZFH9jKuD9wTo7WA87Q39Rdwg\"",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+      "timing-allow-origin": "*",
+      "vary": "Accept-Encoding",
+      "x-content-type-options": "nosniff"
+    },
+    "body": null
+  },
+  "response_body": null
+}

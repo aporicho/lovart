@@ -17,7 +17,7 @@ func newQuoteCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "quote <model> --body-file <file>",
-		Short: "Fetch exact Lovart credit quote for a model request",
+		Short: "Fetch Lovart credit quote for a model request",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			model := args[0]
@@ -42,9 +42,9 @@ func newQuoteCmd() *cobra.Command {
 			}
 
 			printEnvelope(envelope.OK(map[string]any{
-				"quoted":          result.Quoted,
-				"credits":         result.Credits,
-				"payable_credits": result.PayableCredits,
+				"price":        result.Price,
+				"balance":      result.Balance,
+				"price_detail": result.PriceDetail,
 			}))
 			return nil
 		},
@@ -52,6 +52,31 @@ func newQuoteCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&bodyFile, "body-file", "", "path to request JSON file")
 	return cmd
+}
+
+func newBalanceCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "balance",
+		Short: "Show current Lovart credit balance",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, err := newSignedClient()
+			if err != nil {
+				printEnvelope(envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()}))
+				return nil
+			}
+
+			bal, err := pricing.Balance(context.Background(), client)
+			if err != nil {
+				printEnvelope(envelope.Err(errors.CodeInternal, "fetch balance", map[string]any{"error": err.Error()}))
+				return nil
+			}
+
+			printEnvelope(envelope.OK(map[string]any{
+				"balance": bal,
+			}))
+			return nil
+		},
+	}
 }
 
 func loadBodyFile(path string) (map[string]any, error) {

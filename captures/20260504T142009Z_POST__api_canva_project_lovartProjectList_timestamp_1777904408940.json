@@ -1,0 +1,373 @@
+{
+  "captured_at": "20260504T142009Z",
+  "request": {
+    "method": "POST",
+    "url": "https://api.lovart.ai/api/canva/project/lovartProjectList?timestamp=1777904408940",
+    "path": "/api/canva/project/lovartProjectList?timestamp=1777904408940",
+    "headers": {
+      "content-length": "24",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-language": "zh",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "accept": "application/json, text/plain, */*",
+      "content-type": "application/json",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "webid": "1777897149336rigdvsge",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "priority": "u=1, i"
+    },
+    "body": {
+      "page": 1,
+      "pageSize": 30
+    }
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 14:20:10 GMT",
+      "content-type": "application/json",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "x-trace-id": "1a53ee723ee44071b791c48ec1ff5a00",
+      "req-cost-time": "8",
+      "req-arrive-time": "1777904409939",
+      "resp-start-time": "1777904409948",
+      "x-envoy-upstream-service-time": "7",
+      "set-cookie": "acw_tc=4eb4db55-b972-4886-88e4-d152e951d0ee50f2b58adb94df6a6e0d4313389a0690;path=/;HttpOnly;Max-Age=1800, __cf_bm=Z_joOFMtnxWooF625wsmlo3YiQTeNEHVDhWkpW3vtkU-1777904409.8192806-1.0.1.1-XAJyv.ebJ5HFOd3s.KokdZre4_NwfcJSoa3CvDwACUcFcWdkcXrS9rZf2WkmmNDXKtTLHQeFuJ2.AflRnJn3G9rZV6riXOy9ztz8RNqWlDdSPmxuPoSwSr.bAUPwguMB; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 14:50:10 GMT",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f6825015e0e08b3-HKG"
+    },
+    "body": {
+      "code": 0,
+      "msg": null,
+      "data": {
+        "page": 1,
+        "total": 7,
+        "pageSize": 30,
+        "data": [
+          {
+            "userId": 14813164,
+            "canvas": null,
+            "projectId": "323a878620824c83bf097eaaec1d6caa",
+            "projectName": "咕咚-2转3",
+            "projectCoverList": [
+              "https://a.lovart.ai/artifacts/agent/5i2Jn8k8u0LqLyvH.png",
+              "https://a.lovart.ai/artifacts/agent/RkW5eLrbaI3FnYuc.png",
+              "https://a.lovart.ai/artifacts/agent/VZq1WhFDTs9Vn2VX.png",
+              "https://a.lovart.ai/artifacts/agent/j39BWf3c1QIODwXg.png"
+            ],
+            "picCount": 52,
+            "isFavorite": 0,
+            "uniqId": null,
+            "sourceProjectId": null,
+            "projectType": 3,
+            "createTime": null,
+            "updateTime": 1777903487000,
+            "validProjectId": null,
+            "version": "1777903487000",
+            "sessionId": null
+          },
+          {
+            "userId": 14813164,
+            "canvas": null,
+            "projectId": "b5845f1ef1c7418890d870003b3f0d02",
+            "projectName": "测试项目",
+            "projectCoverList": [],
+            "picCount": 0,
+            "isFavorite": 0,
+            "uniqId": null,
+            "sourceProjectId": null,
+            "projectType": 3,
+            "createTime": null,
+            "updateTime": 1777901996000,
+            "validProjectId": null,
+            "version": "1777901996000",
+            "sessionId": null
+          },
+          {
+            "userId": 14813164,
+            "canvas": null,
+            "projectId": "e40846cc628d410f916ac8a50c8c548d",
+            "projectName": "咕咚-人物全身图",
+            "projectCoverList": [
+              "https://a.lovart.ai/artifacts/agent/T32KIfuwma7FY3aH.png",
+              "https://a.lovart.ai/artifacts/agent/jFcD2C4gYL8goKkY.png",
+              "https://a.lovart.ai/artifacts/agent/ZP9vEwieGSKPrG7i.png",
+              "https://a.lovart.ai/artifacts/agent/ocqyBMHs673tm9XK.png"
+            ],
+            "picCount": 21,
+            "isFavorite": 0,
+            "uniqId": null,
+            "sourceProjectId": null,
+            "projectType": 3,
+            "createTime": null,
+            "updateTime": 1777900125000,
+            "validProjectId": null,
+            "version": "1777900125000",
+            "sessionId": null
+          },
+          {
+            "userId": 14813164,
+            "canvas": null,
+            "projectId": "a2c6d4a5da044e5091c13a30314e4441",
+            "projectName": "ZM吖",
+            "projectCoverList": [],
+            "picCount": 0,
+            "isFavorite": 0,
+            "uniqId": null,
+            "sourceProjectId": null,
+            "projectType": 3,
+            "createTime": null,
+            "updateTime": 1777885889000,
+            "validProjectId": null,
+            "version": "1777885889000",
+            "sessionId": null
+          },
+          {
+            "userId": 14813164,
+            "canvas": null,
+            "projectId": "ac43b109715f40ceaea87a301c6b5597",
+            "projectName": "乾",
+            "projectCoverList": [
+              "https://a.lovart.ai/artifacts/generator/tKG9WWI5nGEVkHvx.png",
+              "https://a.lovart.ai/artifacts/generator/28LZPeQdwUK7MwAh.png",
+              "https://a.lovart.ai/artifacts/generator/wyZu8zbHlsHzoUZ6.png",
+              "https://a.lovart.ai/artifacts/generator/jgA1QWi24u56K3dQ.png"
+            ],
+            "picCount": 49,
+            "isFavorite": 0,
+            "uniqId": null,
+            "sourceProjectId": null,
+            "projectType": 3,
+            "createTime": null,
+            "updateTime": 1777817542000,
+            "validProjectId": null,
+            "version": "1777817542000",
+            "sessionId": null
+          },
+          {
+            "userId": 14813164,
+            "canvas": null,
+            "projectId": "fd3a1bd6734547be811073d8d924c02f",
+            "projectName": "咕咚-2d转3d",
+            "projectCoverList": [
+              "https://a.lovart.ai/artifacts/agent/BzG1dl0XZTAFPSEc.png",
+              "https://a.lovart.ai/artifacts/agent/qhHSXoKt02LF20Lw.png",
+              "https://a.lovart.ai/artifacts/agent/7WfWtzQdAB7NAm3G.png",
+              "https://a.lovart.ai/artifacts/agent/ODaYNoZAkqFRbqoj.png"
+            ],
+            "picCount": 21,
+            "isFavorite": 0,
+            "uniqId": null,
+            "sourceProjectId": null,
+            "projectType": 3,
+            "createTime": null,
+            "updateTime": 1777724119000,
+            "validProjectId": null,
+            "version": "1777724119000",
+            "sessionId": null
+          },
+          {
+            "userId": 14813164,
+            "canvas": null,
+            "projectId": "baa1386453a24878bfccc43a4566971b",
+            "projectName": "工作",
+            "projectCoverList": [
+              "https://a.lovart.ai/artifacts/agent/LGW1CxvPenG14rSL.png",
+              "https://a.lovart.ai/artifacts/agent/02trQ3tX73Z8kADI.png",
+              "https://a.lovart.ai/artifacts/agent/mEPTcbRETxBr0G3S.png",
+              "https://a.lovart.ai/artifacts/agent/N9ziH5jQfk77dI3V.png"
+            ],
+            "picCount": 31,
+            "isFavorite": 0,
+            "uniqId": null,
+            "sourceProjectId": null,
+            "projectType": 3,
+            "createTime": null,
+            "updateTime": 1777538134000,
+            "validProjectId": null,
+            "version": "1777538134000",
+            "sessionId": null
+          }
+        ],
+        "userIp": "",
+        "traceId": "",
+        "hasMore": false,
+        "rankExpId": null,
+        "abVariant": null
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "msg": null,
+    "data": {
+      "page": 1,
+      "total": 7,
+      "pageSize": 30,
+      "data": [
+        {
+          "userId": 14813164,
+          "canvas": null,
+          "projectId": "323a878620824c83bf097eaaec1d6caa",
+          "projectName": "咕咚-2转3",
+          "projectCoverList": [
+            "https://a.lovart.ai/artifacts/agent/5i2Jn8k8u0LqLyvH.png",
+            "https://a.lovart.ai/artifacts/agent/RkW5eLrbaI3FnYuc.png",
+            "https://a.lovart.ai/artifacts/agent/VZq1WhFDTs9Vn2VX.png",
+            "https://a.lovart.ai/artifacts/agent/j39BWf3c1QIODwXg.png"
+          ],
+          "picCount": 52,
+          "isFavorite": 0,
+          "uniqId": null,
+          "sourceProjectId": null,
+          "projectType": 3,
+          "createTime": null,
+          "updateTime": 1777903487000,
+          "validProjectId": null,
+          "version": "1777903487000",
+          "sessionId": null
+        },
+        {
+          "userId": 14813164,
+          "canvas": null,
+          "projectId": "b5845f1ef1c7418890d870003b3f0d02",
+          "projectName": "测试项目",
+          "projectCoverList": [],
+          "picCount": 0,
+          "isFavorite": 0,
+          "uniqId": null,
+          "sourceProjectId": null,
+          "projectType": 3,
+          "createTime": null,
+          "updateTime": 1777901996000,
+          "validProjectId": null,
+          "version": "1777901996000",
+          "sessionId": null
+        },
+        {
+          "userId": 14813164,
+          "canvas": null,
+          "projectId": "e40846cc628d410f916ac8a50c8c548d",
+          "projectName": "咕咚-人物全身图",
+          "projectCoverList": [
+            "https://a.lovart.ai/artifacts/agent/T32KIfuwma7FY3aH.png",
+            "https://a.lovart.ai/artifacts/agent/jFcD2C4gYL8goKkY.png",
+            "https://a.lovart.ai/artifacts/agent/ZP9vEwieGSKPrG7i.png",
+            "https://a.lovart.ai/artifacts/agent/ocqyBMHs673tm9XK.png"
+          ],
+          "picCount": 21,
+          "isFavorite": 0,
+          "uniqId": null,
+          "sourceProjectId": null,
+          "projectType": 3,
+          "createTime": null,
+          "updateTime": 1777900125000,
+          "validProjectId": null,
+          "version": "1777900125000",
+          "sessionId": null
+        },
+        {
+          "userId": 14813164,
+          "canvas": null,
+          "projectId": "a2c6d4a5da044e5091c13a30314e4441",
+          "projectName": "ZM吖",
+          "projectCoverList": [],
+          "picCount": 0,
+          "isFavorite": 0,
+          "uniqId": null,
+          "sourceProjectId": null,
+          "projectType": 3,
+          "createTime": null,
+          "updateTime": 1777885889000,
+          "validProjectId": null,
+          "version": "1777885889000",
+          "sessionId": null
+        },
+        {
+          "userId": 14813164,
+          "canvas": null,
+          "projectId": "ac43b109715f40ceaea87a301c6b5597",
+          "projectName": "乾",
+          "projectCoverList": [
+            "https://a.lovart.ai/artifacts/generator/tKG9WWI5nGEVkHvx.png",
+            "https://a.lovart.ai/artifacts/generator/28LZPeQdwUK7MwAh.png",
+            "https://a.lovart.ai/artifacts/generator/wyZu8zbHlsHzoUZ6.png",
+            "https://a.lovart.ai/artifacts/generator/jgA1QWi24u56K3dQ.png"
+          ],
+          "picCount": 49,
+          "isFavorite": 0,
+          "uniqId": null,
+          "sourceProjectId": null,
+          "projectType": 3,
+          "createTime": null,
+          "updateTime": 1777817542000,
+          "validProjectId": null,
+          "version": "1777817542000",
+          "sessionId": null
+        },
+        {
+          "userId": 14813164,
+          "canvas": null,
+          "projectId": "fd3a1bd6734547be811073d8d924c02f",
+          "projectName": "咕咚-2d转3d",
+          "projectCoverList": [
+            "https://a.lovart.ai/artifacts/agent/BzG1dl0XZTAFPSEc.png",
+            "https://a.lovart.ai/artifacts/agent/qhHSXoKt02LF20Lw.png",
+            "https://a.lovart.ai/artifacts/agent/7WfWtzQdAB7NAm3G.png",
+            "https://a.lovart.ai/artifacts/agent/ODaYNoZAkqFRbqoj.png"
+          ],
+          "picCount": 21,
+          "isFavorite": 0,
+          "uniqId": null,
+          "sourceProjectId": null,
+          "projectType": 3,
+          "createTime": null,
+          "updateTime": 1777724119000,
+          "validProjectId": null,
+          "version": "1777724119000",
+          "sessionId": null
+        },
+        {
+          "userId": 14813164,
+          "canvas": null,
+          "projectId": "baa1386453a24878bfccc43a4566971b",
+          "projectName": "工作",
+          "projectCoverList": [
+            "https://a.lovart.ai/artifacts/agent/LGW1CxvPenG14rSL.png",
+            "https://a.lovart.ai/artifacts/agent/02trQ3tX73Z8kADI.png",
+            "https://a.lovart.ai/artifacts/agent/mEPTcbRETxBr0G3S.png",
+            "https://a.lovart.ai/artifacts/agent/N9ziH5jQfk77dI3V.png"
+          ],
+          "picCount": 31,
+          "isFavorite": 0,
+          "uniqId": null,
+          "sourceProjectId": null,
+          "projectType": 3,
+          "createTime": null,
+          "updateTime": 1777538134000,
+          "validProjectId": null,
+          "version": "1777538134000",
+          "sessionId": null
+        }
+      ],
+      "userIp": "",
+      "traceId": "",
+      "hasMore": false,
+      "rankExpId": null,
+      "abVariant": null
+    }
+  }
+}

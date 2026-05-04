@@ -7,31 +7,49 @@ import (
 	"github.com/aporicho/lovart/internal/http"
 )
 
-// QuoteResult contains the credit cost for a request.
+// QuoteResult contains the pricing response from the Lovart pricing API.
 type QuoteResult struct {
-	Quoted         bool    `json:"quoted"`
-	Credits        float64 `json:"credits"`
-	PayableCredits float64 `json:"payable_credits"`
+	Price       float64     `json:"price"`
+	Balance     float64     `json:"balance"`
+	PriceDetail PriceDetail `json:"price_detail"`
 }
 
-// quoteResponse mirrors the Lovart pricing endpoint response envelope.
+// PriceDetail breaks down how the price is calculated.
+type PriceDetail struct {
+	UnitPrice   float64 `json:"unit_price"`
+	UnitCount   int     `json:"unit_count"`
+	UnitName    string  `json:"unit_name"`
+	TotalPrice  float64 `json:"total_price"`
+	SearchKey   string  `json:"search_key"`
+	GeneratorName string `json:"generator_name"`
+
+	InputImageCount               int            `json:"input_image_count"`
+	InputImageCountField          string         `json:"input_image_count_field"`
+	InputImageCountUnitPrice      float64        `json:"input_image_count_unit_price"`
+	InputImageCountSurchargeEnabled bool          `json:"input_image_count_surcharge_enabled"`
+	ImageCountSurcharge           float64        `json:"image_count_surcharge"`
+	PriceBeforeSurcharge          float64        `json:"price_before_surcharge"`
+	InputArgs                     map[string]any `json:"input_args,omitempty"`
+}
+
+// quoteResponse mirrors the Lovart LGW pricing API response envelope.
 type quoteResponse struct {
 	Code int `json:"code"`
 	Data struct {
-		Price float64 `json:"price"`
+		Price       float64     `json:"price"`
+		Balance     float64     `json:"balance"`
+		PriceDetail PriceDetail `json:"price_detail"`
 	} `json:"data"`
 }
 
-// Quote fetches a live credit quote for the given model and body.
+// Quote fetches a live credit quote from the Lovart pricing API.
+// The body should contain the generation parameters (prompt, size, quality, n, etc.).
 func Quote(ctx context.Context, client *http.Client, model string, body map[string]any) (*QuoteResult, error) {
 	path := "/v1/generator/pricing"
 
-	// Build pricing request matching v1 format.
 	reqBody := map[string]any{
 		"generator_name": model,
 	}
-	// Merge body fields (prompt, size, quality, etc.) into input_args.
-	// The pricing endpoint expects the same shape as generation.
 	if len(body) > 0 {
 		reqBody["input_args"] = body
 	}
@@ -46,13 +64,22 @@ func Quote(ctx context.Context, client *http.Client, model string, body map[stri
 	}
 
 	return &QuoteResult{
-		Quoted:         true,
-		Credits:        resp.Data.Price,
-		PayableCredits: resp.Data.Price,
+		Price:       resp.Data.Price,
+		Balance:     resp.Data.Balance,
+		PriceDetail: resp.Data.PriceDetail,
 	}, nil
 }
 
-// QuoteExact returns whether the quote credits are exact.
-func QuoteExact() bool {
-	return true
+// Balance returns the user's current credit balance via a minimal pricing request.
+func Balance(ctx context.Context, client *http.Client) (float64, error) {
+	result, err := Quote(ctx, client, "openai/gpt-image-2", map[string]any{
+		"prompt":  "",
+		"quality": "low",
+		"size":    "1024*1024",
+		"n":       1,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("pricing: balance: %w", err)
+	}
+	return result.Balance, nil
 }
