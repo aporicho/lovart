@@ -3,12 +3,13 @@ package jobs
 import (
 	"context"
 	"fmt"
-	"io"
 	"math"
+	"os"
 
 	"github.com/aporicho/lovart/internal/config"
 	"github.com/aporicho/lovart/internal/http"
 	"github.com/aporicho/lovart/internal/pricing"
+	"github.com/schollz/progressbar/v3"
 )
 
 // QuoteSummary holds the aggregated batch pricing result.
@@ -38,8 +39,8 @@ type JobQuote struct {
 }
 
 // QuoteJobs runs batch pricing for all jobs in a JSONL file.
-// Progress is written to progress (can be nil). Results are returned in the summary.
-func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string, progress io.Writer) (*QuoteSummary, error) {
+// A visual progress bar is shown on stderr. Pass noProgress=true to suppress.
+func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string, noProgress bool) (*QuoteSummary, error) {
 	jobs, err := ParseJobsFile(jobsFile)
 	if err != nil {
 		return nil, fmt.Errorf("jobs quote: %w", err)
@@ -49,13 +50,29 @@ func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string, progre
 		return &QuoteSummary{}, nil
 	}
 
+	totalJobs := len(jobs)
+
+	var bar *progressbar.ProgressBar
+	if !noProgress {
+		bar = progressbar.NewOptions(totalJobs,
+			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionSetDescription("报价中..."),
+			progressbar.OptionSetTheme(progressbar.ThemeDefault),
+			progressbar.OptionFullWidth(),
+			progressbar.OptionShowCount(),
+			progressbar.OptionSetPredictTime(true),
+			progressbar.OptionShowElapsedTimeOnFinish(),
+			progressbar.OptionOnCompletion(func() {
+				fmt.Fprint(os.Stderr, "\n")
+			}),
+		)
+	}
+
 	cache := NewQuoteCache()
 	summary := &QuoteSummary{
-		TotalJobs: len(jobs),
+		TotalJobs: totalJobs,
 	}
 	var balance float64
-
-	totalJobs := len(jobs)
 
 	for i, job := range jobs {
 		sig := CostSignature(job)
@@ -114,20 +131,20 @@ func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string, progre
 		})
 		summary.TotalPrice += result.Price
 
-		// Progress to stderr.
-		if progress != nil {
-			status := "quote"
+		if bar != nil {
+			status := " quote"
 			if cached {
-				status = "cache"
+				status = " cache"
 			}
-			fmt.Fprintf(progress, "\r  报价中 [%d/%d] %s (%s)  cached: %d | quoted: %d",
-				i+1, totalJobs, status, job.Model, summary.CacheHits, summary.QuotedRequests)
+			bar.Describe(fmt.Sprintf("%s (%d/%d) %d cached %d quoted%s",
+				job.Model, i+1, totalJobs, summary.CacheHits, summary.QuotedRequests, status))
+			bar.Add(1)
 		}
 	}
 
-	if progress != nil {
-		fmt.Fprintf(progress, "\n")
-		fmt.Fprintf(progress, "  报价完成: %d 个 job, %d 个签名组, %d 次 API 调用, %d 次缓存命中, 总价 %.0f 积分\n",
+	if bar != nil {
+		bar.Finish()
+		fmt.Fprintf(os.Stderr, "  报价完成: %d 个 job, %d 个签名组, %d 次 API 调用, %d 次缓存命中, 总价 %.0f 积分\n",
 			totalJobs, cache.Size(), summary.QuotedRequests, summary.CacheHits, summary.TotalPrice)
 	}
 
@@ -139,8 +156,7 @@ func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string, progre
 	return summary, nil
 }
 
-// computeJobPrice calculates the total price for a job given the representative
-// unit price and the number of API calls needed.
+// computeJobPrice calculates the total price for a job.
 func computeJobPrice(quote *pricing.QuoteResult, apiCalls int, model string, outputs int) float64 {
 	cap := config.OutputCapability(model)
 
