@@ -14,7 +14,12 @@ func newProjectSelectCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			projectID := args[0]
-			if err := auth.SetProject(projectID, ""); err != nil {
+			pc, _ := auth.LoadProjectContext()
+			cid := ""
+			if pc != nil {
+				cid = pc.CID
+			}
+			if err := auth.SetProject(projectID, cid); err != nil {
 				printEnvelope(envelope.Err(errors.CodeInternal, "set project", map[string]any{"error": err.Error()}))
 				return nil
 			}

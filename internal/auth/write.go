@@ -34,7 +34,23 @@ func SetProject(projectID, cid string) error {
 
 	existing["project_id"] = projectID
 	existing["projectId"] = projectID
-	existing["cid"] = cid
+	if cid != "" {
+		existing["cid"] = cid
+	}
+
+	// Also update the nested ids sub-object for v1 compatibility.
+	if ids, ok := existing["ids"].(map[string]any); ok {
+		ids["project_id"] = projectID
+		ids["projectId"] = projectID
+		if cid != "" {
+			ids["cid"] = cid
+		}
+	} else if cid != "" {
+		existing["ids"] = map[string]any{
+			"projectId": projectID,
+			"cid":       cid,
+		}
+	}
 
 	data, err := json.Marshal(existing)
 	if err != nil {
