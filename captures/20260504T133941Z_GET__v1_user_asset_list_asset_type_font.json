@@ -1,0 +1,120 @@
+{
+  "captured_at": "20260504T133941Z",
+  "request": {
+    "method": "GET",
+    "url": "https://lgw.lovart.ai/v1/user-asset/list?asset_type=font",
+    "path": "/v1/user-asset/list?asset_type=font",
+    "headers": {
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "content-type": "application/json",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "x-user-uuid": "412fa1efca4c4890ab6bab77a36b757f",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 13:39:41 GMT",
+      "content-type": "application/json",
+      "access-control-expose-headers": "*",
+      "vary": "Origin,Origin",
+      "server": "cloudflare",
+      "x-request-id": "e0d74fff-8d36-4633-8233-f3060100ada5",
+      "access-control-allow-credentials": "true",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "b367821d46b7fce69549cdf31b9cd1ec",
+      "x-kong-upstream-latency": "49",
+      "x-kong-proxy-latency": "6",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "6b00fe43ffb9b06d94e7c860ab275e22",
+      "req-cost-time": "56",
+      "req-arrive-time": "1777901981489",
+      "resp-start-time": "1777901981545",
+      "x-envoy-upstream-service-time": "55",
+      "set-cookie": "acw_tc=e0d74fff-8d36-4633-8233-f3060100ada5c43e89f5fc4eaa598c63065edc359368;path=/;HttpOnly;Max-Age=1800, __cf_bm=NS9Zvuyyk_aIPt7YGiYa19etvfv0.rFm76YPVgjhKdk-1777901981.3710108-1.0.1.1-22kLjdTngo9KUflSqc5pjRQiaXHVeNah.tSexdC3h6sKO6K6bc_4y3Y5p06m7wDcxAvSAZy14SRKNhcTTbNeuPOj_rkYKSc7LfJW5TXXfzL33rHj1gWnbSKUjMoM1usc; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 14:09:41 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f67e9b79e722104-HKG"
+    },
+    "body": {
+      "code": "SUCCESS",
+      "data": {
+        "items": [
+          {
+            "id": "asset_1726ba8f",
+            "asset_type": "font",
+            "name": "Feature Display",
+            "url": "https://a.lovart.ai/context-forge/kits/kit_a309ca4b/font/0296f7a0.ttf",
+            "preview_url": "https://a.lovart.ai/context-forge/kit/kit_a309ca4b/font_preview/1774179350602134319.png",
+            "source": "kit",
+            "kit_id": "kit_a309ca4b",
+            "kit_name": "[Sample] Lovart Brand Kit",
+            "permission": "viewer",
+            "created_at": 1774179278
+          },
+          {
+            "id": "asset_10102f8e",
+            "asset_type": "font",
+            "name": "GT Standard",
+            "url": "https://a.lovart.ai/context-forge/kits/kit_a309ca4b/font/49d8207b.ttf",
+            "preview_url": "https://a.lovart.ai/context-forge/kit/kit_a309ca4b/font_preview/1774179359807878818.png",
+            "source": "kit",
+            "kit_id": "kit_a309ca4b",
+            "kit_name": "[Sample] Lovart Brand Kit",
+            "permission": "viewer",
+            "created_at": 1774179278
+          }
+        ]
+      },
+      "msg": ""
+    }
+  },
+  "response_body": {
+    "code": "SUCCESS",
+    "data": {
+      "items": [
+        {
+          "id": "asset_1726ba8f",
+          "asset_type": "font",
+          "name": "Feature Display",
+          "url": "https://a.lovart.ai/context-forge/kits/kit_a309ca4b/font/0296f7a0.ttf",
+          "preview_url": "https://a.lovart.ai/context-forge/kit/kit_a309ca4b/font_preview/1774179350602134319.png",
+          "source": "kit",
+          "kit_id": "kit_a309ca4b",
+          "kit_name": "[Sample] Lovart Brand Kit",
+          "permission": "viewer",
+          "created_at": 1774179278
+        },
+        {
+          "id": "asset_10102f8e",
+          "asset_type": "font",
+          "name": "GT Standard",
+          "url": "https://a.lovart.ai/context-forge/kits/kit_a309ca4b/font/49d8207b.ttf",
+          "preview_url": "https://a.lovart.ai/context-forge/kit/kit_a309ca4b/font_preview/1774179359807878818.png",
+          "source": "kit",
+          "kit_id": "kit_a309ca4b",
+          "kit_name": "[Sample] Lovart Brand Kit",
+          "permission": "viewer",
+          "created_at": 1774179278
+        }
+      ]
+    },
+    "msg": ""
+  }
+}

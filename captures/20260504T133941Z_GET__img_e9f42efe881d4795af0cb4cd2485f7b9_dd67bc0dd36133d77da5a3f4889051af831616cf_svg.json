@@ -1,0 +1,54 @@
+{
+  "captured_at": "20260504T133941Z",
+  "request": {
+    "method": "GET",
+    "url": "https://assets-persist.lovart.ai/img/e9f42efe881d4795af0cb4cd2485f7b9/dd67bc0dd36133d77da5a3f4889051af831616cf.svg",
+    "path": "/img/e9f42efe881d4795af0cb4cd2485f7b9/dd67bc0dd36133d77da5a3f4889051af831616cf.svg",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "no-cors",
+      "sec-fetch-dest": "image",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "cookie": "_gcl_au=1.1.1217701663.1777897152, _ga=GA1.1.1703026730.1777897154, _twpid=tw.1777897155913.929714704779794751, _fbp=fb.1.1777897156124.802390599120227687, _clck=ri5c18%5E2%5Eg5r%5E1%5E2315, _cbp=fb.1.1777897156124.802390599120227687, _hjSessionUser_6446279=eyJpZCI6ImNkYWVkMjc2LWMwNTUtNTkzOS1iMWY3LTNmODZjNzI2ZjYwOSIsImNyZWF0ZWQiOjE3Nzc4OTcxNTc4NTYsImV4aXN0aW5nIjp0cnVlfQ==, _pin_unauth=dWlkPU0yVXpPVGxpTnpZdE4yRTJNeTAwTldSa0xXSmxNak10TURVeE5URTBPVFpsTldZeA, _tt_enable_cookie=1, _ttp=01KQSFW1BWC4PVJ2BKG0HG304M_.tt.1, _iidt=s66NT8m5Oxp3VckKs44xWoh/YgKHpjDA+/Yt9oXHs7DwMUu82fUn349rRkAAl6s4PAUxf/rXRBwzvw==, _vid_t=xK+vlAOoBp/gy5h9jYMGefgui2sF2T+PDilTEmR+BLNc3X774V329V4lvbE8fXDXBMvjz9575jEnfQ==, intercom-session-xyxalc2q=NGtYdlJYRHhVdHFpeldMT0svajlCQjBlMVdXbHJ1Z0xrMXRKdFZmUmZZVWkxS1FNNkFVUVJhSzcvbjVZOHI2b2ZrVGFTVnNFN1MyR2N4ODhkd1BLendMcGR5YlRUdE81QjFvaXIzdzcram1mV3AxTXJUZTdXaTluM0lHbUdhdW52UHVpZ1RjWmFpSXRqd2E1eStMbUVkZGFFV1RwQ3c2RlFzc3ZQR0x5eG9CWXV4QUhpakNrMk9FMEpRbTRzT2RIRitPTHlYdVlQd1JlTkR2WU9KLzVnQT09LS1NVWdiZys4MFRTMFY2UCthRkhNWDd3PT0=--6b724a3cb088686b1e4c0c2a90494e94d3657f51, intercom-device-id-xyxalc2q=e010bf2a-01b8-4750-bccc-5a746a0e3ac5, _hjSession_6446279=eyJpZCI6IjgzNzkwZWU5LThkMDEtNDYwZS05MjdhLWUwNDViZDQ3MzVmMCIsImMiOjE3Nzc5MDE3NzI4MjUsInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjowLCJzcCI6MH0=, ttcsid_D4E29RJC77U4DODN4QHG=1777901936850::pFiaF7raYKS1PAlN-4SP.2.1777901959277.1, ttcsid=1777901936850::UDB8ql4mLirYuZKwvqef.2.1777901959277.0::1.22381.0::39850.12.444.462::13504.6.0, pt_3bg8mqij=deviceId%3D0b295d10-8383-4ede-8617-46465862891e%26sessionId%3Dba9dc36d-afa4-4f33-a673-2ec68beeaeea%26accountId%3D%26vn%3D2%26pvn%3D2%26lastActionTime%3D1777901976701%26, _ga_04J3EGQBWL=GS2.1.s1777901773$o2$g1$t1777901977$j18$l0$h0, _ga_XENJJC28ZM=GS2.1.s1777901773$o2$g1$t1777901977$j18$l0$h0, _ga_MRB1ZRXEK1=GS2.1.s1777901773$o2$g1$t1777901977$j18$l0$h625519347, _uetsid=778ecfa047b311f18bcf73b2b04222cb, _uetvid=778ecb8047b311f1a3178de0d2dd7f47, _clsk=a5q8i5%5E1777901979868%5E4%5E0%5Ez.clarity.ms%2Fcollect, __cf_bm=e0t5mDmSQHIEwNUDC9UwZKOxxVrACN2dYFhIkqqx5hA-1777901981.7929962-1.0.1.1-hrAGgOAOclZap9O3YeazTKy2bXmQDC_ws9D7xCtoobW1xt.cvSOdyTJwJ5n4eV7vKmtiYahX8pE3wz2QVVxCQAJRAfgGdqi0MgJ8cZ7He7cqbvh1r199o2cJNpmIMu.A",
+      "priority": "i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 13:39:41 GMT",
+      "content-type": "image/svg+xml",
+      "server": "cloudflare",
+      "content-security-policy": "sandbox allow-scripts",
+      "x-oss-request-id": "69DE086C8B391D37315ED5B0",
+      "access-control-max-age": "0",
+      "access-control-expose-headers": "ETag, x-oss-request-id, x-oss-version-id",
+      "last-modified": "Tue, 14 Apr 2026 09:26:48 GMT",
+      "x-oss-object-type": "Normal",
+      "x-oss-hash-crc64ecma": "6573890952877824686",
+      "x-oss-storage-class": "Standard",
+      "x-oss-version-id": "CAEQhwIYgYCAh5uhrewZIiA2ZmJiYzBkYmU2OTY0NzBjOTFmNGRmODU0YjFiMmYwMw--",
+      "content-md5": "+/MghaLtFS++LOXGtfCssQ==",
+      "x-oss-server-time": "4",
+      "age": "1743153",
+      "expires": "Mon, 04 May 2026 17:39:41 GMT",
+      "cache-control": "public, max-age=14400",
+      "cf-cache-status": "HIT",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, HEAD",
+      "access-control-allow-origin": "*",
+      "etag": "W/\"FBF32085A2ED152FBE2CE5C6B5F0ACB1\"",
+      "content-encoding": "gzip",
+      "cf-ray": "9f67e9bb6c59c5e8-HKG"
+    },
+    "body": "<svg width=\"54\" height=\"54\" viewBox=\"0 0 54 54\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M38.8125 6.75C43.4724 6.75 47.25 10.5276 47.25 15.1875V38.8125C47.25 43.4724 43.4724 47.25 38.8125 47.25H15.1875C10.5276 47.25 6.75 43.4724 6.75 38.8125V15.1875C6.75 10.5276 10.5276 6.75 15.1875 6.75H38.8125ZM15.1875 10.125C12.3916 10.125 10.125 12.3916 10.125 15.1875V38.8125C10.125 41.6084 12.3916 43.875 15.1875 43.875H38.8125C41.6084 43.875 43.875 41.6084 43.875 38.8125V15.1875C43.875 12.3916 41.6084 10.125 38.8125 10.125H15.1875ZM23.4426 19.8611C24.019 19.5775 24.7065 19.6455 25.2158 20.0369L32.5283 25.6619C32.9436 25.9813 33.1875 26.4761 33.1875 27C33.1875 27.5239 32.9436 28.0187 32.5283 28.3381L25.2158 33.9631C24.7065 34.3546 24.019 34.4225 23.4426 34.1389C22.8659 33.8549 22.5 33.2679 22.5 32.625V21.375L22.5176 21.1377C22.5952 20.5906 22.9378 20.1097 23.4426 19.8611Z\" fill=\"#9B7CFF\"/>\n</svg>\n"
+  },
+  "response_body": "<svg width=\"54\" height=\"54\" viewBox=\"0 0 54 54\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M38.8125 6.75C43.4724 6.75 47.25 10.5276 47.25 15.1875V38.8125C47.25 43.4724 43.4724 47.25 38.8125 47.25H15.1875C10.5276 47.25 6.75 43.4724 6.75 38.8125V15.1875C6.75 10.5276 10.5276 6.75 15.1875 6.75H38.8125ZM15.1875 10.125C12.3916 10.125 10.125 12.3916 10.125 15.1875V38.8125C10.125 41.6084 12.3916 43.875 15.1875 43.875H38.8125C41.6084 43.875 43.875 41.6084 43.875 38.8125V15.1875C43.875 12.3916 41.6084 10.125 38.8125 10.125H15.1875ZM23.4426 19.8611C24.019 19.5775 24.7065 19.6455 25.2158 20.0369L32.5283 25.6619C32.9436 25.9813 33.1875 26.4761 33.1875 27C33.1875 27.5239 32.9436 28.0187 32.5283 28.3381L25.2158 33.9631C24.7065 34.3546 24.019 34.4225 23.4426 34.1389C22.8659 33.8549 22.5 33.2679 22.5 32.625V21.375L22.5176 21.1377C22.5952 20.5906 22.9378 20.1097 23.4426 19.8611Z\" fill=\"#9B7CFF\"/>\n</svg>\n"
+}

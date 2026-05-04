@@ -1,0 +1,45 @@
+{
+  "captured_at": "20260504T133919Z",
+  "request": {
+    "method": "OPTIONS",
+    "url": "https://api.lovart.ai/api/www/lovart/login/query/user/info?timestamp=1777901959274",
+    "path": "/api/www/lovart/login/query/user/info?timestamp=1777901959274",
+    "headers": {
+      "accept": "*/*",
+      "access-control-request-method": "GET",
+      "access-control-request-headers": "token,webid,x-language",
+      "origin": "https://www.lovart.ai",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 13:39:19 GMT",
+      "content-length": "0",
+      "eagleeye-traceid": "49c9065414caa51156e0eb73d4f5cd0b",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "req-cost-time": "1",
+      "req-arrive-time": "1777901959622",
+      "resp-start-time": "1777901959624",
+      "x-envoy-upstream-service-time": "0",
+      "set-cookie": "acw_tc=4e03558b-34cb-4f93-ae9c-2e4958916a06eadb92b0d4efd50ff1c3a92fb7a1d5e7;path=/;HttpOnly;Max-Age=1800, __cf_bm=XU9T39jYdOW2yvbZ01CqwPeqpAY_iD_gwelHSnMVJNk-1777901959.503781-1.0.1.1-._i9HjRreLBvHP1H_2_XjLljVpjeXXn7G4N.F9GTnkx.B4G.19wwa_IzeAIT3j3lDApJm7aYPWvkdEyT9ftsu6gtd3vCbBNujioTE8BtU5kKZ4yauyY2bTW6.7Ku1RsU; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 14:09:19 GMT",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9f67e92eea950ed8-HKG"
+    },
+    "body": null
+  },
+  "response_body": null
+}

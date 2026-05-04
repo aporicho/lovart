@@ -1,0 +1,51 @@
+{
+  "captured_at": "20260504T133938Z",
+  "request": {
+    "method": "GET",
+    "url": "https://web-static3.lovart.ai/lovart_canvas_online/static/js/vendor-7.b95c8a7d.js",
+    "path": "/lovart_canvas_online/static/js/vendor-7.b95c8a7d.js",
+    "headers": {
+      "origin": "https://www.lovart.ai",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "*/*",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "script",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "if-modified-since": "Thu, 30 Apr 2026 07:33:27 GMT"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 304,
+    "headers": {
+      "date": "Mon, 04 May 2026 13:39:38 GMT",
+      "server": "cloudflare",
+      "age": "367306",
+      "x-oss-server-time": "7",
+      "vary": "Accept-Encoding, Origin",
+      "x-oss-request-id": "69F306D07B92D331386808ED",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, HEAD",
+      "access-control-max-age": "0",
+      "last-modified": "Thu, 30 Apr 2026 07:33:27 GMT",
+      "x-oss-object-type": "Normal",
+      "x-oss-hash-crc64ecma": "4525936138785667113",
+      "x-oss-storage-class": "Standard",
+      "content-md5": "4nuOnYyMNZfzhHObR3wz9A==",
+      "expires": "Mon, 04 May 2026 17:39:38 GMT",
+      "cache-control": "public, max-age=14400",
+      "cf-cache-status": "HIT",
+      "set-cookie": "__cf_bm=sQEUyXx_Da_Iyo7POfN9KXxhLBxdhKkJ425CTkP6dz4-1777901978.1636248-1.0.1.1-W1AIHmmWVgRrSh6fAUegDeDwG4DF7gTttBKkDN._gTrQiKBPdJqRYL74STAOoexVp0WWR26l42t6qX.MK6QdLu.fUVoHUi.CCKlb8jwGHqPk64.UuS.faVJmSOzqlZ.o; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 14:09:38 GMT",
+      "access-control-expose-headers": "ETag, x-oss-request-id, x-oss-version-id",
+      "cf-ray": "9f67e9a38b1d08bf-HKG"
+    },
+    "body": null
+  },
+  "response_body": null
+}

@@ -105,7 +105,7 @@ func (c *Client) setAuthHeaders(req *nethttp.Request) {
 		req.Header.Set("Cookie", c.creds.Cookie)
 	}
 	if c.creds.Token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.creds.Token)
+		req.Header.Set("token", c.creds.Token)
 	}
 	if c.creds.CSRF != "" {
 		req.Header.Set("X-CSRF-Token", c.creds.CSRF)

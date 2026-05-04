@@ -1,54 +1,0 @@
-{
-  "captured_at": "20260504T123840Z",
-  "request": {
-    "method": "GET",
-    "url": "https://assets-persist.lovart.ai/img/094dcc2b8a1f460e8770523975df08f2/84109528063bea0f8eef15fff7ba715c8426f5dd.png?x-oss-process=image/resize,w_128,m_lfit/format,webp",
-    "path": "/img/094dcc2b8a1f460e8770523975df08f2/84109528063bea0f8eef15fff7ba715c8426f5dd.png?x-oss-process=image/resize,w_128,m_lfit/format,webp",
-    "headers": {
-      "sec-ch-ua-platform": "\"macOS\"",
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
-      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
-      "sec-ch-ua-mobile": "?0",
-      "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-      "sec-fetch-site": "same-site",
-      "sec-fetch-mode": "no-cors",
-      "sec-fetch-dest": "image",
-      "referer": "https://www.lovart.ai/",
-      "accept-encoding": "gzip, deflate, br, zstd",
-      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
-      "cookie": "_gcl_au=1.1.1217701663.1777897152, _ga=GA1.1.1703026730.1777897154, _twpid=tw.1777897155913.929714704779794751, _fbp=fb.1.1777897156124.802390599120227687, _clck=ri5c18%5E2%5Eg5r%5E1%5E2315, _cbp=fb.1.1777897156124.802390599120227687, _hjSession_6446279=eyJpZCI6Ijc5YWRmYTAwLWFkYjQtNDk3OS1hYmUxLTA3NmQxYzdmZDE0MyIsImMiOjE3Nzc4OTcxNTc4NTcsInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjoxLCJzcCI6MH0=, _hjSessionUser_6446279=eyJpZCI6ImNkYWVkMjc2LWMwNTUtNTkzOS1iMWY3LTNmODZjNzI2ZjYwOSIsImNyZWF0ZWQiOjE3Nzc4OTcxNTc4NTYsImV4aXN0aW5nIjp0cnVlfQ==, _pin_unauth=dWlkPU0yVXpPVGxpTnpZdE4yRTJNeTAwTldSa0xXSmxNak10TURVeE5URTBPVFpsTldZeA, _tt_enable_cookie=1, _ttp=01KQSFW1BWC4PVJ2BKG0HG304M_.tt.1, _iidt=s66NT8m5Oxp3VckKs44xWoh/YgKHpjDA+/Yt9oXHs7DwMUu82fUn349rRkAAl6s4PAUxf/rXRBwzvw==, _vid_t=xK+vlAOoBp/gy5h9jYMGefgui2sF2T+PDilTEmR+BLNc3X774V329V4lvbE8fXDXBMvjz9575jEnfQ==, ttcsid=1777898227070::KoSM47wXn_CrD7oyUYtF.1.1777898231728.0::1.-6869.625::4641.1.537.418::0.0.0, ttcsid_D4E29RJC77U4DODN4QHG=1777898227070::_uuwdDrVBqjCko4qgBW_.1.1777898231728.1, pt_3bg8mqij=deviceId%3D0b295d10-8383-4ede-8617-46465862891e%26sessionId%3D9b767495-8282-48a0-85f8-93c792e48cb6%26accountId%3D%26vn%3D1%26pvn%3D2%26lastActionTime%3D1777898231734%26, _clsk=1czjr80%5E1777898287516%5E4%5E0%5Es.clarity.ms%2Fcollect, __cf_bm=i3H69.uWk_Nyq37sZ1lKSYVfq_K9d1xmyrb_VBAbFT4-1777898291.729892-1.0.1.1-REZc.0WDD5ttprKahmBQp1tdPE8mBl_Alu4oj_oi3hHmgExr9Rchnj21bOu7CZQMaMQ9ho_NRzatR825A_2iXHXe7WpBWmtWAMW9aT2Z.lSh8kd6FlivrojepdpyKMEf, _ga_04J3EGQBWL=GS2.1.s1777897153$o1$g1$t1777898313$j32$l0$h0, _ga_XENJJC28ZM=GS2.1.s1777897153$o1$g1$t1777898313$j32$l0$h0, _ga_MRB1ZRXEK1=GS2.1.s1777897154$o1$g1$t1777898313$j32$l0$h1266398542, _uetsid=778ecfa047b311f18bcf73b2b04222cb, _uetvid=778ecb8047b311f1a3178de0d2dd7f47",
-      "priority": "i"
-    },
-    "body": null
-  },
-  "response": {
-    "status_code": 200,
-    "headers": {
-      "date": "Mon, 04 May 2026 12:38:34 GMT",
-      "content-type": "image/webp",
-      "content-length": "1284",
-      "server": "cloudflare",
-      "content-security-policy": "sandbox allow-scripts",
-      "x-oss-request-id": "69E9CFEAFD97743530D0B0C0",
-      "etag": "\"068D403D3AB548F753F5D9C7E9329F2E\"",
-      "last-modified": "Wed, 08 Apr 2026 13:48:35 GMT",
-      "x-oss-object-type": "Normal",
-      "x-oss-storage-class": "Standard",
-      "x-oss-version-id": "CAEQiQIYgYDAnpy0tesZIiA1MmJhMjM4N2Y3MzQ0NjhjOGUwOWZjNTcwNzQyZjkwMw--",
-      "x-oss-hash-crc64ecma": "12700907246280972925",
-      "x-oss-server-time": "73",
-      "accept-ranges": "bytes",
-      "age": "967520",
-      "expires": "Mon, 04 May 2026 16:38:34 GMT",
-      "cache-control": "public, max-age=14400",
-      "cf-cache-status": "HIT",
-      "access-control-allow-methods": "GET, POST, PUT, DELETE, HEAD",
-      "access-control-allow-origin": "*",
-      "access-control-expose-headers": "ETag, x-oss-request-id, x-oss-version-id",
-      "access-control-max-age": "0",
-      "cf-ray": "9f679032cadae2fe-HKG"
-    },
-    "body": "RIFFü\u0004\u0000\u0000WEBPVP8 ð\u0004\u0000\u0000p\u001c\u0000\u0001*\u0000\u0000>m2H¤\"¢$#\u0012ºx\r@\u001asF·ËÖyÏÙÿ·ñÓ\u001f¾Å¹fíOâµþ3­\u001fÿÖoÙ_H\u000fs\u001e\u001fà?ªõ¦ú\bùpû'~æzY±é5fßÙýEÒ!ûI$ÆO¼H®þîð\u001b^¯\u0006·U=\u0011\\¬ÒáÒarð¡RÃ\u0005ÞºÝt6åt¬bÊPï\b27\u0011-^Å^º2\u000eÞÙ×»à\u0004}lS~Ö\u0001ò\u0015Èy\u0012,X­ù7EñØ\rNË\u0007\u000e\u001câ\u000f=\u0012pºJ.¿;\u0018\u00112y\u001c$¦I\u0010%\"\u0018{k¿´\r\u0003ð¢\u001fDæ\u0017\"ê\u0000\u0000þüb7(\u0001F²&¡?Jj%\u001c¿yià7w-\u001c0CP\u001d\u001céÇµiÏ+xVu\tO\u0011]\u001eHãuýØ+òñ`zþ§Ô~bË°ã¼~5S\\i¶[*Oÿqz\u001a[CíP\u0000$ïòÍæÏ¢ð\u0002sÁ¨e\u0004 ¦XÝE T\u001f.DòÂÁrâ~\u0002só@=üs gPâðÁï,\u0007 ÍÆ2Ûã*°îëðã%\u0006¿æ§ôà¹\u0001æK×¯Tç\u001dä=*zÉúåv@\u0007\u0007¿\"±9Û^k\u000f,\u0016\u0006ÔôîÒ;eÙ-ÒªI\tbÚñj~B?\u0006\u001bù\\¾\u0010ÞÁq\u001dEjå\u000fz/*y\u0019e¯%UÙU\u0006î<\u0011\u001dzf^Ëåf×\u0013gê»Á¡EÙ\u001a}\u001bB¡dÃÿYò\u0010>êã\u0003\\7xG¦\u001aæð:¥\u001a%±T\bØ¼B1Ïã'Dø\u0013;dn?Ä\u001fâwú§ é¦²WQ­@Í\fuÿå\u0003\u0000zÙöÝ¦XóªÆÉ[;\\',CzxBPN¤\\÷³H±PÀYø«¡ Ñ²æ\u001f25ÝÑå>þ<.å4£»¥51Ã|Êér¼@W7<ã\u0005³«ãgrÐ\u0001qh\u0007ã\u0007:Çb¸ª=\f]\u0001@Ë?É»PÜáCO\u0012\u0013¢3â5XB Ô\u00179tá\u0016ý¦WO\u0000i¥K÷Cb¡\u001f_°D£ n$\u0017«¹6!T§éN½«'\u0018d@¼spØ~1z\u0006aà=1Êçëâ{S¦ãÖ\u000e\n\u0004¬\nîÉ}y¯Ëå¨Ö¦µ$P³¿CgÔP²\nñ\u0014|³ò\u0016}Ü\u001b·>X`\"^Ù\npiî\rË@+óÅ\u0014\u000f\u0016ãì\u000f¶ß¾ÑÚP&Yk×Öà{\"Æä_%sÖöÖÕ²\u0000\u0015®åxIïùÖé¤CÜ\u0012ç2¯ÁÝ&c\u0017vó\u0005ß\u0003\u000f4ã¶ÈIö»æ\u0013+X\u000faD®µ;\u001c¥\u0003ó£ÑQG4w%ÇEÞp3\u000eÌoüg1º\u001aÎV\f÷R Á¹\u0013\ri¿\u0012¦»\u0000¯QüØË´3ÿî8©'\f|È9hý\u0014×åR\tWqFêv?X:£\u001cëÃ¥ï\u0019\u0006\u0012\u001e-åÜ¢T\u0012ß`¤ÊKãA\u0012\u000f´ÿ\u001f\u001cÂ$S^YÇ&s\u0003hLÉ³»\u000eÍ\u0014ð#\u0005ú:ñßp\u001a16x£'ËY\u0014õÕß)\u0010~À6279\u0015*?!\u001av\nÁ1^×ìçðxëç{OEq}uÐ\t8Ð+éù?\u0013S\u0004tÚ\u000f]´h²\u00136\u0015E\râ\u000baía\u001cÀïéÆÈlkÚùÏy¯SâØÏ`½t6O'¯ö\u0014¯U$NKdÑ$-\u0016dûE9ê¨\n\u0006N àsP}\u00107=Ë¨¬U²üEºU%?Já¯x\u0019RVxáº\t÷ï]ö\u0000\u0000\u0000Ø´G\u0007èÙÂ¶Ìè\u0012ôc80\u0006\f*\u0016ÚË \u0000\u0000\u0000\u0000\u0000"
-  },
-  "response_body": "RIFFü\u0004\u0000\u0000WEBPVP8 ð\u0004\u0000\u0000p\u001c\u0000\u0001*\u0000\u0000>m2H¤\"¢$#\u0012ºx\r@\u001asF·ËÖyÏÙÿ·ñÓ\u001f¾Å¹fíOâµþ3­\u001fÿÖoÙ_H\u000fs\u001e\u001fà?ªõ¦ú\bùpû'~æzY±é5fßÙýEÒ!ûI$ÆO¼H®þîð\u001b^¯\u0006·U=\u0011\\¬ÒáÒarð¡RÃ\u0005ÞºÝt6åt¬bÊPï\b27\u0011-^Å^º2\u000eÞÙ×»à\u0004}lS~Ö\u0001ò\u0015Èy\u0012,X­ù7EñØ\rNË\u0007\u000e\u001câ\u000f=\u0012pºJ.¿;\u0018\u00112y\u001c$¦I\u0010%\"\u0018{k¿´\r\u0003ð¢\u001fDæ\u0017\"ê\u0000\u0000þüb7(\u0001F²&¡?Jj%\u001c¿yià7w-\u001c0CP\u001d\u001céÇµiÏ+xVu\tO\u0011]\u001eHãuýØ+òñ`zþ§Ô~bË°ã¼~5S\\i¶[*Oÿqz\u001a[CíP\u0000$ïòÍæÏ¢ð\u0002sÁ¨e\u0004 ¦XÝE T\u001f.DòÂÁrâ~\u0002só@=üs gPâðÁï,\u0007 ÍÆ2Ûã*°îëðã%\u0006¿æ§ôà¹\u0001æK×¯Tç\u001dä=*zÉúåv@\u0007\u0007¿\"±9Û^k\u000f,\u0016\u0006ÔôîÒ;eÙ-ÒªI\tbÚñj~B?\u0006\u001bù\\¾\u0010ÞÁq\u001dEjå\u000fz/*y\u0019e¯%UÙU\u0006î<\u0011\u001dzf^Ëåf×\u0013gê»Á¡EÙ\u001a}\u001bB¡dÃÿYò\u0010>êã\u0003\\7xG¦\u001aæð:¥\u001a%±T\bØ¼B1Ïã'Dø\u0013;dn?Ä\u001fâwú§ é¦²WQ­@Í\fuÿå\u0003\u0000zÙöÝ¦XóªÆÉ[;\\',CzxBPN¤\\÷³H±PÀYø«¡ Ñ²æ\u001f25ÝÑå>þ<.å4£»¥51Ã|Êér¼@W7<ã\u0005³«ãgrÐ\u0001qh\u0007ã\u0007:Çb¸ª=\f]\u0001@Ë?É»PÜáCO\u0012\u0013¢3â5XB Ô\u00179tá\u0016ý¦WO\u0000i¥K÷Cb¡\u001f_°D£ n$\u0017«¹6!T§éN½«'\u0018d@¼spØ~1z\u0006aà=1Êçëâ{S¦ãÖ\u000e\n\u0004¬\nîÉ}y¯Ëå¨Ö¦µ$P³¿CgÔP²\nñ\u0014|³ò\u0016}Ü\u001b·>X`\"^Ù\npiî\rË@+óÅ\u0014\u000f\u0016ãì\u000f¶ß¾ÑÚP&Yk×Öà{\"Æä_%sÖöÖÕ²\u0000\u0015®åxIïùÖé¤CÜ\u0012ç2¯ÁÝ&c\u0017vó\u0005ß\u0003\u000f4ã¶ÈIö»æ\u0013+X\u000faD®µ;\u001c¥\u0003ó£ÑQG4w%ÇEÞp3\u000eÌoüg1º\u001aÎV\f÷R Á¹\u0013\ri¿\u0012¦»\u0000¯QüØË´3ÿî8©'\f|È9hý\u0014×åR\tWqFêv?X:£\u001cëÃ¥ï\u0019\u0006\u0012\u001e-åÜ¢T\u0012ß`¤ÊKãA\u0012\u000f´ÿ\u001f\u001cÂ$S^YÇ&s\u0003hLÉ³»\u000eÍ\u0014ð#\u0005ú:ñßp\u001a16x£'ËY\u0014õÕß)\u0010~À6279\u0015*?!\u001av\nÁ1^×ìçðxëç{OEq}uÐ\t8Ð+éù?\u0013S\u0004tÚ\u000f]´h²\u00136\u0015E\râ\u000baía\u001cÀïéÆÈlkÚùÏy¯SâØÏ`½t6O'¯ö\u0014¯U$NKdÑ$-\u0016dûE9ê¨\n\u0006N àsP}\u00107=Ë¨¬U²üEºU%?Já¯x\u0019RVxáº\t÷ï]ö\u0000\u0000\u0000Ø´G\u0007èÙÂ¶Ìè\u0012ôc80\u0006\f*\u0016ÚË \u0000\u0000\u0000\u0000\u0000"
-}

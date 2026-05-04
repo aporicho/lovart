@@ -15,7 +15,7 @@ from lovart_reverse.capture.runtime import reverse_extra_status
 from lovart_reverse.errors import InputError
 from lovart_reverse.paths import CAPTURES_DIR, PACKAGE_DIR
 
-DEFAULT_CAPTURE_URL = "https://www.lovart.ai/canvas"
+DEFAULT_CAPTURE_URL = "https://www.lovart.ai"
 
 
 def default_profile_dir() -> Path:

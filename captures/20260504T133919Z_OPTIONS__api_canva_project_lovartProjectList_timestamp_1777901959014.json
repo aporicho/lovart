@@ -1,0 +1,44 @@
+{
+  "captured_at": "20260504T133919Z",
+  "request": {
+    "method": "OPTIONS",
+    "url": "https://api.lovart.ai/api/canva/project/lovartProjectList?timestamp=1777901959014",
+    "path": "/api/canva/project/lovartProjectList?timestamp=1777901959014",
+    "headers": {
+      "accept": "*/*",
+      "access-control-request-method": "POST",
+      "access-control-request-headers": "content-type,token,webid,x-language",
+      "origin": "https://www.lovart.ai",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 13:39:19 GMT",
+      "content-length": "0",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "req-cost-time": "1",
+      "req-arrive-time": "1777901959281",
+      "resp-start-time": "1777901959282",
+      "x-envoy-upstream-service-time": "0",
+      "set-cookie": "acw_tc=99f8cb95-3cc7-4370-a2f9-dbfe1ac02de6a457004155fc7d5c4f9eef7286119903;path=/;HttpOnly;Max-Age=1800, __cf_bm=EbwtP0K_riZZYAau2ECx0VoHAX6Yinrqx9Dc74SGgyY-1777901959.1620848-1.0.1.1-uKKD48aR1lhGk9M.fJbmmCUt_Mm_0_qdAtuy7tuppYLg0cvytgiT4.QXEAgGHFojjHr7DX5NrK4H3ETuBUVYESfB5RmObFarREesmhIrYebk5X4NgYXaNz25zKSYZvCy; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 14:09:19 GMT",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9f67e92cb9360ed8-HKG"
+    },
+    "body": null
+  },
+  "response_body": null
+}

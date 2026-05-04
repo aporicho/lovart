@@ -1,0 +1,998 @@
+{
+  "captured_at": "20260504T133958Z",
+  "request": {
+    "method": "GET",
+    "url": "https://lgw.lovart.ai/v1/generator/list?biz_type=16",
+    "path": "/v1/generator/list?biz_type=16",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-send-timestamp": "1777901998374",
+      "x-req-uuid": "361816fcc3d140819cffd47f33a9d26b",
+      "x-client-signature": "1:1bab5bace5f148795a0c00c3dcf44d595e5f74889390dd0a6c1210ddd0bfe66e",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 13:39:58 GMT",
+      "content-type": "application/json",
+      "access-control-allow-headers": "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-Uuid, X-Auth-Token",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "access-control-max-age": "86400",
+      "x-request-id": "8ec404ca-a76c-4473-86b4-4cf382ab635d",
+      "server": "cloudflare",
+      "vary": "Origin",
+      "access-control-allow-credentials": "true",
+      "access-control-expose-headers": "*",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "22678a2d01c595950ba2d097006d264d",
+      "x-kong-upstream-latency": "50",
+      "x-kong-proxy-latency": "0",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "e11d11597b179b68e4029d6a12df0758",
+      "req-cost-time": "51",
+      "req-arrive-time": "1777901998511",
+      "resp-start-time": "1777901998563",
+      "x-envoy-upstream-service-time": "50",
+      "set-cookie": "acw_tc=8ec404ca-a76c-4473-86b4-4cf382ab635dea19ac7568e5ce91ad4e20ea248ef774;path=/;HttpOnly;Max-Age=1800, __cf_bm=JENIBWwZvXjH9ZiJGNAUi_Gy23YfO8.8TwmLxDiKUEU-1777901998.3939137-1.0.1.1-awz5FXRiGw4.Z6Fx7FvOcYS0ohQlAk4vP1s7j0F2ux7zOnqsWslhFEWs7KQ4McAmVnLKPwZ0DAGYQLWo01LccJBYrK.o5icuZvU1uttMW.N7wGcMjd3J_HAddluhav5k; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 14:09:58 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f67ea21ff00ef7b-HKG"
+    },
+    "body": {
+      "code": 0,
+      "message": "success",
+      "data": {
+        "items": [
+          {
+            "name": "vertex/anon-bob",
+            "display_name": "Nano Banana Pro",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nbp.svg",
+            "description": "Google's state-of-the-art image editing model",
+            "type": "image",
+            "index": 1
+          },
+          {
+            "name": "seedance/seedance-2-0",
+            "display_name": "Seedance 2.0",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+            "description": "Fast, high-quality model from ByteDance",
+            "type": "video",
+            "index": 1,
+            "is_vip": true
+          },
+          {
+            "name": "vertex/nano-banana-2",
+            "display_name": "Nano Banana 2",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nbp.svg",
+            "description": "Google's state-of-the-art image editing model with multi-resolution support",
+            "type": "image",
+            "index": 2
+          },
+          {
+            "name": "seedance/seedance-2-0-fast",
+            "display_name": "Seedance 2.0 Fast",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+            "description": "Fast, high-quality model from ByteDance",
+            "type": "video",
+            "index": 2,
+            "is_vip": true
+          },
+          {
+            "name": "kling/kling-v3",
+            "display_name": "Kling 3.0",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+            "description": "Kling's latest Version high-resolution video model",
+            "type": "video",
+            "index": 3,
+            "is_vip": true
+          },
+          {
+            "name": "openai/gpt-image-2",
+            "display_name": "GPT Image 2",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+            "description": "OpenAI's next-generation image model",
+            "type": "image",
+            "index": 3
+          },
+          {
+            "name": "openai/gpt-image-1-5",
+            "display_name": "GPT Image 1.5",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+            "description": "OpenAI's most advanced image model",
+            "type": "image",
+            "index": 4
+          },
+          {
+            "name": "kling/kling-v3-omni",
+            "display_name": "Kling 3.0 Omni",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+            "description": "Kling's latest Omni Version high-resolution video model",
+            "type": "video",
+            "index": 4,
+            "is_vip": true
+          },
+          {
+            "name": "fal/flux-2-pro",
+            "display_name": "Flux 2 Pro",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/flux_kontext_max.svg",
+            "description": "BFL's high-fidelity image model",
+            "type": "image",
+            "index": 5
+          },
+          {
+            "name": "openai/sora-2",
+            "display_name": "Sora 2",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/sora_2.svg",
+            "description": "OpenAI's latest video model",
+            "type": "video",
+            "index": 5,
+            "is_vip": true
+          },
+          {
+            "name": "openai/sora-2-pro",
+            "display_name": "Sora 2 Pro",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/sora_2.svg",
+            "description": "OpenAI's latest video model",
+            "type": "video",
+            "index": 6,
+            "is_vip": true
+          },
+          {
+            "name": "fal/flux-2-max",
+            "display_name": "Flux 2 Max",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/flux_kontext_max.svg",
+            "description": "BFL's high-fidelity image model",
+            "type": "image",
+            "index": 6
+          },
+          {
+            "name": "vertex/nano-banana",
+            "display_name": "Nano Banana",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nbp.svg",
+            "description": "Google's state-of-the-art image editing model",
+            "type": "image",
+            "index": 7
+          },
+          {
+            "name": "vertex/veo3-1",
+            "display_name": "Veo 3.1",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3.svg",
+            "description": "Google's latest video model with integrated audio and visuals",
+            "type": "video",
+            "index": 7,
+            "is_vip": true
+          },
+          {
+            "name": "seedream/seedream-5-0",
+            "display_name": "Seedream 5",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+            "description": "New fast, high-quality model from ByteDance",
+            "type": "image",
+            "index": 8
+          },
+          {
+            "name": "vertex/veo3-1-fast",
+            "display_name": "Veo 3.1 Fast",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3_fast.svg",
+            "description": "Fast frontier model with audio",
+            "type": "video",
+            "index": 8,
+            "is_vip": true
+          },
+          {
+            "name": "seedream/seedream-4-5",
+            "display_name": "Seedream 4.5",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+            "description": "New fast, high-quality model from ByteDance",
+            "type": "image",
+            "index": 9
+          },
+          {
+            "name": "kling/kling-video-o1",
+            "display_name": "Kling O1",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_0_master.svg",
+            "description": "Kling's omni video model.",
+            "type": "video",
+            "index": 9,
+            "is_vip": true
+          },
+          {
+            "name": "seedream/seedream-4-0",
+            "display_name": "Seedream 4",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+            "description": "New fast, high-quality model from ByteDance",
+            "type": "image",
+            "index": 10
+          },
+          {
+            "name": "kling/kling-video-extension",
+            "display_name": "Kling Video Extension",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_1_6.svg",
+            "description": "Extend an existing Kling-generated video (video-extend API).",
+            "type": "video-modify",
+            "index": 10,
+            "is_vip": true
+          },
+          {
+            "name": "kling/kling-v2-6",
+            "display_name": "Kling 2.6",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+            "description": "Kling's latest Version high-resolution video model",
+            "type": "video",
+            "index": 11,
+            "is_vip": true
+          },
+          {
+            "name": "openai/gpt-image-1",
+            "display_name": "GPT Image",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+            "description": "OpenAI's image model",
+            "type": "image",
+            "index": 11
+          },
+          {
+            "name": "youchuan/midjourney",
+            "display_name": "Midjourney",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/midjourney.svg",
+            "description": "An image generation model that transforms text into artistic visuals.",
+            "type": "image",
+            "index": 12
+          },
+          {
+            "name": "seedance/seedance-1-5-pro",
+            "display_name": "Seedance Pro 1.5",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+            "description": "Fast, high-quality model from ByteDance",
+            "type": "video",
+            "index": 12
+          },
+          {
+            "name": "kling/kling-v2-5-turbo",
+            "display_name": "Kling 2.5 Turbo",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+            "description": "Kling's latest Turbo Version high-resolution video model",
+            "type": "video",
+            "index": 13,
+            "is_vip": true
+          },
+          {
+            "name": "ideogram/ideogram-v3",
+            "display_name": "Ideogram",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/ideogram.svg",
+            "description": "Highly aesthetic, general-purpose model",
+            "type": "image",
+            "index": 14
+          },
+          {
+            "name": "wan/wan-2-6",
+            "display_name": "Wan 2.6",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/wan_2_2.svg",
+            "description": "Fast, high-quality model from Alibaba",
+            "type": "video",
+            "index": 14
+          },
+          {
+            "name": "wan/wan-2-5-preview",
+            "display_name": "Wan 2.5",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/wan_2_2.svg",
+            "description": "Fast, high-quality model from Alibaba",
+            "type": "video",
+            "index": 15
+          },
+          {
+            "name": "recraft/recraft-v3",
+            "display_name": "Recraft V3",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/recraft_v3.svg",
+            "description": "High-precision AI image generation model",
+            "type": "image",
+            "index": 15
+          },
+          {
+            "name": "lovart/remover",
+            "display_name": "Remover",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Lovart AI Remover",
+            "type": "image-modify",
+            "index": 999
+          },
+          {
+            "name": "vidu/vidu-q3",
+            "display_name": "Vidu Q3",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+            "description": "Vidu Q3 delivers high-fidelity short videos from start/end frames or single keyframes, with Turbo and Pro variants for different speed-quality trade-offs.",
+            "type": "video",
+            "index": 16
+          },
+          {
+            "name": "vidu/vidu-q2-pro",
+            "display_name": "Vidu Q2 Pro",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+            "description": "Vidu Q2 Pro supports video reference, video editing, and video replacement with high-fidelity output.",
+            "type": "video",
+            "index": 17
+          },
+          {
+            "name": "vidu/vidu-q2",
+            "display_name": "Vidu Q2",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+            "description": "Vidu Q2 delivers high-fidelity short videos from start/end frames or single keyframes, with Turbo and Pro variants for different speed-quality trade-offs.",
+            "type": "video",
+            "index": 18
+          },
+          {
+            "name": "vertex/veo3",
+            "display_name": "Veo 3",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3.svg",
+            "description": "Google's latest video model with integrated audio and visuals",
+            "type": "video",
+            "index": 19,
+            "is_vip": true
+          },
+          {
+            "name": "vertex/veo3-fast",
+            "display_name": "Veo 3 Fast",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3_fast.svg",
+            "description": "Fast frontier model with audio",
+            "type": "video",
+            "index": 20,
+            "is_vip": true
+          },
+          {
+            "name": "kling/kling-v2-1-master",
+            "display_name": "Kling 2.1 Master",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+            "description": "Kling's latest Master Version high-resolution video model",
+            "type": "video",
+            "index": 21,
+            "is_vip": true
+          },
+          {
+            "name": "seedance/seedance-1-0-pro",
+            "display_name": "Seedance Pro 1.0",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+            "description": "Fast, high-quality model from ByteDance",
+            "type": "video",
+            "index": 22
+          },
+          {
+            "name": "kling/kling-v2-master",
+            "display_name": "Kling 2.0 Master",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_0_master.svg",
+            "description": "High-resolution video models of the Kling 2.0 generation",
+            "type": "video",
+            "index": 23,
+            "is_vip": true
+          },
+          {
+            "name": "kling/kling-v2-1",
+            "display_name": "Kling 2.1",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1.svg",
+            "description": "Kling's high-res video model.",
+            "type": "video",
+            "index": 24,
+            "is_vip": true
+          },
+          {
+            "name": "kling/kling-v1-6",
+            "display_name": "Kling 1.6",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_1_6.svg",
+            "description": "High-quality model for complex scenes",
+            "type": "video",
+            "index": 25,
+            "is_vip": true
+          },
+          {
+            "name": "vidu/vidu-q1",
+            "display_name": "Vidu Q1",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+            "description": "Vidu Q1 is a newly released, highly controllable video large language model that excels in multi-subject detail control.",
+            "type": "video",
+            "index": 26
+          },
+          {
+            "name": "minimax/minimax-hailuo-02",
+            "display_name": "Hailuo 02",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+            "description": "Frontier model with dynamic motion",
+            "type": "video",
+            "index": 27
+          },
+          {
+            "name": "minimax/minimax-hailuo-2-3",
+            "display_name": "Hailuo 2.3",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+            "description": "Frontier model with dynamic motion",
+            "type": "video",
+            "index": 28
+          },
+          {
+            "name": "minimax/minimax-hailuo-2-3-fast",
+            "display_name": "Hailuo 2.3 Fast",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+            "description": "Frontier model with dynamic motion",
+            "type": "video",
+            "index": 29
+          },
+          {
+            "name": "fal/ltxv",
+            "display_name": "LTXV 2.0",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/ltx.svg",
+            "description": "FAL's high-fidelity video model with audio generation",
+            "type": "video",
+            "index": 30
+          },
+          {
+            "name": "topaz/upscale-video",
+            "display_name": "Video Upscaler",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Topaz Video Upscaler",
+            "type": "video-modify",
+            "index": 999
+          },
+          {
+            "name": "bria/remove-video-background",
+            "display_name": "Video Background Remover",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Bria Video Background Remover",
+            "type": "video-modify",
+            "index": 999
+          },
+          {
+            "name": "lovart/image-expand",
+            "display_name": "Image Expand",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Lovart AI Image Expand",
+            "type": "image-modify",
+            "index": 999
+          },
+          {
+            "name": "lovart/move-object",
+            "display_name": "Move Object",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Move object from source area to target area",
+            "type": "image-modify",
+            "index": 999
+          },
+          {
+            "name": "wavespeed/image-upscaler",
+            "display_name": "Wavespeed Image Upscaler",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Wavespeed AI Image Upscaler",
+            "type": "image-modify",
+            "index": 999
+          },
+          {
+            "name": "lovart/font-generator",
+            "display_name": "Font Generator",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Lovart AI Font Generator",
+            "type": "font",
+            "index": 999
+          },
+          {
+            "name": "lovart/layer-separation",
+            "display_name": "Layer Separation",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Lovart AI Layer Separation",
+            "type": "image-modify",
+            "index": 999
+          },
+          {
+            "name": "vectorizer/vectorizer",
+            "display_name": "Image Vectorization API",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Image Vectorization",
+            "type": "image-modify",
+            "index": 999
+          },
+          {
+            "name": "wavespeed/bria-expand",
+            "display_name": "Wavespeed Bria Expand",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Wavespeed AI Image Expand",
+            "type": "image-modify",
+            "index": 999
+          },
+          {
+            "name": "wavespeed/multiple-angles",
+            "display_name": "Qwen Image Edit 2509 Multiple Angles",
+            "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+            "description": "Wavespeed Qwen Image Edit 2509 Multiple Angles. Generates multiple-angle views from reference image(s).",
+            "type": "image-modify",
+            "index": 999
+          }
+        ],
+        "default_image_model": "openai/gpt-image-2",
+        "default_image_resolution": "auto",
+        "default_video_model": "seedance/seedance-2-0"
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "items": [
+        {
+          "name": "vertex/anon-bob",
+          "display_name": "Nano Banana Pro",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nbp.svg",
+          "description": "Google's state-of-the-art image editing model",
+          "type": "image",
+          "index": 1
+        },
+        {
+          "name": "seedance/seedance-2-0",
+          "display_name": "Seedance 2.0",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+          "description": "Fast, high-quality model from ByteDance",
+          "type": "video",
+          "index": 1,
+          "is_vip": true
+        },
+        {
+          "name": "vertex/nano-banana-2",
+          "display_name": "Nano Banana 2",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nbp.svg",
+          "description": "Google's state-of-the-art image editing model with multi-resolution support",
+          "type": "image",
+          "index": 2
+        },
+        {
+          "name": "seedance/seedance-2-0-fast",
+          "display_name": "Seedance 2.0 Fast",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+          "description": "Fast, high-quality model from ByteDance",
+          "type": "video",
+          "index": 2,
+          "is_vip": true
+        },
+        {
+          "name": "kling/kling-v3",
+          "display_name": "Kling 3.0",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+          "description": "Kling's latest Version high-resolution video model",
+          "type": "video",
+          "index": 3,
+          "is_vip": true
+        },
+        {
+          "name": "openai/gpt-image-2",
+          "display_name": "GPT Image 2",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+          "description": "OpenAI's next-generation image model",
+          "type": "image",
+          "index": 3
+        },
+        {
+          "name": "openai/gpt-image-1-5",
+          "display_name": "GPT Image 1.5",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+          "description": "OpenAI's most advanced image model",
+          "type": "image",
+          "index": 4
+        },
+        {
+          "name": "kling/kling-v3-omni",
+          "display_name": "Kling 3.0 Omni",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+          "description": "Kling's latest Omni Version high-resolution video model",
+          "type": "video",
+          "index": 4,
+          "is_vip": true
+        },
+        {
+          "name": "fal/flux-2-pro",
+          "display_name": "Flux 2 Pro",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/flux_kontext_max.svg",
+          "description": "BFL's high-fidelity image model",
+          "type": "image",
+          "index": 5
+        },
+        {
+          "name": "openai/sora-2",
+          "display_name": "Sora 2",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/sora_2.svg",
+          "description": "OpenAI's latest video model",
+          "type": "video",
+          "index": 5,
+          "is_vip": true
+        },
+        {
+          "name": "openai/sora-2-pro",
+          "display_name": "Sora 2 Pro",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/sora_2.svg",
+          "description": "OpenAI's latest video model",
+          "type": "video",
+          "index": 6,
+          "is_vip": true
+        },
+        {
+          "name": "fal/flux-2-max",
+          "display_name": "Flux 2 Max",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/flux_kontext_max.svg",
+          "description": "BFL's high-fidelity image model",
+          "type": "image",
+          "index": 6
+        },
+        {
+          "name": "vertex/nano-banana",
+          "display_name": "Nano Banana",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/nbp.svg",
+          "description": "Google's state-of-the-art image editing model",
+          "type": "image",
+          "index": 7
+        },
+        {
+          "name": "vertex/veo3-1",
+          "display_name": "Veo 3.1",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3.svg",
+          "description": "Google's latest video model with integrated audio and visuals",
+          "type": "video",
+          "index": 7,
+          "is_vip": true
+        },
+        {
+          "name": "seedream/seedream-5-0",
+          "display_name": "Seedream 5",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+          "description": "New fast, high-quality model from ByteDance",
+          "type": "image",
+          "index": 8
+        },
+        {
+          "name": "vertex/veo3-1-fast",
+          "display_name": "Veo 3.1 Fast",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3_fast.svg",
+          "description": "Fast frontier model with audio",
+          "type": "video",
+          "index": 8,
+          "is_vip": true
+        },
+        {
+          "name": "seedream/seedream-4-5",
+          "display_name": "Seedream 4.5",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+          "description": "New fast, high-quality model from ByteDance",
+          "type": "image",
+          "index": 9
+        },
+        {
+          "name": "kling/kling-video-o1",
+          "display_name": "Kling O1",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_0_master.svg",
+          "description": "Kling's omni video model.",
+          "type": "video",
+          "index": 9,
+          "is_vip": true
+        },
+        {
+          "name": "seedream/seedream-4-0",
+          "display_name": "Seedream 4",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+          "description": "New fast, high-quality model from ByteDance",
+          "type": "image",
+          "index": 10
+        },
+        {
+          "name": "kling/kling-video-extension",
+          "display_name": "Kling Video Extension",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_1_6.svg",
+          "description": "Extend an existing Kling-generated video (video-extend API).",
+          "type": "video-modify",
+          "index": 10,
+          "is_vip": true
+        },
+        {
+          "name": "kling/kling-v2-6",
+          "display_name": "Kling 2.6",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+          "description": "Kling's latest Version high-resolution video model",
+          "type": "video",
+          "index": 11,
+          "is_vip": true
+        },
+        {
+          "name": "openai/gpt-image-1",
+          "display_name": "GPT Image",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/gpt_image_1.svg",
+          "description": "OpenAI's image model",
+          "type": "image",
+          "index": 11
+        },
+        {
+          "name": "youchuan/midjourney",
+          "display_name": "Midjourney",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/midjourney.svg",
+          "description": "An image generation model that transforms text into artistic visuals.",
+          "type": "image",
+          "index": 12
+        },
+        {
+          "name": "seedance/seedance-1-5-pro",
+          "display_name": "Seedance Pro 1.5",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+          "description": "Fast, high-quality model from ByteDance",
+          "type": "video",
+          "index": 12
+        },
+        {
+          "name": "kling/kling-v2-5-turbo",
+          "display_name": "Kling 2.5 Turbo",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+          "description": "Kling's latest Turbo Version high-resolution video model",
+          "type": "video",
+          "index": 13,
+          "is_vip": true
+        },
+        {
+          "name": "ideogram/ideogram-v3",
+          "display_name": "Ideogram",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/ideogram.svg",
+          "description": "Highly aesthetic, general-purpose model",
+          "type": "image",
+          "index": 14
+        },
+        {
+          "name": "wan/wan-2-6",
+          "display_name": "Wan 2.6",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/wan_2_2.svg",
+          "description": "Fast, high-quality model from Alibaba",
+          "type": "video",
+          "index": 14
+        },
+        {
+          "name": "wan/wan-2-5-preview",
+          "display_name": "Wan 2.5",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/wan_2_2.svg",
+          "description": "Fast, high-quality model from Alibaba",
+          "type": "video",
+          "index": 15
+        },
+        {
+          "name": "recraft/recraft-v3",
+          "display_name": "Recraft V3",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/recraft_v3.svg",
+          "description": "High-precision AI image generation model",
+          "type": "image",
+          "index": 15
+        },
+        {
+          "name": "lovart/remover",
+          "display_name": "Remover",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Lovart AI Remover",
+          "type": "image-modify",
+          "index": 999
+        },
+        {
+          "name": "vidu/vidu-q3",
+          "display_name": "Vidu Q3",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+          "description": "Vidu Q3 delivers high-fidelity short videos from start/end frames or single keyframes, with Turbo and Pro variants for different speed-quality trade-offs.",
+          "type": "video",
+          "index": 16
+        },
+        {
+          "name": "vidu/vidu-q2-pro",
+          "display_name": "Vidu Q2 Pro",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+          "description": "Vidu Q2 Pro supports video reference, video editing, and video replacement with high-fidelity output.",
+          "type": "video",
+          "index": 17
+        },
+        {
+          "name": "vidu/vidu-q2",
+          "display_name": "Vidu Q2",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+          "description": "Vidu Q2 delivers high-fidelity short videos from start/end frames or single keyframes, with Turbo and Pro variants for different speed-quality trade-offs.",
+          "type": "video",
+          "index": 18
+        },
+        {
+          "name": "vertex/veo3",
+          "display_name": "Veo 3",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3.svg",
+          "description": "Google's latest video model with integrated audio and visuals",
+          "type": "video",
+          "index": 19,
+          "is_vip": true
+        },
+        {
+          "name": "vertex/veo3-fast",
+          "display_name": "Veo 3 Fast",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/veo3_fast.svg",
+          "description": "Fast frontier model with audio",
+          "type": "video",
+          "index": 20,
+          "is_vip": true
+        },
+        {
+          "name": "kling/kling-v2-1-master",
+          "display_name": "Kling 2.1 Master",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1_master.svg",
+          "description": "Kling's latest Master Version high-resolution video model",
+          "type": "video",
+          "index": 21,
+          "is_vip": true
+        },
+        {
+          "name": "seedance/seedance-1-0-pro",
+          "display_name": "Seedance Pro 1.0",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedance_1_0.svg",
+          "description": "Fast, high-quality model from ByteDance",
+          "type": "video",
+          "index": 22
+        },
+        {
+          "name": "kling/kling-v2-master",
+          "display_name": "Kling 2.0 Master",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_0_master.svg",
+          "description": "High-resolution video models of the Kling 2.0 generation",
+          "type": "video",
+          "index": 23,
+          "is_vip": true
+        },
+        {
+          "name": "kling/kling-v2-1",
+          "display_name": "Kling 2.1",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_2_1.svg",
+          "description": "Kling's high-res video model.",
+          "type": "video",
+          "index": 24,
+          "is_vip": true
+        },
+        {
+          "name": "kling/kling-v1-6",
+          "display_name": "Kling 1.6",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/kling_1_6.svg",
+          "description": "High-quality model for complex scenes",
+          "type": "video",
+          "index": 25,
+          "is_vip": true
+        },
+        {
+          "name": "vidu/vidu-q1",
+          "display_name": "Vidu Q1",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/vidu_q1.svg",
+          "description": "Vidu Q1 is a newly released, highly controllable video large language model that excels in multi-subject detail control.",
+          "type": "video",
+          "index": 26
+        },
+        {
+          "name": "minimax/minimax-hailuo-02",
+          "display_name": "Hailuo 02",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+          "description": "Frontier model with dynamic motion",
+          "type": "video",
+          "index": 27
+        },
+        {
+          "name": "minimax/minimax-hailuo-2-3",
+          "display_name": "Hailuo 2.3",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+          "description": "Frontier model with dynamic motion",
+          "type": "video",
+          "index": 28
+        },
+        {
+          "name": "minimax/minimax-hailuo-2-3-fast",
+          "display_name": "Hailuo 2.3 Fast",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/hailuo_02.svg",
+          "description": "Frontier model with dynamic motion",
+          "type": "video",
+          "index": 29
+        },
+        {
+          "name": "fal/ltxv",
+          "display_name": "LTXV 2.0",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/ltx.svg",
+          "description": "FAL's high-fidelity video model with audio generation",
+          "type": "video",
+          "index": 30
+        },
+        {
+          "name": "topaz/upscale-video",
+          "display_name": "Video Upscaler",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Topaz Video Upscaler",
+          "type": "video-modify",
+          "index": 999
+        },
+        {
+          "name": "bria/remove-video-background",
+          "display_name": "Video Background Remover",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Bria Video Background Remover",
+          "type": "video-modify",
+          "index": 999
+        },
+        {
+          "name": "lovart/image-expand",
+          "display_name": "Image Expand",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Lovart AI Image Expand",
+          "type": "image-modify",
+          "index": 999
+        },
+        {
+          "name": "lovart/move-object",
+          "display_name": "Move Object",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Move object from source area to target area",
+          "type": "image-modify",
+          "index": 999
+        },
+        {
+          "name": "wavespeed/image-upscaler",
+          "display_name": "Wavespeed Image Upscaler",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Wavespeed AI Image Upscaler",
+          "type": "image-modify",
+          "index": 999
+        },
+        {
+          "name": "lovart/font-generator",
+          "display_name": "Font Generator",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Lovart AI Font Generator",
+          "type": "font",
+          "index": 999
+        },
+        {
+          "name": "lovart/layer-separation",
+          "display_name": "Layer Separation",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Lovart AI Layer Separation",
+          "type": "image-modify",
+          "index": 999
+        },
+        {
+          "name": "vectorizer/vectorizer",
+          "display_name": "Image Vectorization API",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Image Vectorization",
+          "type": "image-modify",
+          "index": 999
+        },
+        {
+          "name": "wavespeed/bria-expand",
+          "display_name": "Wavespeed Bria Expand",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Wavespeed AI Image Expand",
+          "type": "image-modify",
+          "index": 999
+        },
+        {
+          "name": "wavespeed/multiple-angles",
+          "display_name": "Qwen Image Edit 2509 Multiple Angles",
+          "icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/default.svg",
+          "description": "Wavespeed Qwen Image Edit 2509 Multiple Angles. Generates multiple-angle views from reference image(s).",
+          "type": "image-modify",
+          "index": 999
+        }
+      ],
+      "default_image_model": "openai/gpt-image-2",
+      "default_image_resolution": "auto",
+      "default_video_model": "seedance/seedance-2-0"
+    }
+  }
+}
