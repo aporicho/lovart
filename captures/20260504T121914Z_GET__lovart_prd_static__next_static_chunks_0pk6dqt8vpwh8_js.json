@@ -1,0 +1,52 @@
+{
+  "captured_at": "20260504T121914Z",
+  "request": {
+    "method": "GET",
+    "url": "https://web-static3.lovart.ai/lovart_prd/static/_next/static/chunks/0pk6dqt8vpwh8.js",
+    "path": "/lovart_prd/static/_next/static/chunks/0pk6dqt8vpwh8.js",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "*/*",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "no-cors",
+      "sec-fetch-dest": "script",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh-CN,zh;q=0.9",
+      "cookie": "__cf_bm=jrdsAPiswOEevGzgpFItOoDoRhD7NrFZ2T.ab62iV3w-1777897149.2438943-1.0.1.1-YzsXizP0j8UOAwmRDMRLXegKERxapWbrdnntV6jN3rtON1OyS_zFjPsOcDYlombKYOwJVnAH1_I7vYnHsnZ3rzD3._qoe_FGVweP3auI4NipFh9easJwxjCoOhhlRCX3, _gcl_au=1.1.1217701663.1777897152, _ga=GA1.1.1703026730.1777897154, _ga_04J3EGQBWL=GS2.1.s1777897153$o1$g1$t1777897153$j60$l0$h0, _ga_XENJJC28ZM=GS2.1.s1777897153$o1$g1$t1777897153$j60$l0$h0, _ga_MRB1ZRXEK1=GS2.1.s1777897154$o1$g1$t1777897154$j60$l0$h1266398542"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 12:19:14 GMT",
+      "content-type": "application/javascript",
+      "server": "cloudflare",
+      "access-control-max-age": "0",
+      "x-oss-request-id": "69CCD8703F8A273534FD4F31",
+      "vary": "Origin",
+      "access-control-expose-headers": "ETag, x-oss-request-id, x-oss-version-id",
+      "access-control-allow-origin": "*",
+      "last-modified": "Wed, 01 Apr 2026 08:24:02 GMT",
+      "x-oss-object-type": "Normal",
+      "x-oss-hash-crc64ecma": "1300219961939924731",
+      "x-oss-storage-class": "Standard",
+      "content-md5": "jcoo7XD8JptaibjGzGHWGg==",
+      "x-oss-server-time": "2",
+      "age": "1564342",
+      "expires": "Mon, 04 May 2026 16:19:14 GMT",
+      "cache-control": "public, max-age=14400",
+      "cf-cache-status": "HIT",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, HEAD",
+      "etag": "W/\"8DCA28ED70FC269B5A89B8C6CC61D61A\"",
+      "content-encoding": "gzip",
+      "cf-ray": "9f6773e13b7a260d-NRT"
+    },
+    "body": "(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push([\"object\"==typeof document?document.currentScript:void 0,560073,i=>{\"use strict\";i.s([\"LOCALE_COOKIE_KEY\",0,\"__locale\"])},955161,i=>{\"use strict\";i.s([],932063),i.i(932063),i.i(911883),i.i(560073);var e=i.i(259627);i.i(705714),i.i(55433),i.i(669892),i.s([\"preloadLocale\",()=>e.preloadLocale],955161)}]);"
+  },
+  "response_body": "(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push([\"object\"==typeof document?document.currentScript:void 0,560073,i=>{\"use strict\";i.s([\"LOCALE_COOKIE_KEY\",0,\"__locale\"])},955161,i=>{\"use strict\";i.s([],932063),i.i(932063),i.i(911883),i.i(560073);var e=i.i(259627);i.i(705714),i.i(55433),i.i(669892),i.s([\"preloadLocale\",()=>e.preloadLocale],955161)}]);"
+}

@@ -1,0 +1,52 @@
+{
+  "captured_at": "20260504T121913Z",
+  "request": {
+    "method": "GET",
+    "url": "https://web-static3.lovart.ai/lovart_prd/static/_next/static/chunks/023ut_zgsl4on.js",
+    "path": "/lovart_prd/static/_next/static/chunks/023ut_zgsl4on.js",
+    "headers": {
+      "origin": "https://www.lovart.ai",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "*/*",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "script",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh-CN,zh;q=0.9"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 12:19:13 GMT",
+      "content-type": "application/javascript",
+      "server": "cloudflare",
+      "access-control-expose-headers": "ETag, x-oss-request-id, x-oss-version-id",
+      "vary": "Accept-Encoding, Origin",
+      "x-oss-request-id": "69DE208776187036377C6D5A",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, HEAD",
+      "access-control-max-age": "0",
+      "last-modified": "Mon, 13 Apr 2026 14:17:46 GMT",
+      "x-oss-object-type": "Normal",
+      "x-oss-hash-crc64ecma": "1239987626556550335",
+      "x-oss-storage-class": "Standard",
+      "content-md5": "htChUukjfZQu8wIhDj51vA==",
+      "x-oss-server-time": "23",
+      "content-encoding": "gzip",
+      "age": "1732154",
+      "expires": "Mon, 04 May 2026 16:19:13 GMT",
+      "cache-control": "public, max-age=14400",
+      "cf-cache-status": "HIT",
+      "set-cookie": "__cf_bm=4n2kflNbnoPqYsVez6oW5UD7kXLD6RAPuBurwahvIco-1777897153.8500464-1.0.1.1-Loh8NVy_Xu1eelUDZ4D53Vf4saNGlgxpkz3nY15WQIorbVZWA_vowhQO6F0o3hnzOcfaEYhlZF4.t0iawUMep4D05mae272sJzdMbyRmMxSRVsszs8whFZfbBQg6ncna; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 12:49:13 GMT",
+      "cf-ray": "9f6773db8cee218e-NRT"
+    },
+    "body": "(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push([\"object\"==typeof document?document.currentScript:void 0,664473,e=>{\"use strict\";var r=e.i(335452),o=e.i(278300),t=e.i(705714),a=e.i(528911),s=e.i(110005),n=e.i(800852);let l=[\"ChunkLoadError\",\"Loading chunk\",\"Failed to fetch dynamically imported module\",\"Failed to load chunk\",\"Loading CSS chunk\",\"error loading dynamically imported module\"];e.s([\"default\",0,function({error:e,reset:i}){let c,d,u=(0,n.usePathname)(),m=(0,n.useSearchParams)(),{t:h}=(0,t.useI18n)(),g=(c=e?.message||\"\",\"ChunkLoadError\"===(d=e?.name||\"\")||l.some(e=>c.toLowerCase().includes(e.toLowerCase())||d.toLowerCase().includes(e.toLowerCase())));return(0,o.useEffect)(()=>{console.error(e,i),(0,s.mv)(\"lovart.runtime.error\",{error:e.message,pathname:u,searchParams:m.toString(),isChunkError:g},s.DUAL_WRITE_OPTIONS)},[e,g,u,i,m]),(0,r.jsxs)(\"div\",{className:\"flex h-screen flex-col items-center justify-center\",children:[(0,r.jsx)(\"h2\",{className:\"mb-4 text-2xl font-bold\",children:h(\"error_something_went_wrong\")}),g&&(0,r.jsx)(\"p\",{className:\"mb-4 text-gray-500\",children:h(\"error_network_issue\")}),(0,r.jsx)(a.Button,{color:\"black\",onClick:()=>i(),children:h(\"error_try_again\")}),(0,r.jsx)(\"a\",{href:\"mailto:support@lovart.ai\",className:\"mt-4 text-xs text-gray-400 underline hover:text-gray-600\",children:h(\"error_contact_support\")})]})}])}]);"
+  },
+  "response_body": "(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push([\"object\"==typeof document?document.currentScript:void 0,664473,e=>{\"use strict\";var r=e.i(335452),o=e.i(278300),t=e.i(705714),a=e.i(528911),s=e.i(110005),n=e.i(800852);let l=[\"ChunkLoadError\",\"Loading chunk\",\"Failed to fetch dynamically imported module\",\"Failed to load chunk\",\"Loading CSS chunk\",\"error loading dynamically imported module\"];e.s([\"default\",0,function({error:e,reset:i}){let c,d,u=(0,n.usePathname)(),m=(0,n.useSearchParams)(),{t:h}=(0,t.useI18n)(),g=(c=e?.message||\"\",\"ChunkLoadError\"===(d=e?.name||\"\")||l.some(e=>c.toLowerCase().includes(e.toLowerCase())||d.toLowerCase().includes(e.toLowerCase())));return(0,o.useEffect)(()=>{console.error(e,i),(0,s.mv)(\"lovart.runtime.error\",{error:e.message,pathname:u,searchParams:m.toString(),isChunkError:g},s.DUAL_WRITE_OPTIONS)},[e,g,u,i,m]),(0,r.jsxs)(\"div\",{className:\"flex h-screen flex-col items-center justify-center\",children:[(0,r.jsx)(\"h2\",{className:\"mb-4 text-2xl font-bold\",children:h(\"error_something_went_wrong\")}),g&&(0,r.jsx)(\"p\",{className:\"mb-4 text-gray-500\",children:h(\"error_network_issue\")}),(0,r.jsx)(a.Button,{color:\"black\",onClick:()=>i(),children:h(\"error_try_again\")}),(0,r.jsx)(\"a\",{href:\"mailto:support@lovart.ai\",className:\"mt-4 text-xs text-gray-400 underline hover:text-gray-600\",children:h(\"error_contact_support\")})]})}])}]);"
+}

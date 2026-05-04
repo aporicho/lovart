@@ -1,0 +1,89 @@
+{
+  "captured_at": "20260504T121927Z",
+  "request": {
+    "method": "POST",
+    "url": "https://www.lovart.ai/api/www/log/acceptor/f",
+    "path": "/api/www/log/acceptor/f",
+    "headers": {
+      "content-length": "671",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "accept": "application/json, text/plain, */*",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "content-type": "application/json",
+      "sec-ch-ua-mobile": "?0",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/zh/login?platform=canvas&hideClose=1&redirectUrl=%2Fcanvas",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "cookie": "webid=1777897149336rigdvsge, acw_tc=eed672fc-5d58-48af-b387-e07fe7234194c92f363c9d280b496a3814e148a00693, __cf_bm=jrdsAPiswOEevGzgpFItOoDoRhD7NrFZ2T.ab62iV3w-1777897149.2438943-1.0.1.1-YzsXizP0j8UOAwmRDMRLXegKERxapWbrdnntV6jN3rtON1OyS_zFjPsOcDYlombKYOwJVnAH1_I7vYnHsnZ3rzD3._qoe_FGVweP3auI4NipFh9easJwxjCoOhhlRCX3, statsig_custom={%22effective%22:0}, _gcl_au=1.1.1217701663.1777897152, _ga=GA1.1.1703026730.1777897154, _ga_04J3EGQBWL=GS2.1.s1777897153$o1$g1$t1777897153$j60$l0$h0, _ga_XENJJC28ZM=GS2.1.s1777897153$o1$g1$t1777897153$j60$l0$h0, _ga_MRB1ZRXEK1=GS2.1.s1777897154$o1$g1$t1777897154$j60$l0$h1266398542, __color_mode=dark, __locale=zh, _uetsid=778ecfa047b311f18bcf73b2b04222cb, _uetvid=778ecb8047b311f1a3178de0d2dd7f47, _twpid=tw.1777897155913.929714704779794751, _fbp=fb.1.1777897156124.802390599120227687, _clck=ri5c18%5E2%5Eg5r%5E1%5E2315, _cbp=fb.1.1777897156124.802390599120227687, _clsk=1czjr80%5E1777897157844%5E2%5E0%5Es.clarity.ms%2Fcollect, _hjSession_6446279=eyJpZCI6Ijc5YWRmYTAwLWFkYjQtNDk3OS1hYmUxLTA3NmQxYzdmZDE0MyIsImMiOjE3Nzc4OTcxNTc4NTcsInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjoxLCJzcCI6MH0=, _hjSessionUser_6446279=eyJpZCI6ImNkYWVkMjc2LWMwNTUtNTkzOS1iMWY3LTNmODZjNzI2ZjYwOSIsImNyZWF0ZWQiOjE3Nzc4OTcxNTc4NTYsImV4aXN0aW5nIjp0cnVlfQ==, pt_3bg8mqij=deviceId%3D0b295d10-8383-4ede-8617-46465862891e%26sessionId%3D9b767495-8282-48a0-85f8-93c792e48cb6%26accountId%3D%26vn%3D1%26pvn%3D1%26lastActionTime%3D1777897164907%26, _iidt=WmODYW026NUlWGoTM59A+zo/YRlgdq1MaaD8V63ifBUGsJ7pnLk/1OXWFThJB87NhixniXMHou0slQ==, _vid_t=orZkRNA5NSZr7dSHiI7jS1HAn/vtnJNgX7KiaNtSIP2WWBC1XvDn9G2Fo+s2JE87jKg56jR4q8kNtg==",
+      "priority": "u=1, i"
+    },
+    "body": {
+      "tz": "Asia/Shanghai",
+      "langs": [
+        "zh-CN",
+        "zh"
+      ],
+      "uuid": "",
+      "cid": "1777897149336rigdvsge",
+      "ct": 1777897166753,
+      "region": "oversea",
+      "pageUrl": "https://www.lovart.ai/zh/login?platform=canvas&hideClose=1&redirectUrl=%2Fcanvas",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "referer": "https://www.lovart.ai/canvas",
+      "e": "time.page.active.end",
+      "var": {
+        "eid": "3cca288b-e851-4a14-855f-353743fb68c9",
+        "duration": 12395,
+        "action": "close",
+        "sessionIndex": 0,
+        "timestamp": 1777897166752.9,
+        "build_version": "558-20a8483e",
+        "credits": 0,
+        "dpr": 2,
+        "sw": 2048,
+        "sh": 1152,
+        "region": "oversea"
+      },
+      "ver": "2.0",
+      "sw": 2048,
+      "sh": 1152,
+      "dpr": 2
+    }
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 12:19:27 GMT",
+      "content-type": "application/json",
+      "eagleeye-traceid": "d5072431d10fa5bd329ddb29afecac03",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "vary": "Origin,Access-Control-Request-Method,Access-Control-Request-Headers",
+      "req-cost-time": "3",
+      "req-arrive-time": "1777897166915",
+      "resp-start-time": "1777897166919",
+      "x-envoy-upstream-service-time": "0",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f67742cafd12038-NRT"
+    },
+    "body": {
+      "code": 0,
+      "msg": null,
+      "data": null
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "msg": null,
+    "data": null
+  }
+}

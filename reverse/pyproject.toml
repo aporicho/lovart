@@ -5,20 +5,19 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "lovart-reverse"
 version = "2.0.0-dev"
-description = "Reverse-engineering helpers for Lovart web requests (v2 standalone)."
-readme = "README.md"
+description = "Lovart browser capture and credential extraction tools."
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "requests>=2.33.1",
+]
 
 [project.optional-dependencies]
-reverse = ["mitmproxy>=11.0.2"]
+reverse = [
+    "mitmproxy>=11.0.2",
+]
 
 [project.scripts]
 lovart-reverse = "lovart_reverse.cli.main:main"
-
-[build-system]
-requires = ["setuptools>=69", "wheel"]
-build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["lovart_reverse*"]

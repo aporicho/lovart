@@ -1,0 +1,53 @@
+{
+  "captured_at": "20260504T121910Z",
+  "request": {
+    "method": "GET",
+    "url": "https://web-static3.lovart.ai/lovart_canvas_online/static/js/canvas.ca9cf300.js",
+    "path": "/lovart_canvas_online/static/js/canvas.ca9cf300.js",
+    "headers": {
+      "origin": "https://www.lovart.ai",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "*/*",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "script",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh-CN,zh;q=0.9"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 12:19:10 GMT",
+      "content-type": "application/javascript",
+      "server": "cloudflare",
+      "access-control-expose-headers": "ETag, x-oss-request-id, x-oss-version-id",
+      "x-oss-request-id": "69F306D07618703631E4EE5C",
+      "vary": "Origin",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, HEAD",
+      "access-control-max-age": "0",
+      "set-cookie": "__cf_bm=sMTtReOeLCiq.CBW7HYT_yGneLAo7uO2x0W4eirq4Jo-1777897150.18902-1.0.1.1-CbYxULvX2hEzzkfXeYhj7.OB4XwCxx4su6iTd_gZu5f63rpWjnZqSSbQlwFT3WfklVuy2QvyBfOMnLHLpL.d6Bqx0SrZcWx80gu0Q2Qa9.x9yWYKt_rPNtgcnw2eHZ1K; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 12:49:10 GMT",
+      "last-modified": "Thu, 30 Apr 2026 07:33:23 GMT",
+      "x-oss-object-type": "Normal",
+      "x-oss-hash-crc64ecma": "13927917651792291372",
+      "x-oss-storage-class": "Standard",
+      "content-md5": "kdcjzXj1rfrs7Q2jGoRqag==",
+      "x-oss-server-time": "4",
+      "age": "362478",
+      "expires": "Mon, 04 May 2026 16:19:10 GMT",
+      "cache-control": "public, max-age=14400",
+      "cf-cache-status": "HIT",
+      "etag": "W/\"91D723CD78F5ADFAECED0DA31A846A6A\"",
+      "content-encoding": "gzip",
+      "cf-ray": "9f6773c4a985218e-NRT"
+    },
+    "body": "try{let e=\"u\">typeof window?window:\"u\">typeof global?global:\"u\">typeof globalThis?globalThis:\"u\">typeof self?self:{},l=(new e.Error).stack;l&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[l]=\"9ea29b6f-df5e-41f0-9098-a0a8374bd36d\",e._sentryDebugIdIdentifier=\"sentry-dbid-9ea29b6f-df5e-41f0-9098-a0a8374bd36d\")}catch(e){}(\"u\">typeof window?window:\"u\">typeof global?global:\"u\">typeof globalThis?globalThis:\"u\">typeof self?self:{}).SENTRY_RELEASE={id:\"d024246edb4e3ea28816f2292c5e38f69cc720c2\"};\"use strict\";(self.webpackChunk_lovartai_lovart_shell=self.webpackChunk_lovartai_lovart_shell||[]).push([[\"200\"],{},function(e){e.O(0,[\"132\",\"136\",\"184\",\"26\",\"313\",\"389\",\"551\",\"622\",\"666\",\"675\",\"689\",\"706\",\"760\",\"79\",\"82\",\"823\"],function(){return e(e.s=70862)}),e.O()}]);"
+  },
+  "response_body": "try{let e=\"u\">typeof window?window:\"u\">typeof global?global:\"u\">typeof globalThis?globalThis:\"u\">typeof self?self:{},l=(new e.Error).stack;l&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[l]=\"9ea29b6f-df5e-41f0-9098-a0a8374bd36d\",e._sentryDebugIdIdentifier=\"sentry-dbid-9ea29b6f-df5e-41f0-9098-a0a8374bd36d\")}catch(e){}(\"u\">typeof window?window:\"u\">typeof global?global:\"u\">typeof globalThis?globalThis:\"u\">typeof self?self:{}).SENTRY_RELEASE={id:\"d024246edb4e3ea28816f2292c5e38f69cc720c2\"};\"use strict\";(self.webpackChunk_lovartai_lovart_shell=self.webpackChunk_lovartai_lovart_shell||[]).push([[\"200\"],{},function(e){e.O(0,[\"132\",\"136\",\"184\",\"26\",\"313\",\"389\",\"551\",\"622\",\"666\",\"675\",\"689\",\"706\",\"760\",\"79\",\"82\",\"823\"],function(){return e(e.s=70862)}),e.O()}]);"
+}

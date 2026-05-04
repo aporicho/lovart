@@ -1,0 +1,54 @@
+{
+  "captured_at": "20260504T121911Z",
+  "request": {
+    "method": "GET",
+    "url": "https://www.lovart.ai/api/www/lovart/time/utc/timestamp?_t=1777897151041",
+    "path": "/api/www/lovart/time/utc/timestamp?_t=1777897151041",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "*/*",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/canvas",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "cookie": "webid=1777897149336rigdvsge, acw_tc=eed672fc-5d58-48af-b387-e07fe7234194c92f363c9d280b496a3814e148a00693, __cf_bm=jrdsAPiswOEevGzgpFItOoDoRhD7NrFZ2T.ab62iV3w-1777897149.2438943-1.0.1.1-YzsXizP0j8UOAwmRDMRLXegKERxapWbrdnntV6jN3rtON1OyS_zFjPsOcDYlombKYOwJVnAH1_I7vYnHsnZ3rzD3._qoe_FGVweP3auI4NipFh9easJwxjCoOhhlRCX3",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 12:19:11 GMT",
+      "content-type": "application/json",
+      "eagleeye-traceid": "9f7366c68bc6dabe1f5601d7a1e26432",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "req-cost-time": "1",
+      "req-arrive-time": "1777897151195",
+      "resp-start-time": "1777897151197",
+      "x-envoy-upstream-service-time": "0",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f6773ca6c7bb63d-NRT"
+    },
+    "body": {
+      "code": 401,
+      "msg": "No login",
+      "data": null
+    }
+  },
+  "response_body": {
+    "code": 401,
+    "msg": "No login",
+    "data": null
+  }
+}
