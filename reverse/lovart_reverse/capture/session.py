@@ -128,8 +128,14 @@ def run_capture_session(
         return plan
 
     CAPTURES_DIR.mkdir(parents=True, exist_ok=True)
-    before = {path.name for path in CAPTURES_DIR.glob("*.json")}
+    # Clean up previous capture files before starting a new session.
+    cleaned = 0
+    for old in CAPTURES_DIR.glob("*.json"):
+        old.unlink()
+        cleaned += 1
+    before: set[str] = set()
     sys.stderr.write(f"lovart reverse start: proxy {plan['proxy']}\n")
+    sys.stderr.write(f"lovart reverse start: cleaned {cleaned} previous captures\n")
     sys.stderr.write(f"lovart reverse start: captures {plan['captures_dir']}\n")
 
     mitm = subprocess.Popen(plan["mitmdump_command"], stdout=sys.stderr, stderr=sys.stderr)
@@ -160,7 +166,7 @@ def run_capture_session(
             returncode = mitm.wait(timeout=5)
 
     after = sorted(CAPTURES_DIR.glob("*.json"), key=lambda path: path.stat().st_mtime)
-    new_files = [path.name for path in after if path.name not in before]
+    new_files = [path.name for path in after]
     return {
         "stopped": True,
         "interrupted": interrupted,
