@@ -103,7 +103,7 @@ func Submit(ctx context.Context, client *http.Client, model string, body map[str
 	var resp struct {
 		Code int `json:"code"`
 		Data struct {
-			TaskID string `json:"task_id"`
+			TaskID string `json:"generator_task_id"`
 		} `json:"data"`
 	}
 
@@ -128,9 +128,9 @@ func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]a
 	var resp struct {
 		Code int `json:"code"`
 		Data struct {
-			Status    string `json:"status"`
-			TaskID    string `json:"task_id"`
-			Artifacts []struct {
+			Status          string `json:"status"`
+			GeneratorTaskID string `json:"generator_task_id"`
+			Artifacts       []struct {
 				URL string `json:"url"`
 			} `json:"artifacts"`
 		} `json:"data"`
@@ -153,7 +153,7 @@ func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]a
 	}
 
 	result := map[string]any{
-		"task_id": resp.Data.TaskID,
+		"task_id": resp.Data.GeneratorTaskID,
 		"status":  resp.Data.Status,
 	}
 	if resp.Data.Status == "completed" {
