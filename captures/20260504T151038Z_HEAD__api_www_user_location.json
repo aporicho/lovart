@@ -1,0 +1,46 @@
+{
+  "captured_at": "20260504T151038Z",
+  "request": {
+    "method": "HEAD",
+    "url": "https://api.lovart.ai/api/www/user/location",
+    "path": "/api/www/user/location",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "*/*",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "no-cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 15:10:38 GMT",
+      "content-type": "application/json",
+      "eagleeye-traceid": "371b51bf66a897d6e3fc640fd273c140",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "set-cookie": "acw_tc=13fd6356-7f97-48ef-b6f4-5cccb5a517fc1404df3bd1f82e76702e422993d6451f;path=/;HttpOnly;Max-Age=1800, __cf_bm=p3Z_Qre3h3buavc408dClnaUFEPsFDUHTD4SUvFXfHg-1777907438.374494-1.0.1.1-oTT.bYhJnAYek0q3IV8HPGLN2F5HlIGNtL_4jv5vmU1M97vaDayxc6m84BEyE.Ppc2obFDkxB1Y7qN0wl2XfkaCjTjxcmPb3.aXv16ipzFQ0PD.g4h6gbHHxuusag.B_; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 15:40:38 GMT",
+      "req-cost-time": "2",
+      "req-arrive-time": "1777907438492",
+      "resp-start-time": "1777907438495",
+      "x-envoy-upstream-service-time": "1",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f686ef1dc36dda1-HKG"
+    },
+    "body": null
+  },
+  "response_body": null
+}

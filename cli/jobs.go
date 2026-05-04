@@ -1,7 +1,11 @@
 package cli
 
 import (
+	"context"
+
 	"github.com/aporicho/lovart/internal/envelope"
+	"github.com/aporicho/lovart/internal/errors"
+	"github.com/aporicho/lovart/internal/jobs"
 	"github.com/spf13/cobra"
 )
 
@@ -26,8 +30,24 @@ func newJobsQuoteCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "quote <jobs.jsonl>",
 		Short: "Quote a batch jobs JSONL file",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			printEnvelope(envelope.OK(map[string]any{"status": "not implemented"}))
+			jobsFile := args[0]
+			ctx := context.Background()
+
+			client, err := newSignedClient()
+			if err != nil {
+				printEnvelope(envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()}))
+				return nil
+			}
+
+			result, err := jobs.QuoteJobs(ctx, client, jobsFile)
+			if err != nil {
+				printEnvelope(envelope.Err(errors.CodeInternal, "quote jobs", map[string]any{"error": err.Error()}))
+				return nil
+			}
+
+			printEnvelope(envelope.OK(result))
 			return nil
 		},
 	}

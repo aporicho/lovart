@@ -1,0 +1,133 @@
+{
+  "captured_at": "20260504T151219Z",
+  "request": {
+    "method": "POST",
+    "url": "https://lgw.lovart.ai/v1/generator/pricing",
+    "path": "/v1/generator/pricing",
+    "headers": {
+      "content-length": "415",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-send-timestamp": "1777907539685",
+      "x-req-uuid": "bbfe884e6ee541679180c2e87a679838",
+      "x-client-signature": "1:a55f4cb055bdea4f3e6b245bebbd609feddccdc4715093f74ce273ddc2eaecee",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "content-type": "application/json",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": {
+      "generator_name": "seedream/seedream-5-0",
+      "input_args": {
+        "prompt": "",
+        "aspect_ratio": "16:9",
+        "resolution": "2K",
+        "original_unit_data": {
+          "w": 2560,
+          "h": 1440,
+          "title": "Image Generator",
+          "name": "Image Generator 3",
+          "fillColor": "#E6E6E6",
+          "generatorName": "seedream/seedream-5-0",
+          "ratio": "16:9",
+          "resolution": "2K",
+          "configWidth": 2560,
+          "configHeight": 1440,
+          "count": 1,
+          "generator_name": "seedream/seedream-5-0",
+          "width": 2560,
+          "height": 1440
+        }
+      }
+    }
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 15:12:20 GMT",
+      "content-type": "application/json",
+      "access-control-allow-headers": "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-Uuid, X-Auth-Token",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "access-control-max-age": "86400",
+      "x-request-id": "8a294dec-d971-4a66-b193-d1fb05ac0be9",
+      "server": "cloudflare",
+      "vary": "Origin",
+      "access-control-allow-credentials": "true",
+      "access-control-expose-headers": "*",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "83fd67a0bb1f7e426e802a96f413b62c",
+      "x-kong-upstream-latency": "68",
+      "x-kong-proxy-latency": "18",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "ab85d1149f7e78356183a8482339ab6a",
+      "req-cost-time": "87",
+      "req-arrive-time": "1777907539822",
+      "resp-start-time": "1777907539909",
+      "x-envoy-upstream-service-time": "86",
+      "set-cookie": "acw_tc=8a294dec-d971-4a66-b193-d1fb05ac0be9e663a8ecbcd2f419ed46b14051c2016a;path=/;HttpOnly;Max-Age=1800, __cf_bm=zyEWMWb1MbyckTOEqXLAjUUrxPkuIW4K_OfCTBPz.FA-1777907539.7043562-1.0.1.1-XGDHTTprFdv_nf7roCI90lDjZrITO7jPX0m9LnuzKItBGYMhVL4XLidatPvNQNMWcruTHQLVDobd7GBQiNfzwzJstVADGlmTCCF59VkmOUwHVPpCITSStMewBywrB1Ac; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 15:42:20 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f68716b2c0e1787-HKG"
+    },
+    "body": {
+      "code": 0,
+      "message": "success",
+      "data": {
+        "balance": 26918,
+        "price": 0,
+        "price_detail": {
+          "base_price": 3,
+          "ext_info": "no search key, by default unit price",
+          "ext_info_for_unit_count": "no unit count, by default 1",
+          "generator_name": "seedream/seedream-5-0",
+          "input_args": {
+            "aspect_ratio": "16:9",
+            "prompt": "",
+            "resolution": "2K"
+          },
+          "output_args": null,
+          "total_price": 3,
+          "unit_count": 1,
+          "unit_name": "n",
+          "unit_price": 3
+        }
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "balance": 26918,
+      "price": 0,
+      "price_detail": {
+        "base_price": 3,
+        "ext_info": "no search key, by default unit price",
+        "ext_info_for_unit_count": "no unit count, by default 1",
+        "generator_name": "seedream/seedream-5-0",
+        "input_args": {
+          "aspect_ratio": "16:9",
+          "prompt": "",
+          "resolution": "2K"
+        },
+        "output_args": null,
+        "total_price": 3,
+        "unit_count": 1,
+        "unit_name": "n",
+        "unit_price": 3
+      }
+    }
+  }
+}

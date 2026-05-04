@@ -1,0 +1,174 @@
+{
+  "captured_at": "20260504T151441Z",
+  "request": {
+    "method": "POST",
+    "url": "https://lgw.lovart.ai/v1/generator/pricing",
+    "path": "/v1/generator/pricing",
+    "headers": {
+      "content-length": "630",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-send-timestamp": "1777907681076",
+      "x-req-uuid": "028edb4d87b84f209c91c09f4525dc2f",
+      "x-client-signature": "1:f7da4d49bc97c858c11c68a7d0be789b7991abd9a69ab216b9c18b33aa28ee1d",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "content-type": "application/json",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": {
+      "generator_name": "openai/gpt-image-2",
+      "input_args": {
+        "prompt": "",
+        "quality": "medium",
+        "size": "2048*2048",
+        "n": 1,
+        "image": [
+          "https://a.lovart.ai/artifacts/generator/XULiwlKiWpEUjGrT.jpeg"
+        ],
+        "original_unit_data": {
+          "w": 2048,
+          "h": 2048,
+          "title": "Image Generator",
+          "name": "Image Generator 3",
+          "fillColor": "#E6E6E6",
+          "generatorName": "openai/gpt-image-2",
+          "ratio": "1:1(2k)",
+          "resolution": "1K",
+          "configWidth": 2048,
+          "configHeight": 2048,
+          "count": 1,
+          "quality": "medium",
+          "image": [
+            {
+              "type": "image",
+              "url": "https://a.lovart.ai/artifacts/generator/XULiwlKiWpEUjGrT.jpeg",
+              "width": 3072,
+              "height": 3072
+            }
+          ],
+          "generator_name": "openai/gpt-image-2",
+          "width": 2048,
+          "height": 2048
+        }
+      }
+    }
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 15:14:41 GMT",
+      "content-type": "application/json",
+      "access-control-allow-headers": "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-Uuid, X-Auth-Token",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "access-control-max-age": "86400",
+      "x-request-id": "e6cd6db1-a6e1-4a58-bc99-68dcbeef18f1",
+      "server": "cloudflare",
+      "vary": "Origin",
+      "access-control-allow-credentials": "true",
+      "access-control-expose-headers": "*",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "7ad670c67a251e26a9241bdbfe0605df",
+      "x-kong-upstream-latency": "67",
+      "x-kong-proxy-latency": "7",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "64f10f7d7ee7a817c62f2e0fa1780d62",
+      "req-cost-time": "74",
+      "req-arrive-time": "1777907681247",
+      "resp-start-time": "1777907681322",
+      "x-envoy-upstream-service-time": "73",
+      "set-cookie": "acw_tc=e6cd6db1-a6e1-4a58-bc99-68dcbeef18f146666afca43b2725fe83ce16b992eccd;path=/;HttpOnly;Max-Age=1800, __cf_bm=P.yUgEHUhxiXWG7T00V8ThMzgxsED6l9aLvcPE254ZA-1777907681.1123347-1.0.1.1-sCH.XmjemE5TVYcnA.tab8Qp8C_Pg1DUSz8y4jQ5HKxEhNqiiFCPeT9PpzUFnsS_D57RML_nKEOZGOaIbKaHyXkDmLRTWZIKZzILCUNKvOXzY6nTQPTvQxHX4U_5dzNv; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 15:44:41 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f6874deff221787-HKG"
+    },
+    "body": {
+      "code": 0,
+      "message": "success",
+      "data": {
+        "balance": 26918,
+        "price": 14,
+        "price_detail": {
+          "base_price": 12,
+          "convert_source_key": "size",
+          "convert_source_value": "2048*2048",
+          "convert_target_key": "resolution",
+          "convert_target_value": "2K",
+          "generator_name": "openai/gpt-image-2",
+          "image_count_surcharge": 2,
+          "input_args": {
+            "image": [
+              "https://a.lovart.ai/artifacts/generator/XULiwlKiWpEUjGrT.jpeg"
+            ],
+            "n": 1,
+            "prompt": "",
+            "quality": "medium",
+            "resolution": "2K",
+            "size": "2048*2048"
+          },
+          "input_image_count": 1,
+          "input_image_count_field": "image",
+          "input_image_count_surcharge_enabled": true,
+          "input_image_count_unit_price": 2,
+          "output_args": null,
+          "price_before_surcharge": 12,
+          "search_key": "2K_medium",
+          "total_price": 14,
+          "unit_count": 1,
+          "unit_name": "n",
+          "unit_price": 12
+        }
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "balance": 26918,
+      "price": 14,
+      "price_detail": {
+        "base_price": 12,
+        "convert_source_key": "size",
+        "convert_source_value": "2048*2048",
+        "convert_target_key": "resolution",
+        "convert_target_value": "2K",
+        "generator_name": "openai/gpt-image-2",
+        "image_count_surcharge": 2,
+        "input_args": {
+          "image": [
+            "https://a.lovart.ai/artifacts/generator/XULiwlKiWpEUjGrT.jpeg"
+          ],
+          "n": 1,
+          "prompt": "",
+          "quality": "medium",
+          "resolution": "2K",
+          "size": "2048*2048"
+        },
+        "input_image_count": 1,
+        "input_image_count_field": "image",
+        "input_image_count_surcharge_enabled": true,
+        "input_image_count_unit_price": 2,
+        "output_args": null,
+        "price_before_surcharge": 12,
+        "search_key": "2K_medium",
+        "total_price": 14,
+        "unit_count": 1,
+        "unit_name": "n",
+        "unit_price": 12
+      }
+    }
+  }
+}

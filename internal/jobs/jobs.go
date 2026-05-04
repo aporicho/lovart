@@ -1,4 +1,4 @@
-// Package jobs handles batch generation: parsing JSONL files, quoting, running, resuming.
+// Package jobs handles batch generation: JSONL parsing, quoting, running, resuming.
 package jobs
 
 import (
@@ -17,26 +17,18 @@ type JobLine struct {
 	Body    map[string]any `json:"body"`
 }
 
-// QuoteSummary reports batch quote results without exposing prompts or full bodies.
-type QuoteSummary struct {
-	LogicalJobs    int     `json:"logical_jobs"`
-	RemoteRequests int     `json:"remote_requests"`
-	TotalCredits   float64 `json:"total_credits"`
-	PendingQuotes  int     `json:"pending_quote_remote_requests"`
-}
-
 // RunSummary reports batch run results.
 type RunSummary struct {
-	Submitted int    `json:"submitted"`
-	Running   int    `json:"running"`
-	Completed int    `json:"completed"`
-	Failed    int    `json:"failed"`
+	Submitted int `json:"submitted"`
+	Running   int `json:"running"`
+	Completed int `json:"completed"`
+	Failed    int `json:"failed"`
 }
 
 // QuoteOptions configures batch quoting.
 type QuoteOptions struct {
 	OutDir      string
-	Detail      string // summary, requests, full
+	Detail      string
 	Concurrency int
 	Limit       string
 	AllRequests bool
@@ -65,7 +57,6 @@ func ParseJobsFile(path string) ([]JobLine, error) {
 	}
 
 	var jobs []JobLine
-	// Simple line-by-line JSONL parsing
 	lines := splitLines(string(data))
 	for i, line := range lines {
 		if line == "" {
@@ -101,34 +92,4 @@ func splitLines(s string) []string {
 		lines = append(lines, current)
 	}
 	return lines
-}
-
-// QuoteJobs runs batch quoting.
-func QuoteJobs(jobsFile string, opts QuoteOptions) (*QuoteSummary, error) {
-	// TODO: implement batch quoting with remote_requests expansion and live pricing
-	return &QuoteSummary{}, nil
-}
-
-// DryRunJobs validates batch without submitting.
-func DryRunJobs(jobsFile string, opts JobsOptions) (map[string]any, error) {
-	// TODO: implement dry run
-	return nil, nil
-}
-
-// RunJobs submits a batch for generation.
-func RunJobs(jobsFile string, opts JobsOptions) (*RunSummary, error) {
-	// TODO: implement batch run
-	return &RunSummary{}, nil
-}
-
-// ResumeJobs continues an interrupted batch.
-func ResumeJobs(jobsFile string, opts JobsOptions) (*RunSummary, error) {
-	// TODO: implement resume
-	return &RunSummary{}, nil
-}
-
-// StatusJobs reports batch run progress.
-func StatusJobs(runDir string, detail string) (map[string]any, error) {
-	// TODO: implement status
-	return nil, nil
 }

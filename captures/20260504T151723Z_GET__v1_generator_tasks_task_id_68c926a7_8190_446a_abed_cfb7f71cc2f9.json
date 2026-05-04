@@ -1,0 +1,220 @@
+{
+  "captured_at": "20260504T151723Z",
+  "request": {
+    "method": "GET",
+    "url": "https://lgw.lovart.ai/v1/generator/tasks?task_id=68c926a7-8190-446a-abed-cfb7f71cc2f9",
+    "path": "/v1/generator/tasks?task_id=68c926a7-8190-446a-abed-cfb7f71cc2f9",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-send-timestamp": "1777907842736",
+      "x-req-uuid": "9237670bf52345cda0931375887567e5",
+      "x-client-signature": "1:860d8232320cbd14b8602854679f585d3a2e746e999d69d286a444f941d533ab",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 15:17:23 GMT",
+      "content-type": "application/json",
+      "access-control-allow-headers": "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-Uuid, X-Auth-Token",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "access-control-max-age": "86400",
+      "x-request-id": "a73c8c7d-f62c-4f84-95ae-02ac9178efe6",
+      "server": "cloudflare",
+      "vary": "Origin",
+      "access-control-allow-credentials": "true",
+      "access-control-expose-headers": "*",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "eb4d8d35167ff1691904568435323732",
+      "x-kong-upstream-latency": "1",
+      "x-kong-proxy-latency": "7",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "c1cb5172f2d5b105d2a6870603795530",
+      "req-cost-time": "9",
+      "req-arrive-time": "1777907843061",
+      "resp-start-time": "1777907843070",
+      "x-envoy-upstream-service-time": "8",
+      "set-cookie": "acw_tc=a73c8c7d-f62c-4f84-95ae-02ac9178efe6cd1c8f899648e2af07e40c0dc3a9b82c;path=/;HttpOnly;Max-Age=1800, __cf_bm=SyQ8mFsPJnn.d4g9EMDXn8llY1hzbUFdyh64oUU_qOY-1777907842.9408815-1.0.1.1-Nrw4vJ3XJm1sTsfZ9K6GM7eo1AyoYL0Tte4.X.ZzrNOTPpSmrysC_1gi7vC1JwhTJFY2D2aIHvyOv4MGFL8WCwk9EQ8sZ7fysVwGFQkq_KQIszTU4YgzWCHPqQ5NBPB5; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 15:47:23 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f6878d25b641787-HKG"
+    },
+    "body": {
+      "code": 0,
+      "message": "success",
+      "data": {
+        "generator_task_id": "68c926a7-8190-446a-abed-cfb7f71cc2f9",
+        "generator_name": "youchuan/midjourney",
+        "status": "completed",
+        "original_input_args": {
+          "aspect_ratio": "1:1",
+          "height": 1024,
+          "mode": "normal",
+          "model": "v7",
+          "original_unit_data": {
+            "configHeight": 1024,
+            "configWidth": 1024,
+            "count": 4,
+            "fillColor": "#E6E6E6",
+            "generatorName": "youchuan/midjourney",
+            "generator_name": "youchuan/midjourney",
+            "h": 1024,
+            "height": 1024,
+            "mode": "normal",
+            "model": "v7",
+            "name": "Image Generator 3",
+            "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+            "ratio": "1:1",
+            "renderSpeed": "turbo",
+            "render_speed": "turbo",
+            "title": "Image Generator",
+            "w": 1024,
+            "width": 1024
+          },
+          "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+          "render_speed": "turbo",
+          "width": 1024
+        },
+        "artifacts": [
+          {
+            "type": "image",
+            "content": "https://a.lovart.ai/artifacts/generator/2nisvng5tD2HrqRm.png",
+            "metadata": {
+              "artifact_id": "2nisvng5tD2HrqRm",
+              "format": "png",
+              "height": 1024,
+              "width": 1024
+            }
+          },
+          {
+            "type": "image",
+            "content": "https://a.lovart.ai/artifacts/generator/7TfGnZk55DEP53e9.png",
+            "metadata": {
+              "artifact_id": "7TfGnZk55DEP53e9",
+              "format": "png",
+              "height": 1024,
+              "width": 1024
+            }
+          },
+          {
+            "type": "image",
+            "content": "https://a.lovart.ai/artifacts/generator/h4Nsd29WxMHobBsN.png",
+            "metadata": {
+              "artifact_id": "h4Nsd29WxMHobBsN",
+              "format": "png",
+              "height": 1024,
+              "width": 1024
+            }
+          },
+          {
+            "type": "image",
+            "content": "https://a.lovart.ai/artifacts/generator/jmGQcJCeWOJBLFhS.png",
+            "metadata": {
+              "artifact_id": "jmGQcJCeWOJBLFhS",
+              "format": "png",
+              "height": 1024,
+              "width": 1024
+            }
+          }
+        ]
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "generator_task_id": "68c926a7-8190-446a-abed-cfb7f71cc2f9",
+      "generator_name": "youchuan/midjourney",
+      "status": "completed",
+      "original_input_args": {
+        "aspect_ratio": "1:1",
+        "height": 1024,
+        "mode": "normal",
+        "model": "v7",
+        "original_unit_data": {
+          "configHeight": 1024,
+          "configWidth": 1024,
+          "count": 4,
+          "fillColor": "#E6E6E6",
+          "generatorName": "youchuan/midjourney",
+          "generator_name": "youchuan/midjourney",
+          "h": 1024,
+          "height": 1024,
+          "mode": "normal",
+          "model": "v7",
+          "name": "Image Generator 3",
+          "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+          "ratio": "1:1",
+          "renderSpeed": "turbo",
+          "render_speed": "turbo",
+          "title": "Image Generator",
+          "w": 1024,
+          "width": 1024
+        },
+        "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+        "render_speed": "turbo",
+        "width": 1024
+      },
+      "artifacts": [
+        {
+          "type": "image",
+          "content": "https://a.lovart.ai/artifacts/generator/2nisvng5tD2HrqRm.png",
+          "metadata": {
+            "artifact_id": "2nisvng5tD2HrqRm",
+            "format": "png",
+            "height": 1024,
+            "width": 1024
+          }
+        },
+        {
+          "type": "image",
+          "content": "https://a.lovart.ai/artifacts/generator/7TfGnZk55DEP53e9.png",
+          "metadata": {
+            "artifact_id": "7TfGnZk55DEP53e9",
+            "format": "png",
+            "height": 1024,
+            "width": 1024
+          }
+        },
+        {
+          "type": "image",
+          "content": "https://a.lovart.ai/artifacts/generator/h4Nsd29WxMHobBsN.png",
+          "metadata": {
+            "artifact_id": "h4Nsd29WxMHobBsN",
+            "format": "png",
+            "height": 1024,
+            "width": 1024
+          }
+        },
+        {
+          "type": "image",
+          "content": "https://a.lovart.ai/artifacts/generator/jmGQcJCeWOJBLFhS.png",
+          "metadata": {
+            "artifact_id": "jmGQcJCeWOJBLFhS",
+            "format": "png",
+            "height": 1024,
+            "width": 1024
+          }
+        }
+      ]
+    }
+  }
+}

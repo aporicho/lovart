@@ -1,0 +1,367 @@
+{
+  "captured_at": "20260504T151022Z",
+  "request": {
+    "method": "POST",
+    "url": "https://api.lovart.ai/api/canva/agent/selectionLabel?timestamp=1777907421131",
+    "path": "/api/canva/agent/selectionLabel?timestamp=1777907421131",
+    "headers": {
+      "content-length": "0",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-language": "zh",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "accept": "application/json, text/plain, */*",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "webid": "1777897149336rigdvsge",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 15:10:22 GMT",
+      "content-type": "application/json",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "x-trace-id": "3e22b636b64a4e34b56dff36ee213a81",
+      "req-cost-time": "7",
+      "req-arrive-time": "1777907422303",
+      "resp-start-time": "1777907422311",
+      "x-envoy-upstream-service-time": "6",
+      "set-cookie": "acw_tc=36672a1f-46a6-4e10-b290-934df62c49396d9d6496b4e9f29d310f83c92487b51d;path=/;HttpOnly;Max-Age=1800, __cf_bm=3xKrfUmHZCr8M7TLZn6a3AzfzrahHYq2uC67nKQc420-1777907422.1693435-1.0.1.1-6.NXvb31DzWlP8C0ZgX6oZh9zHvKHYn8yMO_8eSw6V5qQFuBRT1p8B0BSUztyTxWihn8b31WkVANX4ar80LV1p3fDCzoG2UWIUIe5SrK3CT29L1xcQ84udknwc4eeZdC; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 15:40:22 GMT",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f686e8c88c1d62b-HKG"
+    },
+    "body": {
+      "code": 0,
+      "msg": null,
+      "data": [
+        {
+          "label": "All",
+          "type": 0,
+          "i18n": {
+            "en": "All",
+            "zh": "全部",
+            "zh-TW": "全部",
+            "de": "Alle",
+            "ru": "Все",
+            "fr": "Tous",
+            "ko": "전체",
+            "pt": "Todos",
+            "ja": "すべて",
+            "es": "Todos",
+            "it": "Tutti"
+          }
+        },
+        {
+          "label": "Branding",
+          "type": 1,
+          "i18n": {
+            "en": "Branding",
+            "zh": "品牌设计",
+            "zh-TW": "品牌設計",
+            "de": "Branding",
+            "ru": "Брендинг",
+            "fr": "Branding",
+            "ko": "브랜딩",
+            "pt": "Branding",
+            "ja": "ブランディング",
+            "es": "Branding",
+            "it": "Branding"
+          }
+        },
+        {
+          "label": "Posters & Ads",
+          "type": 2,
+          "i18n": {
+            "en": "Posters & Ads",
+            "zh": "海报与广告",
+            "zh-TW": "海報與廣告",
+            "de": "Poster & Anzeigen",
+            "ru": "Постеры и реклама",
+            "fr": "Affiches & Publicités",
+            "ko": "포스터 및 광고",
+            "pt": "Cartazes e Anúncios",
+            "ja": "ポスター＆広告",
+            "es": "Pósters y Anuncios",
+            "it": "Poster e Pubblicità"
+          }
+        },
+        {
+          "label": "Illustration",
+          "type": 7,
+          "i18n": {
+            "en": "Illustration",
+            "zh": "插画",
+            "zh-TW": "插畫",
+            "de": "Illustration",
+            "ru": "Иллюстрация",
+            "fr": "Illustration",
+            "ko": "일러스트레이션",
+            "pt": "Ilustração",
+            "ja": "イラストレーション",
+            "es": "Ilustración",
+            "it": "Illustrazione"
+          }
+        },
+        {
+          "label": "UI Layout",
+          "type": 3,
+          "i18n": {
+            "en": "UI Layout",
+            "zh": "UI设计",
+            "zh-TW": "UI設計",
+            "de": "UI-Design",
+            "ru": "UI-дизайн",
+            "fr": "UI",
+            "ko": "UI 디자인",
+            "pt": "UI",
+            "ja": "UIデザイン",
+            "es": "UI",
+            "it": "UI"
+          }
+        },
+        {
+          "label": "Character Design",
+          "type": 10,
+          "i18n": {
+            "en": "Character Design",
+            "zh": "角色设计",
+            "zh-TW": "角色設計",
+            "de": "Charakterdesign",
+            "ru": "Дизайн персонажей",
+            "fr": "Conception de personnages",
+            "ko": "캐릭터 디자인",
+            "pt": "Design de Personagem",
+            "ja": "キャラクターデザイン",
+            "es": "Diseño de personajes",
+            "it": "Design di personaggi"
+          }
+        },
+        {
+          "label": "Videos & Storyboards",
+          "type": 9,
+          "i18n": {
+            "en": "Videos & Storyboards",
+            "zh": "影片与分镜",
+            "zh-TW": "影片與分鏡",
+            "de": "Videos & Storyboards",
+            "ru": "Видео и раскадровка",
+            "fr": "Vidéos et storyboards",
+            "ko": "동영상 & 스토리보드",
+            "pt": "Vídeos e Storyboards",
+            "ja": "動画",
+            "es": "Videos y guiones gráficos",
+            "it": "Video e storyboard"
+          }
+        },
+        {
+          "label": "Product Design",
+          "type": 4,
+          "i18n": {
+            "en": "Product Design",
+            "zh": "产品设计",
+            "zh-TW": "產品設計",
+            "de": "Produktdesign",
+            "ru": "Дизайн продукта",
+            "fr": "Design produit",
+            "ko": "제품 디자인",
+            "pt": "Design de Produto",
+            "ja": "プロダクトデザイン",
+            "es": "Diseño de productos",
+            "it": "Design di prodotto"
+          }
+        },
+        {
+          "label": "Architectural Design",
+          "type": 5,
+          "i18n": {
+            "en": "Architectural Design",
+            "zh": "建筑设计",
+            "zh-TW": "建築設計",
+            "de": "Architekturdesign",
+            "ru": "Архитектурный дизайн",
+            "fr": "Design architectural",
+            "ko": "건축 디자인",
+            "pt": "Design Arquitetônico",
+            "ja": "建築デザイン",
+            "es": "Diseño arquitectónico",
+            "it": "Design architettonico"
+          }
+        }
+      ]
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "msg": null,
+    "data": [
+      {
+        "label": "All",
+        "type": 0,
+        "i18n": {
+          "en": "All",
+          "zh": "全部",
+          "zh-TW": "全部",
+          "de": "Alle",
+          "ru": "Все",
+          "fr": "Tous",
+          "ko": "전체",
+          "pt": "Todos",
+          "ja": "すべて",
+          "es": "Todos",
+          "it": "Tutti"
+        }
+      },
+      {
+        "label": "Branding",
+        "type": 1,
+        "i18n": {
+          "en": "Branding",
+          "zh": "品牌设计",
+          "zh-TW": "品牌設計",
+          "de": "Branding",
+          "ru": "Брендинг",
+          "fr": "Branding",
+          "ko": "브랜딩",
+          "pt": "Branding",
+          "ja": "ブランディング",
+          "es": "Branding",
+          "it": "Branding"
+        }
+      },
+      {
+        "label": "Posters & Ads",
+        "type": 2,
+        "i18n": {
+          "en": "Posters & Ads",
+          "zh": "海报与广告",
+          "zh-TW": "海報與廣告",
+          "de": "Poster & Anzeigen",
+          "ru": "Постеры и реклама",
+          "fr": "Affiches & Publicités",
+          "ko": "포스터 및 광고",
+          "pt": "Cartazes e Anúncios",
+          "ja": "ポスター＆広告",
+          "es": "Pósters y Anuncios",
+          "it": "Poster e Pubblicità"
+        }
+      },
+      {
+        "label": "Illustration",
+        "type": 7,
+        "i18n": {
+          "en": "Illustration",
+          "zh": "插画",
+          "zh-TW": "插畫",
+          "de": "Illustration",
+          "ru": "Иллюстрация",
+          "fr": "Illustration",
+          "ko": "일러스트레이션",
+          "pt": "Ilustração",
+          "ja": "イラストレーション",
+          "es": "Ilustración",
+          "it": "Illustrazione"
+        }
+      },
+      {
+        "label": "UI Layout",
+        "type": 3,
+        "i18n": {
+          "en": "UI Layout",
+          "zh": "UI设计",
+          "zh-TW": "UI設計",
+          "de": "UI-Design",
+          "ru": "UI-дизайн",
+          "fr": "UI",
+          "ko": "UI 디자인",
+          "pt": "UI",
+          "ja": "UIデザイン",
+          "es": "UI",
+          "it": "UI"
+        }
+      },
+      {
+        "label": "Character Design",
+        "type": 10,
+        "i18n": {
+          "en": "Character Design",
+          "zh": "角色设计",
+          "zh-TW": "角色設計",
+          "de": "Charakterdesign",
+          "ru": "Дизайн персонажей",
+          "fr": "Conception de personnages",
+          "ko": "캐릭터 디자인",
+          "pt": "Design de Personagem",
+          "ja": "キャラクターデザイン",
+          "es": "Diseño de personajes",
+          "it": "Design di personaggi"
+        }
+      },
+      {
+        "label": "Videos & Storyboards",
+        "type": 9,
+        "i18n": {
+          "en": "Videos & Storyboards",
+          "zh": "影片与分镜",
+          "zh-TW": "影片與分鏡",
+          "de": "Videos & Storyboards",
+          "ru": "Видео и раскадровка",
+          "fr": "Vidéos et storyboards",
+          "ko": "동영상 & 스토리보드",
+          "pt": "Vídeos e Storyboards",
+          "ja": "動画",
+          "es": "Videos y guiones gráficos",
+          "it": "Video e storyboard"
+        }
+      },
+      {
+        "label": "Product Design",
+        "type": 4,
+        "i18n": {
+          "en": "Product Design",
+          "zh": "产品设计",
+          "zh-TW": "產品設計",
+          "de": "Produktdesign",
+          "ru": "Дизайн продукта",
+          "fr": "Design produit",
+          "ko": "제품 디자인",
+          "pt": "Design de Produto",
+          "ja": "プロダクトデザイン",
+          "es": "Diseño de productos",
+          "it": "Design di prodotto"
+        }
+      },
+      {
+        "label": "Architectural Design",
+        "type": 5,
+        "i18n": {
+          "en": "Architectural Design",
+          "zh": "建筑设计",
+          "zh-TW": "建築設計",
+          "de": "Architekturdesign",
+          "ru": "Архитектурный дизайн",
+          "fr": "Design architectural",
+          "ko": "건축 디자인",
+          "pt": "Design Arquitetônico",
+          "ja": "建築デザイン",
+          "es": "Diseño arquitectónico",
+          "it": "Design architettonico"
+        }
+      }
+    ]
+  }
+}

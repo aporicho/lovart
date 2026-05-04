@@ -1,0 +1,142 @@
+{
+  "captured_at": "20260504T151102Z",
+  "request": {
+    "method": "POST",
+    "url": "https://lgw.lovart.ai/v1/generator/pricing",
+    "path": "/v1/generator/pricing",
+    "headers": {
+      "content-length": "495",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-send-timestamp": "1777907462564",
+      "x-req-uuid": "d90e1ac1a1e14a35b6f284ede795f213",
+      "x-client-signature": "1:a05bcfa1354b66469032eae9d798d21e572f67c879ff0385097cde2447114847",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "content-type": "application/json",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": {
+      "generator_name": "youchuan/midjourney",
+      "input_args": {
+        "prompt": "",
+        "aspect_ratio": "1:1",
+        "model": "v7",
+        "mode": "draft",
+        "render_speed": "turbo",
+        "original_unit_data": {
+          "w": 1024,
+          "h": 1024,
+          "title": "Image Generator",
+          "name": "Image Generator 3",
+          "fillColor": "#E6E6E6",
+          "generatorName": "youchuan/midjourney",
+          "ratio": "1:1",
+          "configWidth": 1024,
+          "configHeight": 1024,
+          "mode": "draft",
+          "model": "v7",
+          "renderSpeed": "turbo",
+          "count": 4,
+          "generator_name": "youchuan/midjourney",
+          "width": 1024,
+          "height": 1024,
+          "render_speed": "turbo"
+        }
+      }
+    }
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 15:11:02 GMT",
+      "content-type": "application/json",
+      "access-control-allow-headers": "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-Uuid, X-Auth-Token",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "access-control-max-age": "86400",
+      "x-request-id": "cbf61d10-a663-4f11-b51a-b30d163bf396",
+      "server": "cloudflare",
+      "vary": "Origin",
+      "access-control-allow-credentials": "true",
+      "access-control-expose-headers": "*",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "746cdb560143c9c9d642411ce6e07644",
+      "x-kong-upstream-latency": "70",
+      "x-kong-proxy-latency": "14",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "edc6571f2e5c50524195f826422c0712",
+      "req-cost-time": "85",
+      "req-arrive-time": "1777907462718",
+      "resp-start-time": "1777907462804",
+      "x-envoy-upstream-service-time": "84",
+      "set-cookie": "acw_tc=cbf61d10-a663-4f11-b51a-b30d163bf396d349d422087cb1f4b547c7eb50cfb128;path=/;HttpOnly;Max-Age=1800, __cf_bm=.H8IiiU6p1PwAw1fK21bNz.76lTZsl_lugpfCmDcQgI-1777907462.5836666-1.0.1.1-aVUnl7oBywrs3_2pfGwrOgxpDEi9DkI_Vs_kSYBQhHrpISBoRaEk5bHQdJ.1AetehgRu2XLEs4cKsOSGIbWXNcQvGQUlRrTjNC4kyRNq0aP_hk89HZaZ.odniXFLuAc3; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 15:41:02 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f686f8928811787-HKG"
+    },
+    "body": {
+      "code": 0,
+      "message": "success",
+      "data": {
+        "balance": 26918,
+        "price": 0,
+        "price_detail": {
+          "base_price": 14,
+          "ext_info_for_unit_count": "no unit count, by default 1",
+          "generator_name": "youchuan/midjourney",
+          "input_args": {
+            "aspect_ratio": "1:1",
+            "mode": "draft",
+            "model": "v7",
+            "prompt": "",
+            "render_speed": "turbo"
+          },
+          "output_args": null,
+          "search_key": "draft_turbo",
+          "total_price": 14,
+          "unit_count": 1,
+          "unit_name": "n",
+          "unit_price": 14
+        }
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "balance": 26918,
+      "price": 0,
+      "price_detail": {
+        "base_price": 14,
+        "ext_info_for_unit_count": "no unit count, by default 1",
+        "generator_name": "youchuan/midjourney",
+        "input_args": {
+          "aspect_ratio": "1:1",
+          "mode": "draft",
+          "model": "v7",
+          "prompt": "",
+          "render_speed": "turbo"
+        },
+        "output_args": null,
+        "search_key": "draft_turbo",
+        "total_price": 14,
+        "unit_count": 1,
+        "unit_name": "n",
+        "unit_price": 14
+      }
+    }
+  }
+}
