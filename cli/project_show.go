@@ -50,7 +50,7 @@ func newProjectShowCmd() *cobra.Command {
 			printEnvelope(envelope.OK(map[string]any{
 				"project_id":   p.ID,
 				"project_name": p.Name,
-				"canvas_url":   fmt.Sprintf("https://www.lovart.ai/canvas/projectId/%s", p.ID),
+				"canvas_url":   fmt.Sprintf("https://www.lovart.ai/canvas?projectId=%s", p.ID),
 			}))
 			return nil
 		},

@@ -30,7 +30,7 @@ func newProjectOpenCmd() *cobra.Command {
 				return nil
 			}
 
-			url := fmt.Sprintf("https://www.lovart.ai/canvas/projectId/%s", projectID)
+			url := fmt.Sprintf("https://www.lovart.ai/canvas?projectId=%s", projectID)
 			err := exec.Command("open", url).Start()
 			printEnvelope(envelope.OK(map[string]any{
 				"opened":     err == nil,
