@@ -1,0 +1,53 @@
+{
+  "captured_at": "20260504T192202Z",
+  "request": {
+    "method": "GET",
+    "url": "https://assets-persist.lovart.ai/img/lovart-avatar.png?x-oss-process=image/resize,w_60,m_lfit/format,webp",
+    "path": "/img/lovart-avatar.png?x-oss-process=image/resize,w_60,m_lfit/format,webp",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "no-cors",
+      "sec-fetch-dest": "image",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "cookie": "_gcl_au=1.1.1217701663.1777897152, _ga=GA1.1.1703026730.1777897154, _twpid=tw.1777897155913.929714704779794751, _fbp=fb.1.1777897156124.802390599120227687, _clck=ri5c18%5E2%5Eg5r%5E1%5E2315, _cbp=fb.1.1777897156124.802390599120227687, _hjSessionUser_6446279=eyJpZCI6ImNkYWVkMjc2LWMwNTUtNTkzOS1iMWY3LTNmODZjNzI2ZjYwOSIsImNyZWF0ZWQiOjE3Nzc4OTcxNTc4NTYsImV4aXN0aW5nIjp0cnVlfQ==, _pin_unauth=dWlkPU0yVXpPVGxpTnpZdE4yRTJNeTAwTldSa0xXSmxNak10TURVeE5URTBPVFpsTldZeA, _tt_enable_cookie=1, _ttp=01KQSFW1BWC4PVJ2BKG0HG304M_.tt.1, _iidt=s66NT8m5Oxp3VckKs44xWoh/YgKHpjDA+/Yt9oXHs7DwMUu82fUn349rRkAAl6s4PAUxf/rXRBwzvw==, _vid_t=xK+vlAOoBp/gy5h9jYMGefgui2sF2T+PDilTEmR+BLNc3X774V329V4lvbE8fXDXBMvjz9575jEnfQ==, intercom-device-id-xyxalc2q=e010bf2a-01b8-4750-bccc-5a746a0e3ac5, _hjSession_6446279=eyJpZCI6IjA2ZmUxNWY2LWRjNDUtNGZjZC04MjBhLWMwOTE3YzZiOWFkNiIsImMiOjE3Nzc5MjI1MTAyMzksInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjowLCJzcCI6MH0=, intercom-session-xyxalc2q=RzZaSEg0VnRYOHJ1c3dGYXRaN3pBdVFieXZseWJJc0JwWDY0Umd2b3JpdXd6NGttVllWMjQ3cTRVUklQWCttd0ZTUzdLSnRTaFpLa2F5SVFQeFk0dFNXUVdHKzA4MldxS0ltbmdiMWcvUzBvUWY2VFBiMVJlN3d5eHhtaHhsQUtDZ0ZmeGZyVmxQMWV1dzBnUUxhUFJ3QzBxQkh6MWp2VXJDYjRSQmpZMlQ2a2Zmdkxmczh3NGF6Mjl4OUlyeXptNnhGN2hkNThPVnRYM1FkRy9kSTkrZz09LS1Dd0pMaGp5ckxtb2ZDYnRHMWhqVzVBPT0=--add890eeb6e53a5d441fce2302d626c9a5546036, pt_3bg8mqij=deviceId%3D0b295d10-8383-4ede-8617-46465862891e%26sessionId%3Db98d66d6-385a-40c4-80c9-a22608afaa5d%26accountId%3D%26vn%3D5%26pvn%3D1%26lastActionTime%3D1777922515683%26, _ga_04J3EGQBWL=GS2.1.s1777922504$o5$g1$t1777922516$j48$l0$h0, _ga_XENJJC28ZM=GS2.1.s1777922504$o5$g1$t1777922516$j48$l0$h0, _ga_MRB1ZRXEK1=GS2.1.s1777922504$o5$g1$t1777922516$j48$l0$h1830276006, _uetsid=778ecfa047b311f18bcf73b2b04222cb, _uetvid=778ecb8047b311f1a3178de0d2dd7f47, ttcsid=1777922519939::sRpwlhfpKjSVgPq5G_ZO.4.1777922520202.0::1.-4236.0::0.0.0.0::0.0.0, ttcsid_D4E29RJC77U4DODN4QHG=1777922519939::rTQV1AOq7vWZ_niNtn74.4.1777922520202.0, __cf_bm=CXATKpAfYDOpzGndj43acS00Z6egV0DeedeSmMHcf1E-1777922521.7151625-1.0.1.1-xeGGQBuQuqIiAnvq0BRKx.Namhvt5mhiXUVRcPxd7ZKEogQBryEqe2YmOajKsTT2K1Mo37TgkZmMLnk4PtrpnG5Jd18Hh4QEGC9befx0wfJksugwcdEPurd5qlhQarUf, _clsk=1i1f8g%5E1777922522337%5E2%5E1%5El.clarity.ms%2Fcollect",
+      "if-none-match": "\"F4149AEF3375944AAAC89C622C218347\"",
+      "if-modified-since": "Thu, 15 May 2025 15:03:41 GMT",
+      "priority": "i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 304,
+    "headers": {
+      "date": "Mon, 04 May 2026 19:22:02 GMT",
+      "server": "cloudflare",
+      "x-oss-server-time": "37",
+      "age": "1506429",
+      "x-oss-request-id": "6992B56012E0DE3031F07704",
+      "etag": "\"F4149AEF3375944AAAC89C622C218347\"",
+      "last-modified": "Thu, 15 May 2025 15:03:41 GMT",
+      "x-oss-object-type": "Normal",
+      "x-oss-storage-class": "Standard",
+      "x-oss-version-id": "null",
+      "x-oss-hash-crc64ecma": "1862301499137293477",
+      "expires": "Mon, 04 May 2026 23:22:02 GMT",
+      "cache-control": "public, max-age=14400",
+      "cf-cache-status": "HIT",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, HEAD",
+      "access-control-allow-origin": "*",
+      "access-control-expose-headers": "ETag, x-oss-request-id, x-oss-version-id",
+      "access-control-max-age": "0",
+      "content-security-policy": "sandbox allow-scripts",
+      "cf-ray": "9f69df366de8b63d-NRT"
+    },
+    "body": null
+  },
+  "response_body": null
+}

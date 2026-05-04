@@ -25,43 +25,39 @@ type CanvasImage struct {
 }
 
 // AddToCanvas adds generated images as nodes on the project canvas.
-// Images are placed in a grid appended to the right of existing content.
 func AddToCanvas(ctx context.Context, client *http.Client, projectID, cid string, images []CanvasImage) error {
 	if len(images) == 0 {
 		return nil
 	}
 
 	// 1. Load current canvas state.
-	canvasData, version, err := queryCanvas(ctx, client, projectID, cid)
+	fullCanvas, err := queryCanvas(ctx, client, projectID, cid)
 	if err != nil {
 		return fmt.Errorf("canvas: query: %w", err)
 	}
 
 	// 2. Decode the full canvas document.
-	fullDoc, store, err := decodeCanvas(canvasData)
+	fullDoc, store, err := decodeCanvas(fullCanvas.Canvas)
 	if err != nil {
 		return fmt.Errorf("canvas: decode: %w", err)
 	}
 	if store == nil {
 		store = make(map[string]any)
-		// If no document, create minimal structure.
-		if fullDoc == nil {
-			fullDoc = map[string]any{
-				"tldrawSnapshot": map[string]any{
-					"document": map[string]any{
-						"store":  store,
-						"schema": map[string]any{"schemaVersion": 2, "sequences": []any{}},
-					},
-					"session": map[string]any{},
+	}
+	if fullDoc == nil {
+		fullDoc = map[string]any{
+			"tldrawSnapshot": map[string]any{
+				"document": map[string]any{
+					"store":  store,
+					"schema": map[string]any{"schemaVersion": 2, "sequences": map[string]any{}},
 				},
-			}
+				"session": map[string]any{},
+			},
 		}
 	}
 
-	// 3. Compute layout.
+	// 3. Add nodes.
 	startX, startY := computeLayout(store)
-
-	// 4. Add nodes.
 	columns := 4
 	gap := 64
 	for i, img := range images {
@@ -69,66 +65,81 @@ func AddToCanvas(ctx context.Context, client *http.Client, projectID, cid string
 		row := i / columns
 		x := startX + col*(img.Width+gap)
 		y := startY + row*(img.Height+gap)
-
 		node := buildNode(img, x, y)
 		store[node["id"].(string)] = node
 	}
 
-	// 5. Re-encode preserving the full document structure.
+	// 4. Re-encode.
 	newCanvas, err := encodeCanvas(fullDoc)
 	if err != nil {
 		return fmt.Errorf("canvas: encode: %w", err)
 	}
 
-	if err := saveCanvas(ctx, client, projectID, cid, newCanvas, version); err != nil {
+	// 5. Update canvas state for save.
+	fullCanvas.Canvas = newCanvas
+	fullCanvas.PicCount = countCImages(store)
+
+	// 6. Save.
+	if err := saveCanvas(ctx, client, projectID, cid, fullCanvas); err != nil {
 		return fmt.Errorf("canvas: save: %w", err)
 	}
 
 	return nil
 }
 
-// queryCanvas loads the current canvas SHAKKERDATA and version from the API.
-func queryCanvas(ctx context.Context, client *http.Client, projectID, cid string) (string, string, error) {
-	path := "/api/canva/project/queryProject"
+// canvasState holds all fields returned by queryProject.
+type canvasState struct {
+	Canvas   string
+	Version  string
+	Name     string
+	PicCount int
+}
 
-	body := map[string]any{
-		"projectId": projectID,
-		"cid":       cid,
-	}
+// queryCanvas loads the current canvas and metadata from the API.
+func queryCanvas(ctx context.Context, client *http.Client, projectID, cid string) (*canvasState, error) {
+	path := "/api/canva/project/queryProject"
+	body := map[string]any{"projectId": projectID, "cid": cid}
 
 	var resp struct {
 		Code int `json:"code"`
 		Data struct {
-			Canvas  string `json:"canvas"`
-			Version string `json:"version"`
+			Canvas     string `json:"canvas"`
+			Version    string `json:"version"`
+			ProjectName string `json:"projectName"`
 		} `json:"data"`
 	}
 
 	if err := client.PostJSON(ctx, http.WWWBase, path, body, &resp); err != nil {
-		return "", "", fmt.Errorf("canvas: query project: %w", err)
+		return nil, fmt.Errorf("canvas: query project: %w", err)
 	}
 	if resp.Code != 0 {
-		return "", "", fmt.Errorf("canvas: query project returned code %d", resp.Code)
+		return nil, fmt.Errorf("canvas: query project returned code %d", resp.Code)
 	}
 
-	return resp.Data.Canvas, resp.Data.Version, nil
+	return &canvasState{
+		Canvas:  resp.Data.Canvas,
+		Version: resp.Data.Version,
+		Name:    resp.Data.ProjectName,
+	}, nil
 }
 
-// saveCanvas uploads the updated canvas to Lovart.
-func saveCanvas(ctx context.Context, client *http.Client, projectID, cid, canvasData, _ string) error {
+// saveCanvas uploads the updated canvas matching the browser's saveProject format.
+func saveCanvas(ctx context.Context, client *http.Client, projectID, cid string, cs *canvasState) error {
 	path := "/api/canva/project/saveProject"
 
 	body := map[string]any{
-		"projectType": 3,
-		"cid":         cid,
-		"canvas":      canvasData,
-		"projectId":   projectID,
+		"canvas":           cs.Canvas,
+		"projectId":        projectID,
+		"projectName":      cs.Name,
+		"picCount":         cs.PicCount,
+		"version":          cs.Version,
+		"sessionId":        newSessionID(),
+		"projectCoverList": extractCoverList(cs.Canvas),
 	}
 
 	var resp struct {
 		Code int `json:"code"`
 	}
-
 	if err := client.PostJSON(ctx, http.WWWBase, path, body, &resp); err != nil {
 		return fmt.Errorf("canvas: save project: %w", err)
 	}
@@ -138,6 +149,45 @@ func saveCanvas(ctx context.Context, client *http.Client, projectID, cid, canvas
 	return nil
 }
 
+// extractCoverList gets the first 4 c-image URLs from the canvas for the cover list.
+func extractCoverList(canvasData string) []string {
+	_, store, err := decodeCanvas(canvasData)
+	if err != nil {
+		return []string{}
+	}
+	var urls []string
+	for _, v := range store {
+		node, ok := v.(map[string]any)
+		if !ok || node["type"] != "c-image" {
+			continue
+		}
+		props, _ := node["props"].(map[string]any)
+		if props == nil {
+			continue
+		}
+		url, _ := props["url"].(string)
+		if url != "" {
+			urls = append(urls, url)
+			if len(urls) >= 4 {
+				break
+			}
+		}
+	}
+	return urls
+}
+
+// countCImages counts c-image nodes in the store.
+func countCImages(store map[string]any) int {
+	n := 0
+	for _, v := range store {
+		node, ok := v.(map[string]any)
+		if ok && node["type"] == "c-image" {
+			n++
+		}
+	}
+	return n
+}
+
 // decodeCanvas parses a SHAKKERDATA string and returns the full document and its store.
 func decodeCanvas(data string) (map[string]any, map[string]any, error) {
 	if data == "" || len(data) < len(canvasPrefix) {
@@ -145,7 +195,7 @@ func decodeCanvas(data string) (map[string]any, map[string]any, error) {
 	}
 
 	raw := data[len(canvasPrefix):]
-	padded := raw + "===="[:(-len(raw)%4)]
+	padded := raw + "===="[:(4-len(raw)%4)%4]
 
 	decoded, err := base64.StdEncoding.DecodeString(padded)
 	if err != nil {
@@ -168,7 +218,6 @@ func decodeCanvas(data string) (map[string]any, map[string]any, error) {
 		return nil, nil, fmt.Errorf("canvas: json parse: %w", err)
 	}
 
-	// Navigate to the store.
 	snapshot, _ := doc["tldrawSnapshot"].(map[string]any)
 	if snapshot == nil {
 		return doc, make(map[string]any), nil
@@ -221,7 +270,6 @@ func computeLayout(store map[string]any) (int, int) {
 			maxRight = right
 		}
 	}
-
 	if maxRight == 0 {
 		return 100, 100
 	}
@@ -231,7 +279,7 @@ func computeLayout(store map[string]any) (int, int) {
 // buildNode constructs a tldraw c-image shape node.
 func buildNode(img CanvasImage, x, y int) map[string]any {
 	id := "shape:" + randomString(22)
-	index := randomString(7)
+	idx := randomString(7)
 
 	return map[string]any{
 		"x":         float64(x),
@@ -253,7 +301,7 @@ func buildNode(img CanvasImage, x, y int) map[string]any {
 			"generatorTaskId": img.TaskID,
 		},
 		"parentId": "page:page",
-		"index":    index,
+		"index":    idx,
 		"typeName": "shape",
 	}
 }
@@ -286,4 +334,14 @@ func randomString(n int) string {
 		result[i] = chars[idx.Int64()]
 	}
 	return string(result)
+}
+
+// newSessionID generates a UUID-like session identifier.
+func newSessionID() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	b[6] = (b[6] & 0x0f) | 0x40
+	b[8] = (b[8] & 0x3f) | 0x80
+	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
+		b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
 }

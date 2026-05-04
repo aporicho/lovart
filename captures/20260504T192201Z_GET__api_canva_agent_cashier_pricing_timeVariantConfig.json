@@ -1,0 +1,73 @@
+{
+  "captured_at": "20260504T192201Z",
+  "request": {
+    "method": "GET",
+    "url": "https://www.lovart.ai/api/canva/agent-cashier/pricing/timeVariantConfig",
+    "path": "/api/canva/agent-cashier/pricing/timeVariantConfig",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "accept": "application/json, text/plain, */*",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "sec-ch-ua-mobile": "?0",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/canvas?projectId=ac43b109715f40ceaea87a301c6b5597",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "cookie": "webid=1777897149336rigdvsge, _gcl_au=1.1.1217701663.1777897152, _ga=GA1.1.1703026730.1777897154, __color_mode=dark, __locale=zh, _twpid=tw.1777897155913.929714704779794751, _fbp=fb.1.1777897156124.802390599120227687, _clck=ri5c18%5E2%5Eg5r%5E1%5E2315, _cbp=fb.1.1777897156124.802390599120227687, _hjSessionUser_6446279=eyJpZCI6ImNkYWVkMjc2LWMwNTUtNTkzOS1iMWY3LTNmODZjNzI2ZjYwOSIsImNyZWF0ZWQiOjE3Nzc4OTcxNTc4NTYsImV4aXN0aW5nIjp0cnVlfQ==, _pin_unauth=dWlkPU0yVXpPVGxpTnpZdE4yRTJNeTAwTldSa0xXSmxNak10TURVeE5URTBPVFpsTldZeA, _tt_enable_cookie=1, _ttp=01KQSFW1BWC4PVJ2BKG0HG304M_.tt.1, _iidt=s66NT8m5Oxp3VckKs44xWoh/YgKHpjDA+/Yt9oXHs7DwMUu82fUn349rRkAAl6s4PAUxf/rXRBwzvw==, _vid_t=xK+vlAOoBp/gy5h9jYMGefgui2sF2T+PDilTEmR+BLNc3X774V329V4lvbE8fXDXBMvjz9575jEnfQ==, usertoken=eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY, refreshToken=0fc5dcc5acbd41ef93db6a5c8269e2f3, useruuid=412fa1efca4c4890ab6bab77a36b757f, intercom-device-id-xyxalc2q=e010bf2a-01b8-4750-bccc-5a746a0e3ac5, ttcsid_D4E29RJC77U4DODN4QHG=1777907441134::XeBuR6Ne_eAqDOF2THg6.3.1777907855435.1, ttcsid=1777907441134::tiB6wIVgxneQ9-lVb6bF.3.1777907855435.0::1.-11386.0::457252.128.1174.590::409377.41.0, acw_tc=a5422586-0adc-4774-a3be-11ccda854b757975fd48a90a244519cb05d7af6c0529, _hjSession_6446279=eyJpZCI6IjA2ZmUxNWY2LWRjNDUtNGZjZC04MjBhLWMwOTE3YzZiOWFkNiIsImMiOjE3Nzc5MjI1MTAyMzksInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjowLCJzcCI6MH0=, intercom-session-xyxalc2q=RzZaSEg0VnRYOHJ1c3dGYXRaN3pBdVFieXZseWJJc0JwWDY0Umd2b3JpdXd6NGttVllWMjQ3cTRVUklQWCttd0ZTUzdLSnRTaFpLa2F5SVFQeFk0dFNXUVdHKzA4MldxS0ltbmdiMWcvUzBvUWY2VFBiMVJlN3d5eHhtaHhsQUtDZ0ZmeGZyVmxQMWV1dzBnUUxhUFJ3QzBxQkh6MWp2VXJDYjRSQmpZMlQ2a2Zmdkxmczh3NGF6Mjl4OUlyeXptNnhGN2hkNThPVnRYM1FkRy9kSTkrZz09LS1Dd0pMaGp5ckxtb2ZDYnRHMWhqVzVBPT0=--add890eeb6e53a5d441fce2302d626c9a5546036, pt_3bg8mqij=deviceId%3D0b295d10-8383-4ede-8617-46465862891e%26sessionId%3Db98d66d6-385a-40c4-80c9-a22608afaa5d%26accountId%3D%26vn%3D5%26pvn%3D1%26lastActionTime%3D1777922515683%26, _ga_04J3EGQBWL=GS2.1.s1777922504$o5$g1$t1777922516$j48$l0$h0, _ga_XENJJC28ZM=GS2.1.s1777922504$o5$g1$t1777922516$j48$l0$h0, _ga_MRB1ZRXEK1=GS2.1.s1777922504$o5$g1$t1777922516$j48$l0$h1830276006, _uetsid=778ecfa047b311f18bcf73b2b04222cb, _uetvid=778ecb8047b311f1a3178de0d2dd7f47, __cf_bm=bHBfwlyWbnQIXKi358AzjFKlsGy0aA2JOgFtua0Wlq8-1777922518.274591-1.0.1.1-d5BaDLc1mEsvDP9UfwO1TubR2w5V3L29Fv2uPhj3AVErPUp_XGSeREnppUU_D6ZHdYJESHtJGQTstaDOjITYfFkSWUctW671.2KpIxqBMc81EpbmzgUV8UTf0xbn44rx, _clsk=1i1f8g%5E1777922519593%5E2%5E1%5El.clarity.ms%2Fcollect, statsig_custom={%22effective%22:0%2C%22accountLevel%22:50%2C%22accountLevelName%22:%22Ultimate%22%2C%22packageType%22:%22TRAIN%22%2C%22type%22:4%2C%22startTime%22:%222026-04-30%22%2C%22endTime%22:%222027-05-01%22}",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 19:22:01 GMT",
+      "content-type": "application/json",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "x-trace-id": "f83e7d575c8f48ce963a379ecb5c5c69",
+      "req-cost-time": "57",
+      "req-arrive-time": "1777922520907",
+      "resp-start-time": "1777922520965",
+      "x-envoy-upstream-service-time": "56",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f69df2b1cd0263e-NRT"
+    },
+    "body": {
+      "code": 0,
+      "msg": null,
+      "data": {
+        "offPeakRate": "0.5",
+        "peakRate": "1.4",
+        "offPeakStartTime": "50400000",
+        "offPeakEndTime": "68400000",
+        "peakStartTime": "25200000",
+        "peakEndTime": "32400000",
+        "peakEnable": true,
+        "offPeakEnable": true
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "msg": null,
+    "data": {
+      "offPeakRate": "0.5",
+      "peakRate": "1.4",
+      "offPeakStartTime": "50400000",
+      "offPeakEndTime": "68400000",
+      "peakStartTime": "25200000",
+      "peakEndTime": "32400000",
+      "peakEnable": true,
+      "offPeakEnable": true
+    }
+  }
+}

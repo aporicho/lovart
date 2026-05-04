@@ -1,0 +1,513 @@
+{
+  "captured_at": "20260504T192221Z",
+  "request": {
+    "method": "GET",
+    "url": "https://www.lovart.ai/api/canva/agent-cashier/task/query/unlimited",
+    "path": "/api/canva/agent-cashier/task/query/unlimited",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "accept": "application/json, text/plain, */*",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "sec-ch-ua-mobile": "?0",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/canvas?projectId=ac43b109715f40ceaea87a301c6b5597",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "cookie": "webid=1777897149336rigdvsge, _gcl_au=1.1.1217701663.1777897152, _ga=GA1.1.1703026730.1777897154, __color_mode=dark, __locale=zh, _twpid=tw.1777897155913.929714704779794751, _fbp=fb.1.1777897156124.802390599120227687, _clck=ri5c18%5E2%5Eg5r%5E1%5E2315, _cbp=fb.1.1777897156124.802390599120227687, _hjSessionUser_6446279=eyJpZCI6ImNkYWVkMjc2LWMwNTUtNTkzOS1iMWY3LTNmODZjNzI2ZjYwOSIsImNyZWF0ZWQiOjE3Nzc4OTcxNTc4NTYsImV4aXN0aW5nIjp0cnVlfQ==, _pin_unauth=dWlkPU0yVXpPVGxpTnpZdE4yRTJNeTAwTldSa0xXSmxNak10TURVeE5URTBPVFpsTldZeA, _tt_enable_cookie=1, _ttp=01KQSFW1BWC4PVJ2BKG0HG304M_.tt.1, _iidt=s66NT8m5Oxp3VckKs44xWoh/YgKHpjDA+/Yt9oXHs7DwMUu82fUn349rRkAAl6s4PAUxf/rXRBwzvw==, _vid_t=xK+vlAOoBp/gy5h9jYMGefgui2sF2T+PDilTEmR+BLNc3X774V329V4lvbE8fXDXBMvjz9575jEnfQ==, usertoken=eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY, refreshToken=0fc5dcc5acbd41ef93db6a5c8269e2f3, useruuid=412fa1efca4c4890ab6bab77a36b757f, intercom-device-id-xyxalc2q=e010bf2a-01b8-4750-bccc-5a746a0e3ac5, acw_tc=a5422586-0adc-4774-a3be-11ccda854b757975fd48a90a244519cb05d7af6c0529, _hjSession_6446279=eyJpZCI6IjA2ZmUxNWY2LWRjNDUtNGZjZC04MjBhLWMwOTE3YzZiOWFkNiIsImMiOjE3Nzc5MjI1MTAyMzksInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjowLCJzcCI6MH0=, intercom-session-xyxalc2q=RzZaSEg0VnRYOHJ1c3dGYXRaN3pBdVFieXZseWJJc0JwWDY0Umd2b3JpdXd6NGttVllWMjQ3cTRVUklQWCttd0ZTUzdLSnRTaFpLa2F5SVFQeFk0dFNXUVdHKzA4MldxS0ltbmdiMWcvUzBvUWY2VFBiMVJlN3d5eHhtaHhsQUtDZ0ZmeGZyVmxQMWV1dzBnUUxhUFJ3QzBxQkh6MWp2VXJDYjRSQmpZMlQ2a2Zmdkxmczh3NGF6Mjl4OUlyeXptNnhGN2hkNThPVnRYM1FkRy9kSTkrZz09LS1Dd0pMaGp5ckxtb2ZDYnRHMWhqVzVBPT0=--add890eeb6e53a5d441fce2302d626c9a5546036, pt_3bg8mqij=deviceId%3D0b295d10-8383-4ede-8617-46465862891e%26sessionId%3Db98d66d6-385a-40c4-80c9-a22608afaa5d%26accountId%3D%26vn%3D5%26pvn%3D1%26lastActionTime%3D1777922515683%26, __cf_bm=HXMslT0ZMLooIaGJ16V_YNIt5x_B_LUjDZwoUxWQkMc-1777922533.0719883-1.0.1.1-W6FScxKs1g4DDfjNUBFsUjCtk1dRX.8SoLPJV9FnkuGmxtWXmdtriYpJE_BxHtBOldCeLAIznMbvQPK.4On0hkOCAz8SmaE3dilHBumLOx8lpDCTNOn19dev4Inet35G, _ga_04J3EGQBWL=GS2.1.s1777922504$o5$g1$t1777922533$j31$l0$h0, _ga_XENJJC28ZM=GS2.1.s1777922504$o5$g1$t1777922533$j31$l0$h0, _ga_MRB1ZRXEK1=GS2.1.s1777922504$o5$g1$t1777922533$j31$l0$h1830276006, _uetsid=778ecfa047b311f18bcf73b2b04222cb, _uetvid=778ecb8047b311f1a3178de0d2dd7f47, ttcsid=1777922519939::sRpwlhfpKjSVgPq5G_ZO.4.1777922536363.0::1.12754.16221::12746.2.951.874::0.0.0, ttcsid_D4E29RJC77U4DODN4QHG=1777922519939::rTQV1AOq7vWZ_niNtn74.4.1777922536363.1, _clsk=1i1f8g%5E1777922537879%5E3%5E1%5El.clarity.ms%2Fcollect, statsig_custom={%22effective%22:0%2C%22accountLevel%22:50%2C%22accountLevelName%22:%22Ultimate%22%2C%22packageType%22:%22TRAIN%22%2C%22type%22:4%2C%22startTime%22:%222026-04-30%22%2C%22endTime%22:%222027-05-01%22}",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 19:22:21 GMT",
+      "content-type": "application/json",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "x-trace-id": "128c0831c1ad4cab8ee778fc4cf66177",
+      "req-cost-time": "72",
+      "req-arrive-time": "1777922541546",
+      "resp-start-time": "1777922541619",
+      "x-envoy-upstream-service-time": "71",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f69dfac1b3ecdb7-NRT"
+    },
+    "body": {
+      "code": 0,
+      "msg": null,
+      "data": {
+        "unlimited": true,
+        "unlimitedEnable": true,
+        "unlimited_list": [
+          {
+            "model_display_name": "GPT Image 1.5",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": null,
+            "alias_list": [
+              "openai/gpt-image-1-5",
+              "openai/gpt-image-1-5",
+              "generate_image_gpt_image_1_5"
+            ]
+          },
+          {
+            "model_display_name": "GPT Image 2",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt-inverse.svg",
+            "status": 1,
+            "remaining_days": 28,
+            "extraItem": "medium 2K",
+            "alias_list": [
+              "openai/gpt-image-2",
+              "openai/gpt-image-2",
+              "generate_image_gpt_image_2"
+            ]
+          },
+          {
+            "model_display_name": "GPT Image 2",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": "low 2K",
+            "alias_list": [
+              "openai/gpt-image-2",
+              "openai/gpt-image-2",
+              "generate_image_gpt_image_2"
+            ]
+          },
+          {
+            "model_display_name": "Kling 2.6",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling-inverse.svg",
+            "status": 1,
+            "remaining_days": 28,
+            "extraItem": null,
+            "alias_list": [
+              "kling/kling-v2-6",
+              "kling/kling-v2-6-motion-control",
+              "kling/kling-v2-6",
+              "generate_video_kling_v2_6"
+            ]
+          },
+          {
+            "model_display_name": "Kling 2.6",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": null,
+            "alias_list": [
+              "kling/kling-v2-6",
+              "kling/kling-v2-6-motion-control",
+              "kling/kling-v2-6",
+              "generate_video_kling_v2_6"
+            ]
+          },
+          {
+            "model_display_name": "Kling O1",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling-inverse.svg",
+            "status": 1,
+            "remaining_days": 28,
+            "extraItem": null,
+            "alias_list": [
+              "kling/kling-video-o1",
+              "kling/kling-video-o1",
+              "generate_video_kling_omni_v1"
+            ]
+          },
+          {
+            "model_display_name": "Kling O1",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": null,
+            "alias_list": [
+              "kling/kling-video-o1",
+              "kling/kling-video-o1",
+              "generate_video_kling_omni_v1"
+            ]
+          },
+          {
+            "model_display_name": "Midjourney",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/midjourney.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/midjourney-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": null,
+            "alias_list": [
+              "youchuan/midjourney",
+              "youchuan/midjourney",
+              "youchuan/midjourney_draft",
+              "generate_image_midjourney"
+            ]
+          },
+          {
+            "model_display_name": "Nano Banana",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": null,
+            "alias_list": [
+              "vertex/nano-banana",
+              "gemini-2.5-flash-image-preview",
+              "generate_image_nano_banana"
+            ]
+          },
+          {
+            "model_display_name": "Nano Banana 2",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": "4K",
+            "alias_list": [
+              "vertex/nano-banana-2",
+              "vertex/nano-banana-2",
+              "generate_image_nano_banana_2"
+            ]
+          },
+          {
+            "model_display_name": "Nano Banana Pro",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": "4K",
+            "alias_list": [
+              "vertex/anon-bob",
+              "vertex/anon-bob",
+              "generate_image_nano_banana_pro"
+            ]
+          },
+          {
+            "model_display_name": "Seedance 1.5 Pro",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/seedream-inverse.svg",
+            "status": 1,
+            "remaining_days": 28,
+            "extraItem": null,
+            "alias_list": [
+              "seedance/seedance-1-5-pro",
+              "seedance-1-5-pro",
+              "generate_video_seedance_pro_v1_5"
+            ]
+          },
+          {
+            "model_display_name": "Seedream 4",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/seedream-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": null,
+            "alias_list": [
+              "seedream/seedream-4-0",
+              "bytedance/seedream_v4",
+              "generate_image_seedream_v4"
+            ]
+          },
+          {
+            "model_display_name": "Seedream 4.5",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/seedream-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": null,
+            "alias_list": [
+              "seedream/seedream-4-5",
+              "bytedance/seedream_v4_5",
+              "generate_image_seedream_v4_5"
+            ]
+          },
+          {
+            "model_display_name": "Seedream 5.0 Lite",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/seedream-inverse.svg",
+            "status": 1,
+            "remaining_days": 3,
+            "extraItem": null,
+            "alias_list": [
+              "seedream/seedream-5-0",
+              "bytedance/seedream_v5",
+              "generate_image_seedream_v5"
+            ]
+          },
+          {
+            "model_display_name": "Wan 2.6",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/qwen.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/qwen-inverse.svg",
+            "status": 1,
+            "remaining_days": 28,
+            "extraItem": null,
+            "alias_list": [
+              "wan/wan-2-6",
+              "wan/wan-2-6",
+              "generate_video_wan_v2_6"
+            ]
+          },
+          {
+            "model_display_name": "Wan 2.6",
+            "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/qwen.svg",
+            "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/qwen-inverse.svg",
+            "status": 1,
+            "remaining_days": 362,
+            "extraItem": null,
+            "alias_list": [
+              "wan/wan-2-6",
+              "wan/wan-2-6",
+              "generate_video_wan_v2_6"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "msg": null,
+    "data": {
+      "unlimited": true,
+      "unlimitedEnable": true,
+      "unlimited_list": [
+        {
+          "model_display_name": "GPT Image 1.5",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": null,
+          "alias_list": [
+            "openai/gpt-image-1-5",
+            "openai/gpt-image-1-5",
+            "generate_image_gpt_image_1_5"
+          ]
+        },
+        {
+          "model_display_name": "GPT Image 2",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt-inverse.svg",
+          "status": 1,
+          "remaining_days": 28,
+          "extraItem": "medium 2K",
+          "alias_list": [
+            "openai/gpt-image-2",
+            "openai/gpt-image-2",
+            "generate_image_gpt_image_2"
+          ]
+        },
+        {
+          "model_display_name": "GPT Image 2",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/chatgpt-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": "low 2K",
+          "alias_list": [
+            "openai/gpt-image-2",
+            "openai/gpt-image-2",
+            "generate_image_gpt_image_2"
+          ]
+        },
+        {
+          "model_display_name": "Kling 2.6",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling-inverse.svg",
+          "status": 1,
+          "remaining_days": 28,
+          "extraItem": null,
+          "alias_list": [
+            "kling/kling-v2-6",
+            "kling/kling-v2-6-motion-control",
+            "kling/kling-v2-6",
+            "generate_video_kling_v2_6"
+          ]
+        },
+        {
+          "model_display_name": "Kling 2.6",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": null,
+          "alias_list": [
+            "kling/kling-v2-6",
+            "kling/kling-v2-6-motion-control",
+            "kling/kling-v2-6",
+            "generate_video_kling_v2_6"
+          ]
+        },
+        {
+          "model_display_name": "Kling O1",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling-inverse.svg",
+          "status": 1,
+          "remaining_days": 28,
+          "extraItem": null,
+          "alias_list": [
+            "kling/kling-video-o1",
+            "kling/kling-video-o1",
+            "generate_video_kling_omni_v1"
+          ]
+        },
+        {
+          "model_display_name": "Kling O1",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/kling-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": null,
+          "alias_list": [
+            "kling/kling-video-o1",
+            "kling/kling-video-o1",
+            "generate_video_kling_omni_v1"
+          ]
+        },
+        {
+          "model_display_name": "Midjourney",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/midjourney.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/midjourney-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": null,
+          "alias_list": [
+            "youchuan/midjourney",
+            "youchuan/midjourney",
+            "youchuan/midjourney_draft",
+            "generate_image_midjourney"
+          ]
+        },
+        {
+          "model_display_name": "Nano Banana",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": null,
+          "alias_list": [
+            "vertex/nano-banana",
+            "gemini-2.5-flash-image-preview",
+            "generate_image_nano_banana"
+          ]
+        },
+        {
+          "model_display_name": "Nano Banana 2",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": "4K",
+          "alias_list": [
+            "vertex/nano-banana-2",
+            "vertex/nano-banana-2",
+            "generate_image_nano_banana_2"
+          ]
+        },
+        {
+          "model_display_name": "Nano Banana Pro",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/imagen-3-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": "4K",
+          "alias_list": [
+            "vertex/anon-bob",
+            "vertex/anon-bob",
+            "generate_image_nano_banana_pro"
+          ]
+        },
+        {
+          "model_display_name": "Seedance 1.5 Pro",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/seedream-inverse.svg",
+          "status": 1,
+          "remaining_days": 28,
+          "extraItem": null,
+          "alias_list": [
+            "seedance/seedance-1-5-pro",
+            "seedance-1-5-pro",
+            "generate_video_seedance_pro_v1_5"
+          ]
+        },
+        {
+          "model_display_name": "Seedream 4",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/seedream-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": null,
+          "alias_list": [
+            "seedream/seedream-4-0",
+            "bytedance/seedream_v4",
+            "generate_image_seedream_v4"
+          ]
+        },
+        {
+          "model_display_name": "Seedream 4.5",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/seedream-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": null,
+          "alias_list": [
+            "seedream/seedream-4-5",
+            "bytedance/seedream_v4_5",
+            "generate_image_seedream_v4_5"
+          ]
+        },
+        {
+          "model_display_name": "Seedream 5.0 Lite",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/generator/seedream_3.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/seedream-inverse.svg",
+          "status": 1,
+          "remaining_days": 3,
+          "extraItem": null,
+          "alias_list": [
+            "seedream/seedream-5-0",
+            "bytedance/seedream_v5",
+            "generate_image_seedream_v5"
+          ]
+        },
+        {
+          "model_display_name": "Wan 2.6",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/qwen.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/qwen-inverse.svg",
+          "status": 1,
+          "remaining_days": 28,
+          "extraItem": null,
+          "alias_list": [
+            "wan/wan-2-6",
+            "wan/wan-2-6",
+            "generate_video_wan_v2_6"
+          ]
+        },
+        {
+          "model_display_name": "Wan 2.6",
+          "model_icon": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/qwen.svg",
+          "model_icon_inverse": "https://lovart-persist-us.oss-us-east-1.aliyuncs.com/web/icon/qwen-inverse.svg",
+          "status": 1,
+          "remaining_days": 362,
+          "extraItem": null,
+          "alias_list": [
+            "wan/wan-2-6",
+            "wan/wan-2-6",
+            "generate_video_wan_v2_6"
+          ]
+        }
+      ]
+    }
+  }
+}

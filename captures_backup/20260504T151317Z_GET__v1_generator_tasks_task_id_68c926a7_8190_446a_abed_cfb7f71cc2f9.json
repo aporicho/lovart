@@ -1,0 +1,240 @@
+{
+  "captured_at": "20260504T151317Z",
+  "request": {
+    "method": "GET",
+    "url": "https://lgw.lovart.ai/v1/generator/tasks?task_id=68c926a7-8190-446a-abed-cfb7f71cc2f9",
+    "path": "/v1/generator/tasks?task_id=68c926a7-8190-446a-abed-cfb7f71cc2f9",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-send-timestamp": "1777907597292",
+      "x-req-uuid": "5898586a662a42928176e3aeaf336cd7",
+      "x-client-signature": "1:329b4929b5e6e3202278523bee832bf5e2afff57bde0f4a28fe6d9e5cc5b7b01",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 15:13:17 GMT",
+      "content-type": "application/json",
+      "access-control-allow-headers": "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-Uuid, X-Auth-Token",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "access-control-max-age": "86400",
+      "x-request-id": "349a5f32-35f0-4a36-99b9-502b54f4ce71",
+      "server": "cloudflare",
+      "vary": "Origin",
+      "access-control-allow-credentials": "true",
+      "access-control-expose-headers": "*",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "a81fa1ed85ff5bc280471753b35b5c77",
+      "x-kong-upstream-latency": "58",
+      "x-kong-proxy-latency": "14",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "84b9f32231697b45c821cd39655a6330",
+      "req-cost-time": "73",
+      "req-arrive-time": "1777907597464",
+      "resp-start-time": "1777907597537",
+      "x-envoy-upstream-service-time": "72",
+      "set-cookie": "acw_tc=349a5f32-35f0-4a36-99b9-502b54f4ce712d3516c7ed3d50022e3feed221778e17;path=/;HttpOnly;Max-Age=1800, __cf_bm=sR31dZ.W2CcGjvEs.CWjNK3vfWgmEhnc1xNN5dOTQcA-1777907597.3292594-1.0.1.1-Wokly1JIYw2WvJb8u5UM0B5S0k8vqv81pnMR1JTX0elvm2WT4WG1SvdC9TergXUQSOwcPreXU7IWWmF0Gb.B4re09QezxqYdvRUGaL.RDxsmZMU9le8f9CAkm2oiVyW_; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 15:43:17 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f6872d3481a1787-HKG"
+    },
+    "body": {
+      "code": 0,
+      "message": "success",
+      "data": {
+        "generator_task_id": "68c926a7-8190-446a-abed-cfb7f71cc2f9",
+        "generator_name": "youchuan/midjourney",
+        "status": "submitted",
+        "original_input_args": {
+          "aspect_ratio": "1:1",
+          "height": 1024,
+          "mode": "normal",
+          "model": "v7",
+          "original_unit_data": {
+            "configHeight": 1024,
+            "configWidth": 1024,
+            "count": 4,
+            "fillColor": "#E6E6E6",
+            "generatorName": "youchuan/midjourney",
+            "generator_name": "youchuan/midjourney",
+            "h": 1024,
+            "height": 1024,
+            "mode": "normal",
+            "model": "v7",
+            "name": "Image Generator 3",
+            "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+            "ratio": "1:1",
+            "renderSpeed": "turbo",
+            "render_speed": "turbo",
+            "title": "Image Generator",
+            "w": 1024,
+            "width": 1024
+          },
+          "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+          "render_speed": "turbo",
+          "width": 1024
+        },
+        "queue_info": {
+          "in_queue": true,
+          "position": 484,
+          "total_queue_count": 708,
+          "estimated_end_time": "2026-05-04 15:16:42",
+          "remaining_time_seconds": 208,
+          "disable_unlimited_price": {
+            "balance": 26918,
+            "price": 14,
+            "price_detail": {
+              "base_price": 14,
+              "ext_info_for_unit_count": "no unit count, by default 1",
+              "generator_name": "youchuan/midjourney",
+              "input_args": {
+                "aspect_ratio": "1:1",
+                "height": 1024,
+                "mode": "normal",
+                "model": "v7",
+                "original_unit_data": {
+                  "configHeight": 1024,
+                  "configWidth": 1024,
+                  "count": 4,
+                  "fillColor": "#E6E6E6",
+                  "generatorName": "youchuan/midjourney",
+                  "generator_name": "youchuan/midjourney",
+                  "h": 1024,
+                  "height": 1024,
+                  "mode": "normal",
+                  "model": "v7",
+                  "name": "Image Generator 3",
+                  "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+                  "ratio": "1:1",
+                  "renderSpeed": "turbo",
+                  "render_speed": "turbo",
+                  "title": "Image Generator",
+                  "w": 1024,
+                  "width": 1024
+                },
+                "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+                "render_speed": "turbo",
+                "width": 1024
+              },
+              "output_args": null,
+              "search_key": "normal_turbo",
+              "total_price": 14,
+              "unit_count": 1,
+              "unit_name": "n",
+              "unit_price": 14
+            },
+            "disable_unlimited": true
+          }
+        }
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "generator_task_id": "68c926a7-8190-446a-abed-cfb7f71cc2f9",
+      "generator_name": "youchuan/midjourney",
+      "status": "submitted",
+      "original_input_args": {
+        "aspect_ratio": "1:1",
+        "height": 1024,
+        "mode": "normal",
+        "model": "v7",
+        "original_unit_data": {
+          "configHeight": 1024,
+          "configWidth": 1024,
+          "count": 4,
+          "fillColor": "#E6E6E6",
+          "generatorName": "youchuan/midjourney",
+          "generator_name": "youchuan/midjourney",
+          "h": 1024,
+          "height": 1024,
+          "mode": "normal",
+          "model": "v7",
+          "name": "Image Generator 3",
+          "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+          "ratio": "1:1",
+          "renderSpeed": "turbo",
+          "render_speed": "turbo",
+          "title": "Image Generator",
+          "w": 1024,
+          "width": 1024
+        },
+        "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+        "render_speed": "turbo",
+        "width": 1024
+      },
+      "queue_info": {
+        "in_queue": true,
+        "position": 484,
+        "total_queue_count": 708,
+        "estimated_end_time": "2026-05-04 15:16:42",
+        "remaining_time_seconds": 208,
+        "disable_unlimited_price": {
+          "balance": 26918,
+          "price": 14,
+          "price_detail": {
+            "base_price": 14,
+            "ext_info_for_unit_count": "no unit count, by default 1",
+            "generator_name": "youchuan/midjourney",
+            "input_args": {
+              "aspect_ratio": "1:1",
+              "height": 1024,
+              "mode": "normal",
+              "model": "v7",
+              "original_unit_data": {
+                "configHeight": 1024,
+                "configWidth": 1024,
+                "count": 4,
+                "fillColor": "#E6E6E6",
+                "generatorName": "youchuan/midjourney",
+                "generator_name": "youchuan/midjourney",
+                "h": 1024,
+                "height": 1024,
+                "mode": "normal",
+                "model": "v7",
+                "name": "Image Generator 3",
+                "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+                "ratio": "1:1",
+                "renderSpeed": "turbo",
+                "render_speed": "turbo",
+                "title": "Image Generator",
+                "w": 1024,
+                "width": 1024
+              },
+              "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+              "render_speed": "turbo",
+              "width": 1024
+            },
+            "output_args": null,
+            "search_key": "normal_turbo",
+            "total_price": 14,
+            "unit_count": 1,
+            "unit_name": "n",
+            "unit_price": 14
+          },
+          "disable_unlimited": true
+        }
+      }
+    }
+  }
+}

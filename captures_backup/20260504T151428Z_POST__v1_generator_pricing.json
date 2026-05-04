@@ -1,0 +1,157 @@
+{
+  "captured_at": "20260504T151428Z",
+  "request": {
+    "method": "POST",
+    "url": "https://lgw.lovart.ai/v1/generator/pricing",
+    "path": "/v1/generator/pricing",
+    "headers": {
+      "content-length": "432",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-send-timestamp": "1777907668295",
+      "x-req-uuid": "f0d7ebedfbfb40468b72762316bb6b22",
+      "x-client-signature": "1:3cf1778b16b262b9f886cc9c55e08d2acf537d2441f39936285a265d81aad144",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "content-type": "application/json",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": {
+      "generator_name": "openai/gpt-image-2",
+      "input_args": {
+        "prompt": "",
+        "quality": "medium",
+        "size": "2048*2048",
+        "n": 1,
+        "original_unit_data": {
+          "w": 2048,
+          "h": 2048,
+          "title": "Image Generator",
+          "name": "Image Generator 3",
+          "fillColor": "#E6E6E6",
+          "generatorName": "openai/gpt-image-2",
+          "ratio": "1:1(2k)",
+          "resolution": "1K",
+          "configWidth": 2048,
+          "configHeight": 2048,
+          "count": 1,
+          "quality": "medium",
+          "generator_name": "openai/gpt-image-2",
+          "width": 2048,
+          "height": 2048
+        }
+      }
+    }
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 15:14:28 GMT",
+      "content-type": "application/json",
+      "access-control-allow-headers": "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-Uuid, X-Auth-Token",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "access-control-max-age": "86400",
+      "x-request-id": "d4d0cf52-1702-4459-95b7-557b4564ddbf",
+      "server": "cloudflare",
+      "vary": "Origin",
+      "access-control-allow-credentials": "true",
+      "access-control-expose-headers": "*",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "e0635251d82c46659b0b3e886507cd0f",
+      "x-kong-upstream-latency": "68",
+      "x-kong-proxy-latency": "7",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "fe038355393f1d2830318e2630e4e964",
+      "req-cost-time": "76",
+      "req-arrive-time": "1777907668450",
+      "resp-start-time": "1777907668526",
+      "x-envoy-upstream-service-time": "74",
+      "set-cookie": "acw_tc=d4d0cf52-1702-4459-95b7-557b4564ddbf0a8d517bab873b9ddac56e165c0d491a;path=/;HttpOnly;Max-Age=1800, __cf_bm=9934FhC4s.CmUWjF7HE_KHrrGLEgU2chOhv.cw7FG94-1777907668.33217-1.0.1.1-A2XhHd2tRGVeFH3qpWhegODLkk0cJ_JQ8X4rDaMVtac_Q2DDH_fqNEo.vX7nNae7jX6cHFwuMVAihv7PvqnzDgMv.RRxh1X_CYpc_z1YobvZjqVr_sX8yfFQOnS0Aass; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 15:44:28 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f68748f1c251787-HKG"
+    },
+    "body": {
+      "code": 0,
+      "message": "success",
+      "data": {
+        "balance": 26918,
+        "price": 0,
+        "price_detail": {
+          "base_price": 12,
+          "convert_source_key": "size",
+          "convert_source_value": "2048*2048",
+          "convert_target_key": "resolution",
+          "convert_target_value": "2K",
+          "generator_name": "openai/gpt-image-2",
+          "image_count_surcharge": 0,
+          "input_args": {
+            "n": 1,
+            "prompt": "",
+            "quality": "medium",
+            "resolution": "2K",
+            "size": "2048*2048"
+          },
+          "input_image_count": 0,
+          "input_image_count_field": "image",
+          "input_image_count_surcharge_enabled": true,
+          "input_image_count_unit_price": 2,
+          "output_args": null,
+          "price_before_surcharge": 12,
+          "search_key": "2K_medium",
+          "total_price": 12,
+          "unit_count": 1,
+          "unit_name": "n",
+          "unit_price": 12
+        }
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "balance": 26918,
+      "price": 0,
+      "price_detail": {
+        "base_price": 12,
+        "convert_source_key": "size",
+        "convert_source_value": "2048*2048",
+        "convert_target_key": "resolution",
+        "convert_target_value": "2K",
+        "generator_name": "openai/gpt-image-2",
+        "image_count_surcharge": 0,
+        "input_args": {
+          "n": 1,
+          "prompt": "",
+          "quality": "medium",
+          "resolution": "2K",
+          "size": "2048*2048"
+        },
+        "input_image_count": 0,
+        "input_image_count_field": "image",
+        "input_image_count_surcharge_enabled": true,
+        "input_image_count_unit_price": 2,
+        "output_args": null,
+        "price_before_surcharge": 12,
+        "search_key": "2K_medium",
+        "total_price": 12,
+        "unit_count": 1,
+        "unit_name": "n",
+        "unit_price": 12
+      }
+    }
+  }
+}

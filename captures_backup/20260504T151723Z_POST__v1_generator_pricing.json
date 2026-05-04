@@ -1,0 +1,111 @@
+{
+  "captured_at": "20260504T151723Z",
+  "request": {
+    "method": "POST",
+    "url": "https://lgw.lovart.ai/v1/generator/pricing",
+    "path": "/v1/generator/pricing",
+    "headers": {
+      "content-length": "134",
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-send-timestamp": "1777907843459",
+      "x-req-uuid": "bae7e23f7e18443b8c60b14175b25d59",
+      "x-client-signature": "1:758384724d99bb671a291e3d02b1f9f3efdf337dab66b1075dedcaafcf816866",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "content-type": "application/json",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": {
+      "generator_name": "lovart/layer-separation",
+      "input_args": {
+        "image_url": "https://a.lovart.ai/artifacts/generator/h4Nsd29WxMHobBsN.png"
+      }
+    }
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 15:17:23 GMT",
+      "content-type": "application/json",
+      "access-control-allow-headers": "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-Uuid, X-Auth-Token",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "access-control-max-age": "86400",
+      "x-request-id": "baece907-37e0-4a52-835c-a65614d84da3",
+      "server": "cloudflare",
+      "vary": "Origin",
+      "access-control-allow-credentials": "true",
+      "access-control-expose-headers": "*",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "98eef6f4e3e6143a9580f720c2ea151e",
+      "x-kong-upstream-latency": "62",
+      "x-kong-proxy-latency": "7",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "5eb1fa700aa0347281e15d7c8e32ee59",
+      "req-cost-time": "71",
+      "req-arrive-time": "1777907843779",
+      "resp-start-time": "1777907843850",
+      "x-envoy-upstream-service-time": "69",
+      "set-cookie": "acw_tc=baece907-37e0-4a52-835c-a65614d84da397b4831ec01566bd832b70932f7cf78e;path=/;HttpOnly;Max-Age=1800, __cf_bm=chYj66uieymM9KC5PiXXWdZD3bTLMnIpvUoT6hWgc50-1777907843.6605728-1.0.1.1-awaSqsBTbOQS030hmDLJqKY.u4vPgRgsS14K71c1ajm.PREq_PoSdy1JwY92wWfj.AIkZtXnO6OarvBU3CITJwnOaIs_0vtpXEWmjgkOWSxtpbUXJ7Z0XlDMB_hXF70B; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 15:47:23 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f6878d6d8341787-HKG"
+    },
+    "body": {
+      "code": 0,
+      "message": "success",
+      "data": {
+        "balance": 26918,
+        "price": 5,
+        "price_detail": {
+          "base_price": 5,
+          "ext_info": "no search key, by default unit price",
+          "ext_info_for_unit_count": "no unit count, by default 1",
+          "generator_name": "lovart/layer-separation",
+          "input_args": {
+            "image_url": "https://a.lovart.ai/artifacts/generator/h4Nsd29WxMHobBsN.png"
+          },
+          "output_args": null,
+          "total_price": 5,
+          "unit_count": 1,
+          "unit_name": "n",
+          "unit_price": 5
+        }
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "balance": 26918,
+      "price": 5,
+      "price_detail": {
+        "base_price": 5,
+        "ext_info": "no search key, by default unit price",
+        "ext_info_for_unit_count": "no unit count, by default 1",
+        "generator_name": "lovart/layer-separation",
+        "input_args": {
+          "image_url": "https://a.lovart.ai/artifacts/generator/h4Nsd29WxMHobBsN.png"
+        },
+        "output_args": null,
+        "total_price": 5,
+        "unit_count": 1,
+        "unit_name": "n",
+        "unit_price": 5
+      }
+    }
+  }
+}

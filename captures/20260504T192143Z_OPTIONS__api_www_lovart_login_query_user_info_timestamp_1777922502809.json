@@ -1,0 +1,45 @@
+{
+  "captured_at": "20260504T192143Z",
+  "request": {
+    "method": "OPTIONS",
+    "url": "https://api.lovart.ai/api/www/lovart/login/query/user/info?timestamp=1777922502809",
+    "path": "/api/www/lovart/login/query/user/info?timestamp=1777922502809",
+    "headers": {
+      "accept": "*/*",
+      "access-control-request-method": "GET",
+      "access-control-request-headers": "token,webid,x-language",
+      "origin": "https://www.lovart.ai",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "zh,en;q=0.9,zh-CN;q=0.8",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 19:21:43 GMT",
+      "content-length": "0",
+      "eagleeye-traceid": "805d718c773952e53750c713a4900dde",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "*",
+      "access-control-allow-headers": "*",
+      "req-cost-time": "1",
+      "req-arrive-time": "1777922503020",
+      "resp-start-time": "1777922503022",
+      "x-envoy-upstream-service-time": "0",
+      "set-cookie": "acw_tc=77d32d9b-303b-4ace-95b7-951b6bfff5619345d781c221d3e3683a89bd5c82e42a;path=/;HttpOnly;Max-Age=1800, __cf_bm=.H7kUyGI30JfWRTuFdQZ5gWbJ2wu4rZUpKtQNu29cy8-1777922502.9342299-1.0.1.1-ACafkD2XLSZ18Xs3z4mxgAuO53Gbch88rbWERacazQSI7q0tcmKPC6upY0wbvSKQYzIR8xxQVrN4OEtdQZ4OCegHgwu4VdsIpWJBrNzP3PhhPH7H4bdr_sM_qdXwsVAQ; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 19:51:43 GMT",
+      "server": "cloudflare",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9f69debb5a94d798-NRT"
+    },
+    "body": null
+  },
+  "response_body": null
+}

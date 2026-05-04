@@ -1,0 +1,226 @@
+{
+  "captured_at": "20260504T151357Z",
+  "request": {
+    "method": "GET",
+    "url": "https://lgw.lovart.ai/v1/generator/tasks?task_id=3304b96b-dbfa-44ae-b8d2-30f640f23a16",
+    "path": "/v1/generator/tasks?task_id=3304b96b-dbfa-44ae-b8d2-30f640f23a16",
+    "headers": {
+      "sec-ch-ua-platform": "\"macOS\"",
+      "accept-language": "en",
+      "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+      "sec-ch-ua-mobile": "?0",
+      "x-send-timestamp": "1777907637173",
+      "x-req-uuid": "bc7255bd665047f399f3a218b036d35c",
+      "x-client-signature": "1:1d530df8a4b4961bf0dd9adee3ce6284f8c4f42096ae366eedad8eb7b71b0156",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+      "token": "eyJhbGciOiJIUzI1NiJ9.eyJtb2JpbGUiOiIiLCJuaWNrbmFtZSI6InB5dXJhbiIsImF2YXRhciI6IiIsInVzZXJJZCI6MTQ4MTMxNjQsInV1aWQiOiI0MTJmYTFlZmNhNGM0ODkwYWI2YmFiNzdhMzZiNzU3ZiIsImVtYWlsIjoiaGV4bW9vbmdsb2JhbEBnbWFpbC5jb20iLCJjcmVhdGVBdCI6MTc3NDkyNDM4OTAwMCwianRpIjoibVNpNXlnblZRWSIsInN1YiI6InB5dXJhbiIsImlhdCI6MTc3Nzg5ODI3NSwiaXNzIjoibG92YXJ0LWF1dGgiLCJleHAiOjE3Nzg1MDMwNzV9.q9Xpqk7IFe90dO1vL7ltB1KezIl-OwCiyS89BIjKBFY",
+      "accept": "*/*",
+      "origin": "https://www.lovart.ai",
+      "sec-fetch-site": "same-site",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-dest": "empty",
+      "referer": "https://www.lovart.ai/",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "priority": "u=1, i"
+    },
+    "body": null
+  },
+  "response": {
+    "status_code": 200,
+    "headers": {
+      "date": "Mon, 04 May 2026 15:13:57 GMT",
+      "content-type": "application/json",
+      "access-control-allow-headers": "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-User-Uuid, X-Auth-Token",
+      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "access-control-max-age": "86400",
+      "x-request-id": "f939eab7-2339-4289-9f81-bd94fdc284eb",
+      "server": "cloudflare",
+      "vary": "Origin",
+      "access-control-allow-credentials": "true",
+      "access-control-expose-headers": "*",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "x-xss-protection": "1; mode=block",
+      "x-trace-id": "94f110763742f5db3f98614d574c6ee1",
+      "x-kong-upstream-latency": "61",
+      "x-kong-proxy-latency": "13",
+      "via": "1.1 kong/3.10.0.10-enterprise-edition",
+      "x-kong-request-id": "4194f7745aecfc62cc813c06f35bff00",
+      "req-cost-time": "75",
+      "req-arrive-time": "1777907637347",
+      "resp-start-time": "1777907637422",
+      "x-envoy-upstream-service-time": "74",
+      "set-cookie": "acw_tc=f939eab7-2339-4289-9f81-bd94fdc284ebeffb07ef23a07b4b1177fd6e28c7ada4;path=/;HttpOnly;Max-Age=1800, __cf_bm=sLQcp.GKz3Ex8kUFSSTe4001LQIxz7Wpol0.6sNdVV8-1777907637.2125094-1.0.1.1-A81jgY2lI1Q9VhAnQ6XoLzRtkbgSdVOO.qRJTZkovM84AHm_AXJ4KwFyZEBmlCQSTWZhLsgery7cs1gFvEvCf7UHSXkJ2BcPAUC89W9qy2f3qubfAm6MgCeQ6g8a26Ax; HttpOnly; Secure; Path=/; Domain=lovart.ai; Expires=Mon, 04 May 2026 15:43:57 GMT",
+      "access-control-allow-origin": "https://www.lovart.ai",
+      "cf-cache-status": "DYNAMIC",
+      "content-encoding": "gzip",
+      "cf-ray": "9f6873cc9ec31787-HKG"
+    },
+    "body": {
+      "code": 0,
+      "message": "success",
+      "data": {
+        "generator_task_id": "3304b96b-dbfa-44ae-b8d2-30f640f23a16",
+        "generator_name": "vertex/anon-bob",
+        "status": "submitted",
+        "original_input_args": {
+          "aspect_ratio": "1:1",
+          "height": 4096,
+          "original_unit_data": {
+            "configHeight": 4096,
+            "configWidth": 4096,
+            "count": 1,
+            "fillColor": "#E6E6E6",
+            "generatorName": "vertex/anon-bob",
+            "generator_name": "vertex/anon-bob",
+            "h": 4096,
+            "height": 4096,
+            "name": "Image Generator 3",
+            "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+            "ratio": "1:1",
+            "resolution": "4K",
+            "title": "Image Generator",
+            "w": 4096,
+            "width": 4096
+          },
+          "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+          "resolution": "4K",
+          "width": 4096
+        },
+        "queue_info": {
+          "in_queue": true,
+          "position": 523,
+          "total_queue_count": 749,
+          "estimated_end_time": "2026-05-04 15:17:27",
+          "remaining_time_seconds": 232,
+          "disable_unlimited_price": {
+            "balance": 26918,
+            "price": 12,
+            "price_detail": {
+              "base_price": 24,
+              "ext_info_for_unit_count": "no unit count, by default 1",
+              "generator_name": "vertex/anon-bob",
+              "input_args": {
+                "aspect_ratio": "1:1",
+                "height": 4096,
+                "original_unit_data": {
+                  "configHeight": 4096,
+                  "configWidth": 4096,
+                  "count": 1,
+                  "fillColor": "#E6E6E6",
+                  "generatorName": "vertex/anon-bob",
+                  "generator_name": "vertex/anon-bob",
+                  "h": 4096,
+                  "height": 4096,
+                  "name": "Image Generator 3",
+                  "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+                  "ratio": "1:1",
+                  "resolution": "4K",
+                  "title": "Image Generator",
+                  "w": 4096,
+                  "width": 4096
+                },
+                "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+                "resolution": "4K",
+                "width": 4096
+              },
+              "output_args": null,
+              "search_key": "4K",
+              "time_variant_base_price": 24,
+              "time_variant_multiplier": 0.5,
+              "time_variant_period": "off_peak",
+              "total_price": 24,
+              "unit_count": 1,
+              "unit_name": "image_count",
+              "unit_price": 24
+            },
+            "disable_unlimited": true
+          }
+        }
+      }
+    }
+  },
+  "response_body": {
+    "code": 0,
+    "message": "success",
+    "data": {
+      "generator_task_id": "3304b96b-dbfa-44ae-b8d2-30f640f23a16",
+      "generator_name": "vertex/anon-bob",
+      "status": "submitted",
+      "original_input_args": {
+        "aspect_ratio": "1:1",
+        "height": 4096,
+        "original_unit_data": {
+          "configHeight": 4096,
+          "configWidth": 4096,
+          "count": 1,
+          "fillColor": "#E6E6E6",
+          "generatorName": "vertex/anon-bob",
+          "generator_name": "vertex/anon-bob",
+          "h": 4096,
+          "height": 4096,
+          "name": "Image Generator 3",
+          "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+          "ratio": "1:1",
+          "resolution": "4K",
+          "title": "Image Generator",
+          "w": 4096,
+          "width": 4096
+        },
+        "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+        "resolution": "4K",
+        "width": 4096
+      },
+      "queue_info": {
+        "in_queue": true,
+        "position": 523,
+        "total_queue_count": 749,
+        "estimated_end_time": "2026-05-04 15:17:27",
+        "remaining_time_seconds": 232,
+        "disable_unlimited_price": {
+          "balance": 26918,
+          "price": 12,
+          "price_detail": {
+            "base_price": 24,
+            "ext_info_for_unit_count": "no unit count, by default 1",
+            "generator_name": "vertex/anon-bob",
+            "input_args": {
+              "aspect_ratio": "1:1",
+              "height": 4096,
+              "original_unit_data": {
+                "configHeight": 4096,
+                "configWidth": 4096,
+                "count": 1,
+                "fillColor": "#E6E6E6",
+                "generatorName": "vertex/anon-bob",
+                "generator_name": "vertex/anon-bob",
+                "h": 4096,
+                "height": 4096,
+                "name": "Image Generator 3",
+                "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+                "ratio": "1:1",
+                "resolution": "4K",
+                "title": "Image Generator",
+                "w": 4096,
+                "width": 4096
+              },
+              "prompt": "生成一个ue5超写实风格的可爱型古装美女",
+              "resolution": "4K",
+              "width": 4096
+            },
+            "output_args": null,
+            "search_key": "4K",
+            "time_variant_base_price": 24,
+            "time_variant_multiplier": 0.5,
+            "time_variant_period": "off_peak",
+            "total_price": 24,
+            "unit_count": 1,
+            "unit_name": "image_count",
+            "unit_price": 24
+          },
+          "disable_unlimited": true
+        }
+      }
+    }
+  }
+}
