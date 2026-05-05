@@ -45,7 +45,7 @@ func addBatchToCanvasJSON(jsonStr string, batch CanvasBatch) (*canvasMutation, e
 	options := normalizeCanvasLayoutOptions(batch.Options)
 	startX, startY := computeSectionLayoutStartGJSON(jsonStr, canvasStorePath, options)
 	imageCount := countCImagesGJSON(jsonStr, canvasStorePath)
-	frameIndices := indicesAfter(maxShapeIndexGJSON(jsonStr, canvasStorePath), len(sections))
+	frameIndices := indicesForNewSiblingsGJSON(jsonStr, canvasStorePath, "page:page", len(sections))
 
 	y := startY
 	for i, section := range sections {
@@ -64,7 +64,7 @@ func addBatchToCanvasJSON(jsonStr string, batch CanvasBatch) (*canvasMutation, e
 			return nil, fmt.Errorf("insert frame: %w", err)
 		}
 
-		childIndices := indicesAfter(maxChildShapeIndexGJSON(jsonStr, canvasStorePath, frameID), len(section.Images)+1)
+		childIndices := indicesForPositions(len(section.Images) + 1)
 		textID, err := newShapeID()
 		if err != nil {
 			return nil, fmt.Errorf("text id: %w", err)
@@ -98,11 +98,16 @@ func addBatchToCanvasJSON(jsonStr string, batch CanvasBatch) (*canvasMutation, e
 		y += layout.FrameHeight + options.FrameGap
 	}
 
-	return &canvasMutation{
+	mutated := &canvasMutation{
 		JSON:      jsonStr,
 		PicCount:  countCImagesGJSON(jsonStr, canvasStorePath),
 		CoverList: extractCoverListGJSON(jsonStr),
-	}, nil
+	}
+	mutated, _, err = normalizeCanvasJSON(mutated.JSON)
+	if err != nil {
+		return nil, err
+	}
+	return mutated, nil
 }
 
 func ensureCanvasStore(jsonStr string) (string, error) {
@@ -242,7 +247,7 @@ func sectionText(section CanvasSection) string {
 	if strings.TrimSpace(section.Subtitle) == "" {
 		return title
 	}
-	return title + "\n" + section.Subtitle
+	return title + " · " + section.Subtitle
 }
 
 func newShapeID() (string, error) {

@@ -1,7 +1,6 @@
 package project
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/tidwall/gjson"
@@ -31,42 +30,39 @@ func computeLayoutGJSON(jsonStr, storePath string) (int, int) {
 	return maxRight + 64, 0
 }
 
-func maxShapeIndexGJSON(jsonStr, storePath string) string {
-	maxIndex := ""
+func countChildShapesGJSON(jsonStr, storePath, parentID string) int {
+	count := 0
 	store := gjson.Get(jsonStr, storePath)
 	store.ForEach(func(key, value gjson.Result) bool {
-		if value.Get("typeName").String() != "shape" {
-			return true
-		}
-		if parent := value.Get("parentId").String(); parent != "" && parent != "page:page" {
-			return true
-		}
-		index := value.Get("index").String()
-		if index > maxIndex {
-			maxIndex = index
+		if value.Get("typeName").String() == "shape" && value.Get("parentId").String() == parentID {
+			count++
 		}
 		return true
 	})
-	return maxIndex
+	return count
 }
 
-func maxChildShapeIndexGJSON(jsonStr, storePath, parentID string) string {
-	maxIndex := ""
-	store := gjson.Get(jsonStr, storePath)
-	store.ForEach(func(key, value gjson.Result) bool {
-		if value.Get("typeName").String() != "shape" {
-			return true
-		}
-		if value.Get("parentId").String() != parentID {
-			return true
-		}
-		index := value.Get("index").String()
-		if index > maxIndex {
-			maxIndex = index
-		}
-		return true
-	})
-	return maxIndex
+func indicesForNewSiblingsGJSON(jsonStr, storePath, parentID string, n int) []string {
+	if n <= 0 {
+		return nil
+	}
+	start := countChildShapesGJSON(jsonStr, storePath, parentID) + 1
+	indices := make([]string, n)
+	for i := range indices {
+		indices[i] = canvasIndexForPosition(start + i)
+	}
+	return indices
+}
+
+func indicesForPositions(n int) []string {
+	if n <= 0 {
+		return nil
+	}
+	indices := make([]string, n)
+	for i := range indices {
+		indices[i] = canvasIndexForPosition(i + 1)
+	}
+	return indices
 }
 
 func computeSectionLayoutStartGJSON(jsonStr, storePath string, options CanvasLayoutOptions) (int, int) {
@@ -98,21 +94,4 @@ func computeSectionLayoutStartGJSON(jsonStr, storePath string, options CanvasLay
 		return options.Padding, options.Padding
 	}
 	return minX, maxBottom + options.FrameGap
-}
-
-func indicesAfter(maxIndex string, n int) []string {
-	if n <= 0 {
-		return nil
-	}
-	indices := make([]string, n)
-	if maxIndex == "" {
-		for i := range indices {
-			indices[i] = fmt.Sprintf("a%04d", i+1)
-		}
-		return indices
-	}
-	for i := range indices {
-		indices[i] = fmt.Sprintf("%s%04d", maxIndex, i+1)
-	}
-	return indices
 }

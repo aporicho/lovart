@@ -23,7 +23,7 @@ func addImagesToCanvasJSON(jsonStr string, images []CanvasImage) (*canvasMutatio
 
 	startX, startY := computeLayoutGJSON(jsonStr, canvasStorePath)
 	imageCount := countCImagesGJSON(jsonStr, canvasStorePath)
-	indices := indicesAfter(maxShapeIndexGJSON(jsonStr, canvasStorePath), len(images))
+	indices := indicesForNewSiblingsGJSON(jsonStr, canvasStorePath, "page:page", len(images))
 
 	const columns = 4
 	const gap = 64
@@ -50,11 +50,16 @@ func addImagesToCanvasJSON(jsonStr string, images []CanvasImage) (*canvasMutatio
 		}
 	}
 
-	return &canvasMutation{
+	mutated := &canvasMutation{
 		JSON:      jsonStr,
 		PicCount:  countCImagesGJSON(jsonStr, canvasStorePath),
 		CoverList: extractCoverListGJSON(jsonStr),
-	}, nil
+	}
+	mutated, _, err = normalizeCanvasJSON(mutated.JSON)
+	if err != nil {
+		return nil, err
+	}
+	return mutated, nil
 }
 
 // buildNodeJSON constructs a tldraw c-image shape node as a JSON string.

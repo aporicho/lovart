@@ -26,6 +26,7 @@ func newProjectCmd() *cobra.Command {
 	cmd.AddCommand(newProjectOpenCmd())
 	cmd.AddCommand(newProjectRenameCmd())
 	cmd.AddCommand(newProjectDeleteCmd())
+	cmd.AddCommand(newProjectRepairCanvasCmd())
 	return cmd
 }
 

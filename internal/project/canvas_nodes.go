@@ -64,6 +64,10 @@ func buildFrameNodeJSON(id, index, name string, x, y, width, height int) (string
 }
 
 func buildTextNodeJSON(id, parentID, index, text string, x, y int) (string, error) {
+	text = sanitizeCanvasLabel(text)
+	if text == "" {
+		text = "Generated images"
+	}
 	node := map[string]any{
 		"x":        float64(x),
 		"y":        float64(y),

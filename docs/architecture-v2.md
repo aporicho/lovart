@@ -199,6 +199,9 @@ lovart config <model> [--all] [--example defaults|zero_credit] [--global]
 lovart project list
 lovart project create <name>
 lovart project select <id>
+lovart project show [id]
+lovart project open [id]
+lovart project repair-canvas [id] [--cid <cid>]
 lovart plan [model] [--intent] [--count] [--body-file]
 lovart quote <model> --body-file <file>
 lovart generate <model> --body-file <file> [--project-id <id>] [--cid <cid>] [--mode] [--dry-run] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]

@@ -27,6 +27,10 @@ func AddBatchToCanvas(ctx context.Context, client *http.Client, projectID, cid s
 	if err != nil {
 		return fmt.Errorf("canvas: add batch: %w", err)
 	}
+	mutated, _, err = normalizeCanvasJSON(mutated.JSON)
+	if err != nil {
+		return fmt.Errorf("canvas: normalize: %w", err)
+	}
 
 	newCanvas, err := encodeCanvasJSON(mutated.JSON)
 	if err != nil {

@@ -39,11 +39,11 @@ func TestAddImagesToCanvasJSONMaintainsTldrawInvariants(t *testing.T) {
 
 	firstIndex := first["index"].(string)
 	secondIndex := second["index"].(string)
-	if firstIndex <= "b0002" {
-		t.Fatalf("first new index = %q, want greater than existing max", firstIndex)
+	if firstIndex != "a5" {
+		t.Fatalf("first new index = %q, want a5", firstIndex)
 	}
-	if secondIndex <= firstIndex {
-		t.Fatalf("second new index = %q, want greater than first %q", secondIndex, firstIndex)
+	if secondIndex != "a6" {
+		t.Fatalf("second new index = %q, want a6", secondIndex)
 	}
 }
 
@@ -112,7 +112,7 @@ func TestAddBatchToCanvasJSONCreatesFrameSection(t *testing.T) {
 	if int(text["x"].(float64)) != 100 || int(text["y"].(float64)) != 100 {
 		t.Fatalf("text position = (%v,%v), want (100,100)", text["x"], text["y"])
 	}
-	if got := richTextPlainText(t, text); got != "Cat\nopenai/gpt-image-2 · 4 images" {
+	if got := richTextPlainText(t, text); got != "Cat · openai/gpt-image-2 · 4 images" {
 		t.Fatalf("text = %q", got)
 	}
 
@@ -182,6 +182,42 @@ func TestAddBatchToCanvasJSONWrapsAndScalesLargeImages(t *testing.T) {
 	}
 }
 
+func TestNormalizeCanvasJSONRepairsTextAndIndexes(t *testing.T) {
+	mutated, result, err := normalizeCanvasJSON(corruptCanvasJSON())
+	if err != nil {
+		t.Fatalf("normalizeCanvasJSON returned error: %v", err)
+	}
+	if !result.Changed {
+		t.Fatalf("normalizeCanvasJSON did not report changes")
+	}
+	if result.NormalizedTexts != 1 {
+		t.Fatalf("normalized texts = %d, want 1", result.NormalizedTexts)
+	}
+	if result.NormalizedIndexes != 3 {
+		t.Fatalf("normalized indexes = %d, want 3", result.NormalizedIndexes)
+	}
+	if result.PicCount != 1 {
+		t.Fatalf("pic count = %d, want 1", result.PicCount)
+	}
+
+	store := decodeStore(t, mutated.JSON)
+	frame := store["shape:frame"].(map[string]any)
+	if frame["index"] != "a1" {
+		t.Fatalf("frame index = %v, want a1", frame["index"])
+	}
+	text := store["shape:text"].(map[string]any)
+	if text["index"] != "a1" {
+		t.Fatalf("text index = %v, want a1", text["index"])
+	}
+	if got := richTextPlainText(t, text); got != "Broken Title vertex/nano-banana · 1 image" {
+		t.Fatalf("text = %q", got)
+	}
+	image := store["shape:image"].(map[string]any)
+	if image["index"] != "a2" {
+		t.Fatalf("image index = %v, want a2", image["index"])
+	}
+}
+
 func TestCanvasEncodeDecodeRoundTrip(t *testing.T) {
 	fixture := syntheticCanvasJSON()
 	encoded, err := encodeCanvasJSON(fixture)
@@ -205,6 +241,10 @@ func TestDecodeCanvasJSONRejectsBadPrefix(t *testing.T) {
 
 func syntheticCanvasJSON() string {
 	return `{"tldrawSnapshot":{"document":{"store":{"document:document":{"gridSize":10,"name":"","meta":{},"id":"document:document","typeName":"document"},"page:page":{"meta":{},"id":"page:page","name":"Page 1","index":"a1","typeName":"page"},"shape:old1":{"x":0,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:old1","type":"c-image","props":{"w":100,"h":100,"url":"https://old/1.png","originalUrl":"https://old/1.png","radius":0,"name":" Image 1","genType":1,"generatorTaskId":"task-old"},"parentId":"page:page","index":"a0001","typeName":"shape"},"shape:old2":{"x":120,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:old2","type":"c-image","props":{"w":100,"h":100,"url":"https://old/2.png","originalUrl":"https://old/2.png","radius":0,"name":" Image 2","genType":1,"generatorTaskId":"task-old"},"parentId":"page:page","index":"a0002","typeName":"shape"},"shape:old3":{"x":240,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:old3","type":"c-image","props":{"w":100,"h":100,"url":"https://old/3.png","originalUrl":"https://old/3.png","radius":0,"name":" Image 3","genType":1,"generatorTaskId":"task-old"},"parentId":"page:page","index":"b0001","typeName":"shape"},"shape:generator":{"x":360,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:generator","type":"c-generator","props":{"w":100,"h":100,"name":"Image Generator"},"parentId":"page:page","index":"b0002","typeName":"shape"}},"schema":{"schemaVersion":2,"sequences":{}}},"session":{"version":0,"currentPageId":"page:page","exportBackground":true,"isFocusMode":false,"isDebugMode":false,"isToolLocked":false,"isGridMode":false,"pageStates":[]}}}`
+}
+
+func corruptCanvasJSON() string {
+	return `{"tldrawSnapshot":{"document":{"store":{"document:document":{"gridSize":10,"name":"","meta":{},"id":"document:document","typeName":"document"},"page:page":{"meta":{},"id":"page:page","name":"Page 1","index":"a1","typeName":"page"},"shape:frame":{"x":100,"y":100,"rotation":0,"isLocked":false,"opacity":1,"meta":{},"id":"shape:frame","type":"frame","props":{"w":1224,"h":1424,"name":"Broken Title","color":"black","isAutoLayout":true},"parentId":"page:page","index":"a000300020001","typeName":"shape"},"shape:text":{"x":100,"y":100,"rotation":0,"isLocked":false,"opacity":1,"meta":{},"id":"shape:text","type":"text","props":{"color":"black","size":"m","w":20,"font":"draw","textAlign":"start","autoSize":true,"scale":1,"richText":{"type":"doc","attrs":{"dir":"auto"},"content":[{"type":"paragraph","attrs":{"dir":"auto","textAlign":"left"},"content":[{"type":"text","marks":[{"type":"textStyle","attrs":{"fontFamily":"Inter","fontSize":"80px","color":"#000000","fontStyle":null,"fontWeight":"400","letterSpacing":null,"lineHeight":null,"textBoxTrim":null,"textBoxEdge":null,"textCase":null,"fillPaint":"{\"type\":\"SOLID\",\"color\":{\"r\":0,\"g\":0,\"b\":0,\"a\":1},\"opacity\":1,\"visible\":true,\"blendMode\":\"NORMAL\"}","stroke":"{\"type\":\"SOLID\",\"color\":{\"r\":0,\"g\":0,\"b\":0,\"a\":1},\"opacity\":1,\"visible\":false,\"blendMode\":\"NORMAL\"}"}}],"text":"Broken Title\nvertex/nano-banana · 1 image"}]}]}},"parentId":"shape:frame","index":"a0001","typeName":"shape"},"shape:image":{"x":100,"y":300,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:image","type":"c-image","props":{"w":1024,"h":1024,"url":"https://new/1.png","originalUrl":"https://new/1.png","radius":0,"name":" Image 1","genType":1,"generatorTaskId":"task"},"parentId":"shape:frame","index":"a000300020001","typeName":"shape"}},"schema":{"schemaVersion":2,"sequences":{}}},"session":{"version":0,"currentPageId":"page:page","exportBackground":true,"isFocusMode":false,"isDebugMode":false,"isToolLocked":false,"isGridMode":false,"pageStates":[]}}}`
 }
 
 func decodeStore(t *testing.T, jsonStr string) map[string]any {
