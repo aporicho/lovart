@@ -55,7 +55,7 @@ func resetPaths() {
 	SignerDir = filepath.Join(dotDir, "signing")
 	SignerWASMFile = filepath.Join(SignerDir, "current.wasm")
 	SignerManifestFile = filepath.Join(SignerDir, "manifest.json")
-	RunsDir = filepath.Join(Root, "runs")
+	RunsDir = filepath.Join(dotDir, "runs")
 	DownloadsDir = filepath.Join(Root, "downloads")
 
 	os.MkdirAll(MetadataDir, 0755)

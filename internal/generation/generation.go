@@ -11,17 +11,17 @@ import (
 
 // PreflightResult is the gate check outcome before submission.
 type PreflightResult struct {
-	CanSubmit         bool     `json:"can_submit"`
-	Credits           float64  `json:"credits"`
-	CreditRisk        bool     `json:"credit_risk"`
-	PaidRequired      bool     `json:"paid_required"`
+	CanSubmit          bool     `json:"can_submit"`
+	Credits            float64  `json:"credits"`
+	CreditRisk         bool     `json:"credit_risk"`
+	PaidRequired       bool     `json:"paid_required"`
 	RecommendedActions []string `json:"recommended_actions,omitempty"`
 }
 
 // SubmitResult is the response after a successful generation submission.
 type SubmitResult struct {
-	TaskID    string `json:"task_id"`
-	Status    string `json:"status"`
+	TaskID string `json:"task_id"`
+	Status string `json:"status"`
 }
 
 // Options configures a generation request.
@@ -41,8 +41,8 @@ func Preflight(ctx context.Context, client *http.Client, model string, body map[
 	quote, err := pricing.Quote(ctx, client, model, body)
 	if err != nil {
 		return &PreflightResult{
-			CanSubmit: false,
-			CreditRisk: true,
+			CanSubmit:          false,
+			CreditRisk:         true,
 			RecommendedActions: []string{fmt.Sprintf("quote failed: %v", err)},
 		}, nil
 	}
@@ -65,10 +65,10 @@ func Preflight(ctx context.Context, client *http.Client, model string, body map[
 	}
 
 	return &PreflightResult{
-		CanSubmit:         canSubmit,
-		Credits:           credits,
-		CreditRisk:        paidRequired && !opts.AllowPaid,
-		PaidRequired:      paidRequired,
+		CanSubmit:          canSubmit,
+		Credits:            credits,
+		CreditRisk:         paidRequired && !opts.AllowPaid,
+		PaidRequired:       paidRequired,
 		RecommendedActions: actions,
 	}, nil
 }
@@ -121,8 +121,8 @@ func Submit(ctx context.Context, client *http.Client, model string, body map[str
 	}, nil
 }
 
-// Wait polls the task status until it's completed.
-func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]any, error) {
+// FetchTask retrieves the current task status once.
+func FetchTask(ctx context.Context, client *http.Client, taskID string) (map[string]any, error) {
 	path := fmt.Sprintf("/v1/generator/tasks?task_id=%s", taskID)
 
 	var resp struct {
@@ -140,20 +140,11 @@ func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]a
 		} `json:"data"`
 	}
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-
-		if err := client.GetJSON(ctx, http.LGWBase, path, &resp); err != nil {
-			return nil, fmt.Errorf("generation: poll: %w", err)
-		}
-		if resp.Data.Status == "completed" || resp.Data.Status == "failed" {
-			break
-		}
-		time.Sleep(2 * time.Second)
+	if err := client.GetJSON(ctx, http.LGWBase, path, &resp); err != nil {
+		return nil, fmt.Errorf("generation: poll: %w", err)
+	}
+	if resp.Code != 0 {
+		return nil, fmt.Errorf("generation: poll returned code %d", resp.Code)
 	}
 
 	result := map[string]any{
@@ -176,4 +167,25 @@ func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]a
 	}
 
 	return result, nil
+}
+
+// Wait polls the task status until it's completed.
+func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]any, error) {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		result, err := FetchTask(ctx, client, taskID)
+		if err != nil {
+			return nil, err
+		}
+		status, _ := result["status"].(string)
+		if status == "completed" || status == "failed" {
+			return result, nil
+		}
+		time.Sleep(2 * time.Second)
+	}
 }

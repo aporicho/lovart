@@ -176,6 +176,7 @@ func setupRuntimeSchema(t *testing.T) {
     "schemas": {
       "GPTImage2Request": {
         "properties": {
+          "prompt": {"type": "string"},
           "n": {"type": "integer", "maximum": 10}
         }
       },
