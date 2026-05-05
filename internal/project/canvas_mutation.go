@@ -33,11 +33,10 @@ func addImagesToCanvasJSON(jsonStr string, images []CanvasImage) (*canvasMutatio
 		x := startX + col*(img.Width+gap)
 		y := startY + row*(img.Height+gap)
 
-		idPart, err := randomString(22)
+		id, err := newShapeID()
 		if err != nil {
 			return nil, fmt.Errorf("shape id: %w", err)
 		}
-		id := "shape:" + idPart
 		name := fmt.Sprintf(" Image %d", imageCount+i+1)
 
 		nodeJSON, err := buildNodeJSON(img, id, indices[i], name, x, y)

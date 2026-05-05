@@ -41,6 +41,8 @@ type CanvasRepairResult struct {
 	PicCount                  int      `json:"pic_count"`
 	CoverList                 []string `json:"cover_list,omitempty"`
 	NormalizedIndexes         int      `json:"normalized_indexes,omitempty"`
+	NormalizedIndexKeys       int      `json:"normalized_index_keys,omitempty"`
+	NormalizedShapeIDs        int      `json:"normalized_shape_ids,omitempty"`
 	NormalizedTexts           int      `json:"normalized_texts,omitempty"`
 	NormalizedSchemaSequences int      `json:"normalized_schema_sequences,omitempty"`
 }

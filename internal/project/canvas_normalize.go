@@ -41,6 +41,10 @@ func normalizeCanvasJSON(jsonStr string) (*canvasMutation, CanvasRepairResult, e
 	if err != nil {
 		return nil, CanvasRepairResult{}, err
 	}
+	jsonStr, err = ensureCanvasShapeIDs(jsonStr, &result)
+	if err != nil {
+		return nil, CanvasRepairResult{}, err
+	}
 	jsonStr, err = normalizeCanvasTextNodes(jsonStr, &result)
 	if err != nil {
 		return nil, CanvasRepairResult{}, err
@@ -192,6 +196,9 @@ func normalizeCanvasIndexes(jsonStr string, result *CanvasRepairResult) (string,
 
 	for _, parent := range parents {
 		shapes := groups[parent]
+		if !canvasIndexGroupNeedsRepair(shapes) {
+			continue
+		}
 		sort.SliceStable(shapes, func(i, j int) bool {
 			if shapes[i].y != shapes[j].y {
 				return shapes[i].y < shapes[j].y
@@ -216,9 +223,42 @@ func normalizeCanvasIndexes(jsonStr string, result *CanvasRepairResult) (string,
 			}
 			result.Changed = true
 			result.NormalizedIndexes++
+			result.NormalizedIndexKeys++
 		}
 	}
 	return jsonStr, nil
+}
+
+func canvasIndexGroupNeedsRepair(shapes []canvasShapeOrder) bool {
+	seen := map[string]bool{}
+	for _, shape := range shapes {
+		if unsafeCanvasIndex(shape.index) {
+			return true
+		}
+		if seen[shape.index] {
+			return true
+		}
+		seen[shape.index] = true
+	}
+	return false
+}
+
+func unsafeCanvasIndex(index string) bool {
+	if index == "" {
+		return true
+	}
+	if len(index) <= 2 {
+		return false
+	}
+	if index[0] < 'a' || index[0] > 'z' {
+		return false
+	}
+	for i := 1; i < len(index); i++ {
+		if index[i] < '0' || index[i] > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 func sanitizeCanvasLabel(value string) string {
@@ -229,5 +269,13 @@ func canvasIndexForPosition(position int) string {
 	if position <= 0 {
 		position = 1
 	}
-	return fmt.Sprintf("a%d", position)
+	const prefixAlphabet = "abcdefghijklmnopqrstuvwxyz"
+	const suffixAlphabet = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	position--
+	prefix := position / len(suffixAlphabet)
+	suffix := position % len(suffixAlphabet)
+	if prefix >= len(prefixAlphabet) {
+		return fmt.Sprintf("zz%06d", prefix-len(prefixAlphabet)+1)
+	}
+	return string([]byte{prefixAlphabet[prefix], suffixAlphabet[suffix]})
 }

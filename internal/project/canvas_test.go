@@ -2,7 +2,9 @@ package project
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -36,6 +38,7 @@ func TestAddImagesToCanvasJSONMaintainsTldrawInvariants(t *testing.T) {
 	second := findImageByURL(t, store, "https://new/2.png")
 	assertImageNode(t, first, "task-new", " Image 4", 512, 512)
 	assertImageNode(t, second, "task-new", " Image 5", 1024, 768)
+	assertCanonicalShapeIDs(t, store)
 
 	firstIndex := first["index"].(string)
 	secondIndex := second["index"].(string)
@@ -97,6 +100,7 @@ func TestAddBatchToCanvasJSONCreatesFrameSection(t *testing.T) {
 
 	store := decodeStore(t, mutated.JSON)
 	assertStoreKeysMatchIDs(t, store)
+	assertCanonicalShapeIDs(t, store)
 
 	frame := findShapeByType(t, store, "frame")
 	frameID := frame["id"].(string)
@@ -205,23 +209,28 @@ func TestNormalizeCanvasJSONRepairsTextAndIndexes(t *testing.T) {
 	if result.NormalizedSchemaSequences == 0 {
 		t.Fatalf("normalized schema sequences = 0, want repairs")
 	}
+	if result.NormalizedShapeIDs != 3 {
+		t.Fatalf("normalized shape ids = %d, want 3", result.NormalizedShapeIDs)
+	}
 	if result.PicCount != 1 {
 		t.Fatalf("pic count = %d, want 1", result.PicCount)
 	}
 
 	store := decodeStore(t, mutated.JSON)
-	frame := store["shape:frame"].(map[string]any)
+	assertCanonicalShapeIDs(t, store)
+	frame := findShapeByType(t, store, "frame")
+	frameID := frame["id"].(string)
 	if frame["index"] != "a1" {
 		t.Fatalf("frame index = %v, want a1", frame["index"])
 	}
-	text := store["shape:text"].(map[string]any)
+	text := findChildByType(t, store, frameID, "text")
 	if text["index"] != "a1" {
 		t.Fatalf("text index = %v, want a1", text["index"])
 	}
 	if got := richTextPlainText(t, text); got != "Broken Title vertex/nano-banana · 1 image" {
 		t.Fatalf("text = %q", got)
 	}
-	image := store["shape:image"].(map[string]any)
+	image := findChildByType(t, store, frameID, "c-image")
 	if image["index"] != "a2" {
 		t.Fatalf("image index = %v, want a2", image["index"])
 	}
@@ -231,6 +240,54 @@ func TestNormalizeCanvasJSONRepairsTextAndIndexes(t *testing.T) {
 	assertSchemaSequence(t, sequences, "com.tldraw.shape.frame", 1)
 	assertSchemaSequence(t, sequences, "com.tldraw.shape.text", 4)
 	assertSchemaSequence(t, sequences, "com.tldraw.shape.c-image", 0)
+}
+
+func TestCanvasShapeIDsUseLovartLength(t *testing.T) {
+	for i := 0; i < 20; i++ {
+		id, err := newShapeID()
+		if err != nil {
+			t.Fatalf("newShapeID returned error: %v", err)
+		}
+		if !canonicalCanvasShapeID(id) {
+			t.Fatalf("shape id %q is not canonical", id)
+		}
+	}
+}
+
+func TestCanvasIndexForPositionAvoidsUnsafeSequentialKeys(t *testing.T) {
+	indices := indicesForPositions(13)
+	want := []string{"a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "aA", "aB", "aC", "aD"}
+	if !reflect.DeepEqual(indices, want) {
+		t.Fatalf("indices = %#v, want %#v", indices, want)
+	}
+	sorted := append([]string(nil), indices...)
+	sort.Strings(sorted)
+	if !reflect.DeepEqual(sorted, indices) {
+		t.Fatalf("indices do not sort in position order: sorted=%#v original=%#v", sorted, indices)
+	}
+	for _, index := range indices {
+		if unsafeCanvasIndex(index) {
+			t.Fatalf("index %q is unsafe", index)
+		}
+	}
+}
+
+func TestNormalizeCanvasJSONRepairsUnsafeSequentialIndexes(t *testing.T) {
+	mutated, result, err := normalizeCanvasJSON(unsafeSequentialIndexCanvasJSON())
+	if err != nil {
+		t.Fatalf("normalizeCanvasJSON returned error: %v", err)
+	}
+	if result.NormalizedIndexKeys != 4 {
+		t.Fatalf("normalized index keys = %d, want 4", result.NormalizedIndexKeys)
+	}
+
+	store := decodeStore(t, mutated.JSON)
+	frame := findShapeByType(t, store, "frame")
+	children := childShapeIndexes(t, store, frame["id"].(string))
+	want := []string{"a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "aA", "aB", "aC", "aD"}
+	if !reflect.DeepEqual(children, want) {
+		t.Fatalf("child indexes = %#v, want %#v", children, want)
+	}
 }
 
 func TestNormalizeCanvasJSONPreservesFutureSchemaSequences(t *testing.T) {
@@ -301,11 +358,75 @@ func TestDecodeCanvasJSONRejectsBadPrefix(t *testing.T) {
 }
 
 func syntheticCanvasJSON() string {
-	return `{"tldrawSnapshot":{"document":{"store":{"document:document":{"gridSize":10,"name":"","meta":{},"id":"document:document","typeName":"document"},"page:page":{"meta":{},"id":"page:page","name":"Page 1","index":"a1","typeName":"page"},"shape:old1":{"x":0,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:old1","type":"c-image","props":{"w":100,"h":100,"url":"https://old/1.png","originalUrl":"https://old/1.png","radius":0,"name":" Image 1","genType":1,"generatorTaskId":"task-old"},"parentId":"page:page","index":"a0001","typeName":"shape"},"shape:old2":{"x":120,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:old2","type":"c-image","props":{"w":100,"h":100,"url":"https://old/2.png","originalUrl":"https://old/2.png","radius":0,"name":" Image 2","genType":1,"generatorTaskId":"task-old"},"parentId":"page:page","index":"a0002","typeName":"shape"},"shape:old3":{"x":240,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:old3","type":"c-image","props":{"w":100,"h":100,"url":"https://old/3.png","originalUrl":"https://old/3.png","radius":0,"name":" Image 3","genType":1,"generatorTaskId":"task-old"},"parentId":"page:page","index":"b0001","typeName":"shape"},"shape:generator":{"x":360,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:generator","type":"c-generator","props":{"w":100,"h":100,"name":"Image Generator"},"parentId":"page:page","index":"b0002","typeName":"shape"}},"schema":{"schemaVersion":2,"sequences":{}}},"session":{"version":0,"currentPageId":"page:page","exportBackground":true,"isFocusMode":false,"isDebugMode":false,"isToolLocked":false,"isGridMode":false,"pageStates":[]}}}`
+	return `{"tldrawSnapshot":{"document":{"store":{"document:document":{"gridSize":10,"name":"","meta":{},"id":"document:document","typeName":"document"},"page:page":{"meta":{},"id":"page:page","name":"Page 1","index":"a1","typeName":"page"},"shape:oldOneShape0000000001":{"x":0,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:oldOneShape0000000001","type":"c-image","props":{"w":100,"h":100,"url":"https://old/1.png","originalUrl":"https://old/1.png","radius":0,"name":" Image 1","genType":1,"generatorTaskId":"task-old"},"parentId":"page:page","index":"a1","typeName":"shape"},"shape:oldTwoShape0000000002":{"x":120,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:oldTwoShape0000000002","type":"c-image","props":{"w":100,"h":100,"url":"https://old/2.png","originalUrl":"https://old/2.png","radius":0,"name":" Image 2","genType":1,"generatorTaskId":"task-old"},"parentId":"page:page","index":"a2","typeName":"shape"},"shape:oldTriShape0000000003":{"x":240,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:oldTriShape0000000003","type":"c-image","props":{"w":100,"h":100,"url":"https://old/3.png","originalUrl":"https://old/3.png","radius":0,"name":" Image 3","genType":1,"generatorTaskId":"task-old"},"parentId":"page:page","index":"a3","typeName":"shape"},"shape:genrShapeId0000000001":{"x":360,"y":0,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:genrShapeId0000000001","type":"c-generator","props":{"w":100,"h":100,"name":"Image Generator"},"parentId":"page:page","index":"a4","typeName":"shape"}},"schema":{"schemaVersion":2,"sequences":{}}},"session":{"version":0,"currentPageId":"page:page","exportBackground":true,"isFocusMode":false,"isDebugMode":false,"isToolLocked":false,"isGridMode":false,"pageStates":[]}}}`
 }
 
 func corruptCanvasJSON() string {
 	return `{"tldrawSnapshot":{"document":{"store":{"document:document":{"gridSize":10,"name":"","meta":{},"id":"document:document","typeName":"document"},"page:page":{"meta":{},"id":"page:page","name":"Page 1","index":"a1","typeName":"page"},"shape:frame":{"x":100,"y":100,"rotation":0,"isLocked":false,"opacity":1,"meta":{},"id":"shape:frame","type":"frame","props":{"w":1224,"h":1424,"name":"Broken Title","color":"black","isAutoLayout":true},"parentId":"page:page","index":"a000300020001","typeName":"shape"},"shape:text":{"x":100,"y":100,"rotation":0,"isLocked":false,"opacity":1,"meta":{},"id":"shape:text","type":"text","props":{"color":"black","size":"m","w":20,"font":"draw","textAlign":"start","autoSize":true,"scale":1,"richText":{"type":"doc","attrs":{"dir":"auto"},"content":[{"type":"paragraph","attrs":{"dir":"auto","textAlign":"left"},"content":[{"type":"text","marks":[{"type":"textStyle","attrs":{"fontFamily":"Inter","fontSize":"80px","color":"#000000","fontStyle":null,"fontWeight":"400","letterSpacing":null,"lineHeight":null,"textBoxTrim":null,"textBoxEdge":null,"textCase":null,"fillPaint":"{\"type\":\"SOLID\",\"color\":{\"r\":0,\"g\":0,\"b\":0,\"a\":1},\"opacity\":1,\"visible\":true,\"blendMode\":\"NORMAL\"}","stroke":"{\"type\":\"SOLID\",\"color\":{\"r\":0,\"g\":0,\"b\":0,\"a\":1},\"opacity\":1,\"visible\":false,\"blendMode\":\"NORMAL\"}"}}],"text":"Broken Title\nvertex/nano-banana · 1 image"}]}]}},"parentId":"shape:frame","index":"a0001","typeName":"shape"},"shape:image":{"x":100,"y":300,"rotation":0,"isLocked":false,"opacity":1,"meta":{"source":"ai"},"id":"shape:image","type":"c-image","props":{"w":1024,"h":1024,"url":"https://new/1.png","originalUrl":"https://new/1.png","radius":0,"name":" Image 1","genType":1,"generatorTaskId":"task"},"parentId":"shape:frame","index":"a000300020001","typeName":"shape"}},"schema":{"schemaVersion":2,"sequences":{}}},"session":{"version":0,"currentPageId":"page:page","exportBackground":true,"isFocusMode":false,"isDebugMode":false,"isToolLocked":false,"isGridMode":false,"pageStates":[]}}}`
+}
+
+func unsafeSequentialIndexCanvasJSON() string {
+	var doc map[string]any
+	if err := json.Unmarshal([]byte(defaultCanvasJSON()), &doc); err != nil {
+		panic(err)
+	}
+	snapshot := doc["tldrawSnapshot"].(map[string]any)
+	document := snapshot["document"].(map[string]any)
+	store := document["store"].(map[string]any)
+
+	frameID := "shape:frameShape00000000001"
+	store[frameID] = map[string]any{
+		"x":        0,
+		"y":        0,
+		"rotation": 0,
+		"isLocked": false,
+		"opacity":  1,
+		"meta":     map[string]any{},
+		"id":       frameID,
+		"type":     "frame",
+		"props": map[string]any{
+			"w":            1500,
+			"h":            1500,
+			"name":         "Unsafe Indexes",
+			"color":        "black",
+			"isAutoLayout": true,
+		},
+		"parentId": "page:page",
+		"index":    "a1",
+		"typeName": "shape",
+	}
+	for i := 1; i <= 13; i++ {
+		id := fmt.Sprintf("shape:childShape%011d", i)
+		store[id] = map[string]any{
+			"x":        float64(i * 100),
+			"y":        300.0,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity":  1,
+			"meta":     map[string]any{"source": "ai"},
+			"id":       id,
+			"type":     "c-image",
+			"props": map[string]any{
+				"w":               100,
+				"h":               100,
+				"url":             fmt.Sprintf("https://new/%d.png", i),
+				"originalUrl":     fmt.Sprintf("https://new/%d.png", i),
+				"radius":          0,
+				"name":            fmt.Sprintf(" Image %d", i),
+				"genType":         1,
+				"generatorTaskId": "task",
+			},
+			"parentId": frameID,
+			"index":    fmt.Sprintf("a%d", i),
+			"typeName": "shape",
+		}
+	}
+
+	b, err := json.Marshal(doc)
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
 }
 
 func decodeStore(t *testing.T, jsonStr string) map[string]any {
@@ -355,6 +476,55 @@ func assertStoreKeysMatchIDs(t *testing.T, store map[string]any) {
 			t.Fatalf("store key %q does not match record id %q", key, id)
 		}
 	}
+}
+
+func assertCanonicalShapeIDs(t *testing.T, store map[string]any) {
+	t.Helper()
+
+	for key, raw := range store {
+		record := raw.(map[string]any)
+		if record["typeName"] != "shape" {
+			continue
+		}
+		if !canonicalCanvasShapeID(key) {
+			t.Fatalf("shape key %q is not canonical", key)
+		}
+		if record["id"] != key {
+			t.Fatalf("shape id = %v, want %s", record["id"], key)
+		}
+	}
+}
+
+func childShapeIndexes(t *testing.T, store map[string]any, parentID string) []string {
+	t.Helper()
+
+	var shapes []canvasShapeOrder
+	for key, raw := range store {
+		record := raw.(map[string]any)
+		if record["typeName"] != "shape" || record["parentId"] != parentID {
+			continue
+		}
+		shapes = append(shapes, canvasShapeOrder{
+			id:    key,
+			index: record["index"].(string),
+			x:     record["x"].(float64),
+			y:     record["y"].(float64),
+		})
+	}
+	sort.SliceStable(shapes, func(i, j int) bool {
+		if shapes[i].y != shapes[j].y {
+			return shapes[i].y < shapes[j].y
+		}
+		if shapes[i].x != shapes[j].x {
+			return shapes[i].x < shapes[j].x
+		}
+		return shapes[i].id < shapes[j].id
+	})
+	out := make([]string, 0, len(shapes))
+	for _, shape := range shapes {
+		out = append(out, shape.index)
+	}
+	return out
 }
 
 func findImageByURL(t *testing.T, store map[string]any, url string) map[string]any {

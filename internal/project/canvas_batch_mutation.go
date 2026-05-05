@@ -249,11 +249,3 @@ func sectionText(section CanvasSection) string {
 	}
 	return title + " · " + section.Subtitle
 }
-
-func newShapeID() (string, error) {
-	idPart, err := randomString(22)
-	if err != nil {
-		return "", err
-	}
-	return "shape:" + idPart, nil
-}

@@ -5,6 +5,12 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"strings"
+)
+
+const (
+	canvasShapeIDPrefix = "shape:"
+	canvasShapeIDLength = 21
 )
 
 // randomString generates a random alphanumeric string of length n.
@@ -19,6 +25,18 @@ func randomString(n int) (string, error) {
 		result[i] = chars[idx.Int64()]
 	}
 	return string(result), nil
+}
+
+func newShapeID() (string, error) {
+	idPart, err := randomString(canvasShapeIDLength)
+	if err != nil {
+		return "", err
+	}
+	return canvasShapeIDPrefix + idPart, nil
+}
+
+func canonicalCanvasShapeID(id string) bool {
+	return strings.HasPrefix(id, canvasShapeIDPrefix) && len(strings.TrimPrefix(id, canvasShapeIDPrefix)) == canvasShapeIDLength
 }
 
 // newSessionID generates a UUID-like session identifier.
