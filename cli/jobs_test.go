@@ -20,7 +20,7 @@ func TestJobsRunAndResumeDefaultPostprocessFlags(t *testing.T) {
 				t.Fatalf("%s --%s default = %q, want true", cmd.Name(), name, flag.DefValue)
 			}
 		}
-		for _, name := range []string{"no-wait", "no-download", "no-canvas"} {
+		for _, name := range []string{"no-wait", "no-download", "no-canvas", "canvas-layout"} {
 			if cmd.Flags().Lookup(name) == nil {
 				t.Fatalf("%s command missing --%s flag", cmd.Name(), name)
 			}

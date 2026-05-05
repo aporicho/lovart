@@ -2,6 +2,7 @@ package project
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/tidwall/gjson"
 )
@@ -47,6 +48,56 @@ func maxShapeIndexGJSON(jsonStr, storePath string) string {
 		return true
 	})
 	return maxIndex
+}
+
+func maxChildShapeIndexGJSON(jsonStr, storePath, parentID string) string {
+	maxIndex := ""
+	store := gjson.Get(jsonStr, storePath)
+	store.ForEach(func(key, value gjson.Result) bool {
+		if value.Get("typeName").String() != "shape" {
+			return true
+		}
+		if value.Get("parentId").String() != parentID {
+			return true
+		}
+		index := value.Get("index").String()
+		if index > maxIndex {
+			maxIndex = index
+		}
+		return true
+	})
+	return maxIndex
+}
+
+func computeSectionLayoutStartGJSON(jsonStr, storePath string, options CanvasLayoutOptions) (int, int) {
+	minX := math.MaxInt
+	maxBottom := math.MinInt
+	hasShape := false
+	store := gjson.Get(jsonStr, storePath)
+	store.ForEach(func(key, value gjson.Result) bool {
+		if value.Get("typeName").String() != "shape" || value.Get("parentId").String() != "page:page" {
+			return true
+		}
+		x := int(math.Round(value.Get("x").Float()))
+		y := int(math.Round(value.Get("y").Float()))
+		w := int(math.Round(value.Get("props.w").Float()))
+		h := int(math.Round(value.Get("props.h").Float()))
+		if w <= 0 && h <= 0 {
+			return true
+		}
+		if x < minX {
+			minX = x
+		}
+		if bottom := y + h; bottom > maxBottom {
+			maxBottom = bottom
+		}
+		hasShape = true
+		return true
+	})
+	if !hasShape {
+		return options.Padding, options.Padding
+	}
+	return minX, maxBottom + options.FrameGap
 }
 
 func indicesAfter(maxIndex string, n int) []string {

@@ -15,12 +15,10 @@ func addImagesToCanvasJSON(jsonStr string, images []CanvasImage) (*canvasMutatio
 	if !json.Valid([]byte(jsonStr)) {
 		return nil, fmt.Errorf("invalid canvas JSON")
 	}
-	if !gjson.Get(jsonStr, canvasStorePath).Exists() {
-		var err error
-		jsonStr, err = sjson.SetRaw(jsonStr, canvasStorePath, "{}")
-		if err != nil {
-			return nil, fmt.Errorf("create store: %w", err)
-		}
+	var err error
+	jsonStr, err = ensureCanvasStore(jsonStr)
+	if err != nil {
+		return nil, err
 	}
 
 	startX, startY := computeLayoutGJSON(jsonStr, canvasStorePath)
@@ -61,35 +59,7 @@ func addImagesToCanvasJSON(jsonStr string, images []CanvasImage) (*canvasMutatio
 
 // buildNodeJSON constructs a tldraw c-image shape node as a JSON string.
 func buildNodeJSON(img CanvasImage, id, index, name string, x, y int) (string, error) {
-	node := map[string]any{
-		"x":        float64(x),
-		"y":        float64(y),
-		"rotation": 0,
-		"isLocked": false,
-		"opacity":  1,
-		"meta":     map[string]any{"source": "ai"},
-		"id":       id,
-		"type":     "c-image",
-		"props": map[string]any{
-			"w":               img.Width,
-			"h":               img.Height,
-			"url":             img.URL,
-			"originalUrl":     img.URL,
-			"radius":          0,
-			"name":            name,
-			"genType":         1,
-			"generatorTaskId": img.TaskID,
-		},
-		"parentId": "page:page",
-		"index":    index,
-		"typeName": "shape",
-	}
-
-	b, err := json.Marshal(node)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+	return buildImageNodeJSON(img, id, index, name, "page:page", x, y, img.Width, img.Height)
 }
 
 // countCImagesGJSON counts c-image nodes in the store.

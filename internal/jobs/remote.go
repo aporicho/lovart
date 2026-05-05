@@ -15,6 +15,7 @@ type RemoteClient interface {
 	Submit(ctx context.Context, model string, body map[string]any, opts generation.Options) (*generation.SubmitResult, error)
 	FetchTask(ctx context.Context, taskID string) (map[string]any, error)
 	AddToCanvas(ctx context.Context, projectID, cid string, images []project.CanvasImage) error
+	AddBatchToCanvas(ctx context.Context, projectID, cid string, batch project.CanvasBatch) error
 }
 
 type httpRemoteClient struct {
@@ -40,4 +41,8 @@ func (c *httpRemoteClient) FetchTask(ctx context.Context, taskID string) (map[st
 
 func (c *httpRemoteClient) AddToCanvas(ctx context.Context, projectID, cid string, images []project.CanvasImage) error {
 	return project.AddToCanvas(ctx, c.client, projectID, cid, images)
+}
+
+func (c *httpRemoteClient) AddBatchToCanvas(ctx context.Context, projectID, cid string, batch project.CanvasBatch) error {
+	return project.AddBatchToCanvas(ctx, c.client, projectID, cid, batch)
 }

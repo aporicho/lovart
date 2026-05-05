@@ -131,6 +131,7 @@ type BatchSummary struct {
 type CanvasResult struct {
 	Updated    bool      `json:"updated"`
 	ImageCount int       `json:"image_count,omitempty"`
+	Layout     string    `json:"layout,omitempty"`
 	Error      string    `json:"error,omitempty"`
 	UpdatedAt  time.Time `json:"updated_at,omitempty"`
 }

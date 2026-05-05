@@ -5,10 +5,12 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/aporicho/lovart/internal/generation"
@@ -199,7 +201,7 @@ func TestRunPreparedJobsDownloadsArtifactsByFields(t *testing.T) {
 	}
 }
 
-func TestRunPreparedJobsWritesCanvasAndResumeDoesNotRepeat(t *testing.T) {
+func TestRunPreparedJobsWritesDefaultFrameCanvasAndResumeDoesNotRepeat(t *testing.T) {
 	setupRuntimeSchema(t)
 	dir := t.TempDir()
 	path := filepath.Join(dir, "jobs.jsonl")
@@ -225,8 +227,8 @@ func TestRunPreparedJobsWritesCanvasAndResumeDoesNotRepeat(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if remote.canvasCalls != 1 || remote.canvasImages != 1 {
-		t.Fatalf("canvas calls=%d images=%d", remote.canvasCalls, remote.canvasImages)
+	if remote.canvasBatchCalls != 1 || remote.canvasBatchSections != 1 {
+		t.Fatalf("batch canvas calls=%d sections=%d", remote.canvasBatchCalls, remote.canvasBatchSections)
 	}
 	if result.Summary.CanvasUpdatedRequests != 1 || result.Summary.CanvasImages != 1 {
 		t.Fatalf("summary=%#v", result.Summary)
@@ -236,22 +238,118 @@ func TestRunPreparedJobsWritesCanvasAndResumeDoesNotRepeat(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if remote.canvasCalls != 1 {
-		t.Fatalf("resume repeated canvas writeback, calls=%d", remote.canvasCalls)
+	if remote.canvasBatchCalls != 1 {
+		t.Fatalf("resume repeated canvas writeback, calls=%d", remote.canvasBatchCalls)
 	}
 	if resumed.Summary.CanvasUpdatedRequests != 1 {
 		t.Fatalf("resume summary=%#v", resumed.Summary)
 	}
 }
 
+func TestRunPreparedJobsWritesFrameCanvasBatchAndResumeDoesNotRepeat(t *testing.T) {
+	setupRuntimeSchema(t)
+	dir := t.TempDir()
+	path := filepath.Join(dir, "jobs.jsonl")
+	data := `{"job_id":"cat","title":"Cat","model":"openai/gpt-image-2","body":{"prompt":"cat","n":2}}
+{"job_id":"dog","title":"Dog","model":"openai/gpt-image-2","body":{"prompt":"dog","n":3}}`
+	if err := os.WriteFile(path, []byte(data), 0644); err != nil {
+		t.Fatal(err)
+	}
+	opts := JobsOptions{
+		AllowPaid:       true,
+		MaxTotalCredits: 10,
+		ProjectID:       "project",
+		CID:             "cid",
+		Wait:            true,
+		Canvas:          true,
+		PollInterval:    0.01,
+		TimeoutSeconds:  1,
+	}
+	state, validation, err := PrepareRun(path, opts)
+	if err != nil || validation != nil {
+		t.Fatalf("PrepareRun validation=%v err=%v", validation, err)
+	}
+	remote := &fakeRemote{price: 0, taskStatus: "completed"}
+	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if remote.canvasBatchCalls != 1 {
+		t.Fatalf("batch canvas calls=%d, want 1", remote.canvasBatchCalls)
+	}
+	if remote.canvasBatchSections != 2 {
+		t.Fatalf("batch sections=%d, want 2", remote.canvasBatchSections)
+	}
+	if !reflect.DeepEqual(remote.canvasSectionImages, []int{2, 3}) {
+		t.Fatalf("section images=%#v, want [2 3]", remote.canvasSectionImages)
+	}
+	if !reflect.DeepEqual(remote.canvasSectionTitles, []string{"Cat", "Dog"}) {
+		t.Fatalf("section titles=%#v, want Cat/Dog", remote.canvasSectionTitles)
+	}
+	if result.Summary.CanvasUpdatedRequests != 2 || result.Summary.CanvasImages != 5 {
+		t.Fatalf("summary=%#v", result.Summary)
+	}
+
+	resumed, err := ResumeJobs(context.Background(), remote, state.RunDir, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if remote.canvasBatchCalls != 1 {
+		t.Fatalf("resume repeated canvas writeback, calls=%d", remote.canvasBatchCalls)
+	}
+	if resumed.Summary.CanvasUpdatedRequests != 2 || resumed.Summary.CanvasImages != 5 {
+		t.Fatalf("resume summary=%#v", resumed.Summary)
+	}
+}
+
+func TestRunPreparedJobsPlainCanvasLayoutUsesLegacyCalls(t *testing.T) {
+	setupRuntimeSchema(t)
+	dir := t.TempDir()
+	path := filepath.Join(dir, "jobs.jsonl")
+	if err := os.WriteFile(path, []byte(`{"job_id":"a","model":"openai/gpt-image-2","body":{"prompt":"test"}}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	opts := JobsOptions{
+		AllowPaid:       true,
+		MaxTotalCredits: 10,
+		ProjectID:       "project",
+		CID:             "cid",
+		Wait:            true,
+		Canvas:          true,
+		CanvasLayout:    CanvasLayoutPlain,
+		PollInterval:    0.01,
+		TimeoutSeconds:  1,
+	}
+	state, validation, err := PrepareRun(path, opts)
+	if err != nil || validation != nil {
+		t.Fatalf("PrepareRun validation=%v err=%v", validation, err)
+	}
+	remote := &fakeRemote{price: 0, taskStatus: "completed"}
+	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if remote.canvasCalls != 1 || remote.canvasBatchCalls != 0 {
+		t.Fatalf("canvas calls=%d batch calls=%d", remote.canvasCalls, remote.canvasBatchCalls)
+	}
+	if result.Summary.CanvasUpdatedRequests != 1 || result.Summary.CanvasImages != 1 {
+		t.Fatalf("summary=%#v", result.Summary)
+	}
+}
+
 type fakeRemote struct {
-	price        float64
-	submits      int
-	quotes       int
-	taskStatus   string
-	artifactURL  string
-	canvasCalls  int
-	canvasImages int
+	price               float64
+	submits             int
+	quotes              int
+	taskStatus          string
+	artifactURL         string
+	canvasCalls         int
+	canvasImages        int
+	canvasBatchCalls    int
+	canvasBatchSections int
+	canvasSectionImages []int
+	canvasSectionTitles []string
+	submittedOutputs    map[string]int
 }
 
 func (f *fakeRemote) Quote(ctx context.Context, model string, body map[string]any) (*pricing.QuoteResult, error) {
@@ -261,7 +359,12 @@ func (f *fakeRemote) Quote(ctx context.Context, model string, body map[string]an
 
 func (f *fakeRemote) Submit(ctx context.Context, model string, body map[string]any, opts generation.Options) (*generation.SubmitResult, error) {
 	f.submits++
-	return &generation.SubmitResult{TaskID: "task-1", Status: "submitted"}, nil
+	taskID := fmt.Sprintf("task-%d", f.submits)
+	if f.submittedOutputs == nil {
+		f.submittedOutputs = map[string]int{}
+	}
+	f.submittedOutputs[taskID] = fakeOutputCount(body)
+	return &generation.SubmitResult{TaskID: taskID, Status: "submitted"}, nil
 }
 
 func (f *fakeRemote) FetchTask(ctx context.Context, taskID string) (map[string]any, error) {
@@ -273,12 +376,20 @@ func (f *fakeRemote) FetchTask(ctx context.Context, taskID string) (map[string]a
 	if artifactURL == "" {
 		artifactURL = "https://example.test/a.png"
 	}
+	count := f.submittedOutputs[taskID]
+	if count <= 0 {
+		count = 1
+	}
+	artifacts := make([]map[string]any, 0, count)
+	for i := 0; i < count; i++ {
+		artifacts = append(artifacts, map[string]any{
+			"url": fmt.Sprintf("%s?i=%d", artifactURL, i+1),
+		})
+	}
 	return map[string]any{
-		"task_id": taskID,
-		"status":  status,
-		"artifact_details": []map[string]any{{
-			"url": artifactURL,
-		}},
+		"task_id":          taskID,
+		"status":           status,
+		"artifact_details": artifacts,
 	}, nil
 }
 
@@ -286,4 +397,30 @@ func (f *fakeRemote) AddToCanvas(ctx context.Context, projectID, cid string, ima
 	f.canvasCalls++
 	f.canvasImages += len(images)
 	return nil
+}
+
+func (f *fakeRemote) AddBatchToCanvas(ctx context.Context, projectID, cid string, batch project.CanvasBatch) error {
+	f.canvasBatchCalls++
+	f.canvasBatchSections += len(batch.Sections)
+	for _, section := range batch.Sections {
+		f.canvasSectionImages = append(f.canvasSectionImages, len(section.Images))
+		f.canvasSectionTitles = append(f.canvasSectionTitles, section.Title)
+	}
+	return nil
+}
+
+func fakeOutputCount(body map[string]any) int {
+	for _, key := range []string{"n", "max_images", "num_images", "count"} {
+		switch v := body[key].(type) {
+		case int:
+			if v > 0 {
+				return v
+			}
+		case float64:
+			if v > 0 {
+				return int(v)
+			}
+		}
+	}
+	return 1
 }

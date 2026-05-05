@@ -16,6 +16,9 @@ import (
 
 const (
 	defaultMode = "auto"
+
+	CanvasLayoutFrame = "frame"
+	CanvasLayoutPlain = "plain"
 )
 
 var (
@@ -59,6 +62,7 @@ type JobsOptions struct {
 	DownloadDirTemplate  string
 	DownloadFileTemplate string
 	Canvas               bool
+	CanvasLayout         string
 	TimeoutSeconds       float64
 	PollInterval         float64
 	Detail               string
