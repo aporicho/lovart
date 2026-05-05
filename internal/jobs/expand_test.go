@@ -190,4 +190,11 @@ func setupRuntimeSchema(t *testing.T) {
 	if err := os.WriteFile(paths.GeneratorSchemaFile, schema, 0644); err != nil {
 		t.Fatal(err)
 	}
+	list := []byte(`{"items":[
+  {"name":"openai/gpt-image-2","display_name":"GPT Image 2","type":"image"},
+  {"name":"vertex/nano-banana-2","display_name":"Nano Banana 2","type":"image"}
+]}`)
+	if err := os.WriteFile(paths.GeneratorListFile, list, 0644); err != nil {
+		t.Fatal(err)
+	}
 }

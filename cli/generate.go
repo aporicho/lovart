@@ -8,6 +8,7 @@ import (
 	"github.com/aporicho/lovart/internal/errors"
 	"github.com/aporicho/lovart/internal/generation"
 	"github.com/aporicho/lovart/internal/project"
+	"github.com/aporicho/lovart/internal/registry"
 	"github.com/spf13/cobra"
 )
 
@@ -35,6 +36,13 @@ func newGenerateCmd() *cobra.Command {
 			body, err := loadBodyFile(bodyFile)
 			if err != nil {
 				printEnvelope(envelope.Err(errors.CodeInputError, "read body file", map[string]any{"error": err.Error()}))
+				return nil
+			}
+			if validation := registry.ValidateRequest(model, body); !validation.OK {
+				printEnvelope(envelope.Err(validationErrorCode(validation), "request body failed schema validation", map[string]any{
+					"validation":          validation,
+					"recommended_actions": validationRecommendedActions(validation),
+				}))
 				return nil
 			}
 

@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/aporicho/lovart/internal/paths"
 )
 
 func TestParseJobsFile(t *testing.T) {
@@ -78,4 +80,67 @@ func TestParseJobsFile_ValidationErrors(t *testing.T) {
 			t.Errorf("expected 0 jobs, got %d", len(jobs))
 		}
 	})
+}
+
+func TestValidateJobLines(t *testing.T) {
+	setupJobsRegistryMetadata(t)
+
+	lines := []JobLine{{
+		Line:    7,
+		JobID:   "bad",
+		Model:   "openai/gpt-image-2",
+		Outputs: 1,
+		Body:    map[string]any{"n": float64(99)},
+	}}
+	err := ValidateJobLines(lines)
+	if err == nil {
+		t.Fatal("expected validation error")
+	}
+	if len(err.Issues) != 1 {
+		t.Fatalf("issues = %#v", err.Issues)
+	}
+	if err.Issues[0].Line != 7 || err.Issues[0].JobID != "bad" {
+		t.Fatalf("issue context = %#v", err.Issues[0])
+	}
+}
+
+func setupJobsRegistryMetadata(t *testing.T) {
+	t.Helper()
+	dir := t.TempDir()
+	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	paths.Reset()
+
+	list := []byte(`{"items":[{"name":"openai/gpt-image-2","display_name":"GPT Image 2","type":"image"}]}`)
+	schema := []byte(`{
+  "paths": {
+    "/openai/gpt-image-2": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/GPTImage2Request"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GPTImage2Request": {
+        "required": ["prompt"],
+        "properties": {
+          "prompt": {"type": "string"},
+          "n": {"type": "integer", "minimum": 1, "maximum": 10}
+        }
+      }
+    }
+  }
+}`)
+	if err := os.WriteFile(paths.GeneratorListFile, list, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(paths.GeneratorSchemaFile, schema, 0644); err != nil {
+		t.Fatal(err)
+	}
 }

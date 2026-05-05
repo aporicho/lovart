@@ -8,6 +8,7 @@ import (
 	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/errors"
 	"github.com/aporicho/lovart/internal/http"
+	"github.com/aporicho/lovart/internal/registry"
 	"github.com/aporicho/lovart/internal/signing"
 	"github.com/spf13/cobra"
 )
@@ -22,10 +23,19 @@ func newModelsCmd() *cobra.Command {
 			ctx := context.Background()
 
 			if !live {
+				reg, err := registry.Load()
+				if err != nil {
+					printEnvelope(envelope.Err(errors.CodeMetadataStale, "failed to load model registry", map[string]any{
+						"error":               err.Error(),
+						"recommended_actions": []string{"run `lovart update sync --all`"},
+					}))
+					return nil
+				}
+				models := summarizeRegistryModels(reg.Models())
 				printEnvelope(envelope.OK(map[string]any{
-					"models": []any{},
-					"source": "ref",
-					"status": "offline mode — use --live to fetch",
+					"models": models,
+					"count":  len(models),
+					"source": "registry",
 				}))
 				return nil
 			}
@@ -86,4 +96,22 @@ func newModelsCmd() *cobra.Command {
 
 	cmd.Flags().BoolVar(&live, "live", false, "fetch live model list from Lovart API")
 	return cmd
+}
+
+type registryModelSummary struct {
+	Model       string `json:"model"`
+	DisplayName string `json:"display_name,omitempty"`
+	Type        string `json:"type,omitempty"`
+}
+
+func summarizeRegistryModels(records []registry.ModelRecord) []registryModelSummary {
+	models := make([]registryModelSummary, 0, len(records))
+	for _, record := range records {
+		models = append(models, registryModelSummary{
+			Model:       record.Model,
+			DisplayName: record.DisplayName,
+			Type:        record.Type,
+		})
+	}
+	return models
 }

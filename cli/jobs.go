@@ -35,13 +35,26 @@ func newJobsQuoteCmd() *cobra.Command {
 			jobsFile := args[0]
 			ctx := context.Background()
 
+			preparedJobs, validationErr, err := jobs.PrepareJobsFile(jobsFile)
+			if err != nil {
+				printEnvelope(envelope.Err(errors.CodeInputError, "read jobs file", map[string]any{"error": err.Error()}))
+				return nil
+			}
+			if validationErr != nil {
+				printEnvelope(envelope.Err(jobValidationErrorCode(validationErr), "jobs file failed schema validation", map[string]any{
+					"validation":          validationErr,
+					"recommended_actions": jobValidationRecommendedActions(validationErr),
+				}))
+				return nil
+			}
+
 			client, err := newSignedClient()
 			if err != nil {
 				printEnvelope(envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()}))
 				return nil
 			}
 
-			result, err := jobs.QuoteJobs(ctx, client, jobsFile, false)
+			result, err := jobs.QuotePreparedJobs(ctx, client, preparedJobs, false)
 			if err != nil {
 				printEnvelope(envelope.Err(errors.CodeInternal, "quote jobs", map[string]any{"error": err.Error()}))
 				return nil

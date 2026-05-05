@@ -9,6 +9,7 @@ import (
 
 // JobLine is one user-level concept in a jobs.jsonl file.
 type JobLine struct {
+	Line    int            `json:"-"`
 	JobID   string         `json:"job_id"`
 	Title   string         `json:"title,omitempty"`
 	Model   string         `json:"model"`
@@ -72,6 +73,7 @@ func ParseJobsFile(path string) ([]JobLine, error) {
 		if j.Outputs <= 0 {
 			return nil, fmt.Errorf("jobs: line %d: outputs must be > 0", i+1)
 		}
+		j.Line = i + 1
 		jobs = append(jobs, j)
 	}
 	return jobs, nil

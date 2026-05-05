@@ -41,11 +41,18 @@ type JobQuote struct {
 // QuoteJobs runs batch pricing for all jobs in a JSONL file.
 // A visual progress bar is shown on stderr. Pass noProgress=true to suppress.
 func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string, noProgress bool) (*QuoteSummary, error) {
-	jobs, err := ParseJobsFile(jobsFile)
+	jobs, validation, err := PrepareJobsFile(jobsFile)
 	if err != nil {
 		return nil, fmt.Errorf("jobs quote: %w", err)
 	}
+	if validation != nil {
+		return nil, validation
+	}
+	return QuotePreparedJobs(ctx, client, jobs, noProgress)
+}
 
+// QuotePreparedJobs runs batch pricing for already parsed and validated jobs.
+func QuotePreparedJobs(ctx context.Context, client *http.Client, jobs []JobLine, noProgress bool) (*QuoteSummary, error) {
 	if len(jobs) == 0 {
 		return &QuoteSummary{}, nil
 	}
