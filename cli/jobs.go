@@ -89,6 +89,9 @@ func newJobsRunCmd() *cobra.Command {
 				}))
 				return nil
 			}
+			if opts.Download {
+				opts.Wait = true
+			}
 			applyProjectContext(&opts)
 			state.ProjectID = opts.ProjectID
 			state.CID = opts.CID
@@ -155,6 +158,9 @@ func newJobsResumeCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runDir := args[0]
+			if opts.Download {
+				opts.Wait = true
+			}
 			applyProjectContext(&opts)
 			remote, ok := newJobsRemote()
 			if !ok {
@@ -210,6 +216,10 @@ func addJobsRunFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 	addJobsCommonFlags(cmd, opts)
 	addJobsGateFlags(cmd, opts)
 	cmd.Flags().BoolVar(&opts.Wait, "wait", false, "wait for submitted tasks")
+	cmd.Flags().BoolVar(&opts.Download, "download", false, "download artifacts after completion")
+	cmd.Flags().StringVar(&opts.DownloadDir, "download-dir", "", "directory for downloaded artifacts")
+	cmd.Flags().StringVar(&opts.DownloadDirTemplate, "download-dir-template", "", "download subdirectory template")
+	cmd.Flags().StringVar(&opts.DownloadFileTemplate, "download-file-template", "", "download filename template")
 	cmd.Flags().Float64Var(&opts.TimeoutSeconds, "timeout-seconds", 3600, "local wait timeout in seconds")
 	cmd.Flags().Float64Var(&opts.PollInterval, "poll-interval", 5, "task polling interval in seconds")
 	cmd.Flags().StringVar(&opts.ProjectID, "project-id", "", "target project ID")
@@ -220,6 +230,10 @@ func addJobsResumeFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 	cmd.Flags().StringVar(&opts.Detail, "detail", "summary", "output detail: summary, requests, full")
 	addJobsGateFlags(cmd, opts)
 	cmd.Flags().BoolVar(&opts.Wait, "wait", false, "wait for submitted tasks")
+	cmd.Flags().BoolVar(&opts.Download, "download", false, "download artifacts after completion")
+	cmd.Flags().StringVar(&opts.DownloadDir, "download-dir", "", "directory for downloaded artifacts")
+	cmd.Flags().StringVar(&opts.DownloadDirTemplate, "download-dir-template", "", "download subdirectory template")
+	cmd.Flags().StringVar(&opts.DownloadFileTemplate, "download-file-template", "", "download filename template")
 	cmd.Flags().Float64Var(&opts.TimeoutSeconds, "timeout-seconds", 3600, "local wait timeout in seconds")
 	cmd.Flags().Float64Var(&opts.PollInterval, "poll-interval", 5, "task polling interval in seconds")
 	cmd.Flags().StringVar(&opts.ProjectID, "project-id", "", "target project ID")

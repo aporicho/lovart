@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/aporicho/lovart/internal/downloads"
 	"github.com/aporicho/lovart/internal/metadata"
 	"github.com/aporicho/lovart/internal/pricing"
 )
@@ -45,6 +46,7 @@ type JobState struct {
 	Line           int             `json:"line"`
 	JobID          string          `json:"job_id"`
 	Title          string          `json:"title,omitempty"`
+	Fields         map[string]any  `json:"fields,omitempty"`
 	Model          string          `json:"model"`
 	Mode           string          `json:"mode"`
 	Outputs        int             `json:"outputs"`
@@ -56,23 +58,26 @@ type JobState struct {
 
 // RemoteRequest is one atomic Lovart task submission.
 type RemoteRequest struct {
-	RequestID   string               `json:"request_id"`
-	JobID       string               `json:"job_id"`
-	Title       string               `json:"title,omitempty"`
-	Model       string               `json:"model"`
-	Mode        string               `json:"mode"`
-	Index       int                  `json:"index"`
-	OutputCount int                  `json:"output_count"`
-	Body        map[string]any       `json:"body"`
-	Status      string               `json:"status"`
-	Quote       *pricing.QuoteResult `json:"quote,omitempty"`
-	TaskID      string               `json:"task_id,omitempty"`
-	Response    map[string]any       `json:"response,omitempty"`
-	Task        map[string]any       `json:"task,omitempty"`
-	Artifacts   []map[string]any     `json:"artifacts,omitempty"`
-	Attempts    int                  `json:"attempts"`
-	Errors      []JobError           `json:"errors,omitempty"`
-	UpdatedAt   time.Time            `json:"updated_at,omitempty"`
+	RequestID     string                 `json:"request_id"`
+	JobID         string                 `json:"job_id"`
+	Title         string                 `json:"title,omitempty"`
+	Fields        map[string]any         `json:"fields,omitempty"`
+	Model         string                 `json:"model"`
+	Mode          string                 `json:"mode"`
+	Index         int                    `json:"index"`
+	ArtifactStart int                    `json:"artifact_start,omitempty"`
+	OutputCount   int                    `json:"output_count"`
+	Body          map[string]any         `json:"body"`
+	Status        string                 `json:"status"`
+	Quote         *pricing.QuoteResult   `json:"quote,omitempty"`
+	TaskID        string                 `json:"task_id,omitempty"`
+	Response      map[string]any         `json:"response,omitempty"`
+	Task          map[string]any         `json:"task,omitempty"`
+	Artifacts     []map[string]any       `json:"artifacts,omitempty"`
+	Downloads     []downloads.FileResult `json:"downloads,omitempty"`
+	Attempts      int                    `json:"attempts"`
+	Errors        []JobError             `json:"errors,omitempty"`
+	UpdatedAt     time.Time              `json:"updated_at,omitempty"`
 }
 
 // JobError records a structured per-request failure.
@@ -84,22 +89,23 @@ type JobError struct {
 
 // BatchResult is the command-facing batch output.
 type BatchResult struct {
-	Operation          string           `json:"operation"`
-	JobsFile           string           `json:"jobs_file,omitempty"`
-	JobsFileHash       string           `json:"jobs_file_hash,omitempty"`
-	RunDir             string           `json:"run_dir"`
-	StateFile          string           `json:"state_file"`
-	Summary            BatchSummary     `json:"summary"`
-	BatchGate          *BatchGate       `json:"batch_gate,omitempty"`
-	TimedOut           bool             `json:"timed_out,omitempty"`
-	TaskCount          int              `json:"task_count"`
-	TaskSampleLimit    int              `json:"task_sample_limit,omitempty"`
-	TasksTruncated     bool             `json:"tasks_truncated,omitempty"`
-	Tasks              []RequestSummary `json:"tasks,omitempty"`
-	RemoteRequests     []RequestSummary `json:"remote_requests,omitempty"`
-	Failed             []RequestSummary `json:"failed,omitempty"`
-	Jobs               []JobState       `json:"jobs,omitempty"`
-	RecommendedActions []string         `json:"recommended_actions,omitempty"`
+	Operation          string                 `json:"operation"`
+	JobsFile           string                 `json:"jobs_file,omitempty"`
+	JobsFileHash       string                 `json:"jobs_file_hash,omitempty"`
+	RunDir             string                 `json:"run_dir"`
+	StateFile          string                 `json:"state_file"`
+	Summary            BatchSummary           `json:"summary"`
+	BatchGate          *BatchGate             `json:"batch_gate,omitempty"`
+	TimedOut           bool                   `json:"timed_out,omitempty"`
+	TaskCount          int                    `json:"task_count"`
+	TaskSampleLimit    int                    `json:"task_sample_limit,omitempty"`
+	TasksTruncated     bool                   `json:"tasks_truncated,omitempty"`
+	Tasks              []RequestSummary       `json:"tasks,omitempty"`
+	RemoteRequests     []RequestSummary       `json:"remote_requests,omitempty"`
+	Downloads          []downloads.FileResult `json:"downloads,omitempty"`
+	Failed             []RequestSummary       `json:"failed,omitempty"`
+	Jobs               []JobState             `json:"jobs,omitempty"`
+	RecommendedActions []string               `json:"recommended_actions,omitempty"`
 }
 
 // BatchSummary is a compact state summary.
@@ -114,6 +120,7 @@ type BatchSummary struct {
 	ZeroCreditRemoteRequests     int            `json:"zero_credit_remote_requests"`
 	UnknownPricingRemoteRequests int            `json:"unknown_pricing_remote_requests"`
 	FailedJobs                   int            `json:"failed_jobs"`
+	DownloadedArtifacts          int            `json:"downloaded_artifacts"`
 	Complete                     bool           `json:"complete"`
 }
 
@@ -129,6 +136,7 @@ type RequestSummary struct {
 	TaskID        string    `json:"task_id,omitempty"`
 	RemoteStatus  string    `json:"remote_status,omitempty"`
 	ArtifactCount int       `json:"artifact_count"`
+	DownloadCount int       `json:"download_count,omitempty"`
 	QuoteCredits  float64   `json:"quote_credits,omitempty"`
 	LastError     *JobError `json:"last_error,omitempty"`
 }
@@ -171,6 +179,7 @@ func newJobState(line JobLine) (JobState, error) {
 		Line:    line.Line,
 		JobID:   line.JobID,
 		Title:   line.Title,
+		Fields:  copyBody(line.Fields),
 		Model:   line.Model,
 		Mode:    line.Mode,
 		Outputs: line.Outputs,
@@ -180,15 +189,17 @@ func newJobState(line JobLine) (JobState, error) {
 	if !line.OutputsExplicit && hasQuantityField(line.Body) {
 		job.Outputs = inferredOutputCount(line.Body)
 		job.RemoteRequests = append(job.RemoteRequests, RemoteRequest{
-			RequestID:   fmt.Sprintf("%s-%03d", line.JobID, 1),
-			JobID:       line.JobID,
-			Title:       line.Title,
-			Model:       line.Model,
-			Mode:        line.Mode,
-			Index:       1,
-			OutputCount: job.Outputs,
-			Body:        copyBody(line.Body),
-			Status:      StatusPending,
+			RequestID:     fmt.Sprintf("%s-%03d", line.JobID, 1),
+			JobID:         line.JobID,
+			Title:         line.Title,
+			Fields:        copyBody(line.Fields),
+			Model:         line.Model,
+			Mode:          line.Mode,
+			Index:         1,
+			ArtifactStart: 1,
+			OutputCount:   job.Outputs,
+			Body:          copyBody(line.Body),
+			Status:        StatusPending,
 		})
 		return job, nil
 	}
@@ -197,19 +208,23 @@ func newJobState(line JobLine) (JobState, error) {
 	if err != nil {
 		return JobState{}, err
 	}
+	artifactStart := 1
 	for _, sub := range subs {
 		request := RemoteRequest{
-			RequestID:   fmt.Sprintf("%s-%03d", line.JobID, sub.Index),
-			JobID:       line.JobID,
-			Title:       line.Title,
-			Model:       line.Model,
-			Mode:        line.Mode,
-			Index:       sub.Index,
-			OutputCount: sub.N,
-			Body:        copyBody(sub.Body),
-			Status:      StatusPending,
+			RequestID:     fmt.Sprintf("%s-%03d", line.JobID, sub.Index),
+			JobID:         line.JobID,
+			Title:         line.Title,
+			Fields:        copyBody(line.Fields),
+			Model:         line.Model,
+			Mode:          line.Mode,
+			Index:         sub.Index,
+			ArtifactStart: artifactStart,
+			OutputCount:   sub.N,
+			Body:          copyBody(sub.Body),
+			Status:        StatusPending,
 		}
 		job.RemoteRequests = append(job.RemoteRequests, request)
+		artifactStart += sub.N
 	}
 	return job, nil
 }
@@ -339,6 +354,7 @@ func Summary(state *RunState) BatchSummary {
 		for _, request := range job.RemoteRequests {
 			summary.RemoteRequests++
 			summary.RemoteStatusCounts[request.Status]++
+			summary.DownloadedArtifacts += successfulDownloadCount(request.Downloads)
 			if request.Quote == nil {
 				summary.UnknownPricingRemoteRequests++
 			} else {
@@ -379,6 +395,16 @@ func lastRequestError(request RemoteRequest) *JobError {
 	return &err
 }
 
+func successfulDownloadCount(results []downloads.FileResult) int {
+	count := 0
+	for _, result := range results {
+		if result.Error == "" && result.Path != "" {
+			count++
+		}
+	}
+	return count
+}
+
 func allRequests(state *RunState) []RemoteRequest {
 	var requests []RemoteRequest
 	for _, job := range state.Jobs {
@@ -406,6 +432,7 @@ func summarizeRequest(request RemoteRequest) RequestSummary {
 		Status:        request.Status,
 		TaskID:        request.TaskID,
 		ArtifactCount: len(request.Artifacts),
+		DownloadCount: len(request.Downloads),
 		LastError:     lastRequestError(request),
 	}
 	if request.Quote != nil {

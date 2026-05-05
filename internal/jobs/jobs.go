@@ -28,6 +28,7 @@ type JobLine struct {
 	Line            int            `json:"-"`
 	JobID           string         `json:"job_id"`
 	Title           string         `json:"title,omitempty"`
+	Fields          map[string]any `json:"fields,omitempty"`
 	Model           string         `json:"model"`
 	Mode            string         `json:"mode"`
 	Outputs         int            `json:"outputs"`
@@ -47,19 +48,21 @@ type QuoteOptions struct {
 
 // JobsOptions configures batch run/resume.
 type JobsOptions struct {
-	OutDir          string
-	ProjectID       string
-	CID             string
-	AllowPaid       bool
-	MaxTotalCredits float64
-	Wait            bool
-	Download        bool
-	DownloadDir     string
-	TimeoutSeconds  float64
-	PollInterval    float64
-	Detail          string
-	RetryFailed     bool
-	Refresh         bool
+	OutDir               string
+	ProjectID            string
+	CID                  string
+	AllowPaid            bool
+	MaxTotalCredits      float64
+	Wait                 bool
+	Download             bool
+	DownloadDir          string
+	DownloadDirTemplate  string
+	DownloadFileTemplate string
+	TimeoutSeconds       float64
+	PollInterval         float64
+	Detail               string
+	RetryFailed          bool
+	Refresh              bool
 }
 
 // ParseJobsFile reads and validates a jobs.jsonl file.

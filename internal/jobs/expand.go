@@ -8,9 +8,9 @@ import (
 
 // SubRequest represents one atomic Lovart generation API call.
 type SubRequest struct {
-	Index   int            // 1-based index within the parent job
-	N       int            // number of images for this sub-request
-	Body    map[string]any // generation parameters (with n/max_images injected)
+	Index int            // 1-based index within the parent job
+	N     int            // number of images for this sub-request
+	Body  map[string]any // generation parameters (with n/max_images injected)
 }
 
 // Expand converts a job's desired output count into a list of atomic sub-requests.

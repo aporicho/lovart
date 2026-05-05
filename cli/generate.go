@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aporicho/lovart/internal/auth"
+	"github.com/aporicho/lovart/internal/downloads"
 	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/errors"
 	"github.com/aporicho/lovart/internal/generation"
@@ -14,15 +15,18 @@ import (
 
 func newGenerateCmd() *cobra.Command {
 	var (
-		bodyFile   string
-		mode       string
-		projectID  string
-		cid        string
-		dryRun     bool
-		allowPaid  bool
-		maxCredits float64
-		wait       bool
-		download   bool
+		bodyFile             string
+		mode                 string
+		projectID            string
+		cid                  string
+		dryRun               bool
+		allowPaid            bool
+		maxCredits           float64
+		wait                 bool
+		download             bool
+		downloadDir          string
+		downloadDirTemplate  string
+		downloadFileTemplate string
 	)
 
 	cmd := &cobra.Command{
@@ -64,6 +68,9 @@ func newGenerateCmd() *cobra.Command {
 					"recommended_action": "pass --project-id and ensure cid is available from credentials, or run `lovart project select <project_id>`",
 				}))
 				return nil
+			}
+			if download {
+				wait = true
 			}
 
 			client, err := newSignedClient()
@@ -129,6 +136,28 @@ func newGenerateCmd() *cobra.Command {
 					output["task"] = task
 					output["status"] = task["status"]
 
+					if task["status"] == "completed" && download {
+						downloadResult, err := downloads.DownloadArtifacts(ctx, downloads.ArtifactsFromTask(task), downloads.Options{
+							RootDir:      downloadDir,
+							DirTemplate:  downloadDirTemplate,
+							FileTemplate: downloadFileTemplate,
+							TaskID:       result.TaskID,
+							Context: downloads.JobContext{
+								Model: model,
+								Mode:  mode,
+								Body:  body,
+							},
+						})
+						if err != nil {
+							output["download_error"] = err.Error()
+						} else {
+							output["downloads"] = downloadResult.Files
+							if downloadResult.IndexError != "" {
+								output["download_index_error"] = downloadResult.IndexError
+							}
+						}
+					}
+
 					// Add generated images to project canvas.
 					if task["status"] == "completed" && projectID != "" && cid != "" {
 						details, _ := task["artifact_details"].([]map[string]any)
@@ -177,5 +206,8 @@ func newGenerateCmd() *cobra.Command {
 	cmd.Flags().Float64Var(&maxCredits, "max-credits", 0, "max credits to spend")
 	cmd.Flags().BoolVar(&wait, "wait", false, "wait for task completion")
 	cmd.Flags().BoolVar(&download, "download", false, "download artifacts")
+	cmd.Flags().StringVar(&downloadDir, "download-dir", "", "directory for downloaded artifacts")
+	cmd.Flags().StringVar(&downloadDirTemplate, "download-dir-template", "", "download subdirectory template")
+	cmd.Flags().StringVar(&downloadFileTemplate, "download-file-template", "", "download filename template")
 	return cmd
 }

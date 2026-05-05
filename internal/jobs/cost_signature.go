@@ -9,17 +9,17 @@ import (
 
 // Pricing fields that affect credit cost — included in cost_signature.
 var pricingFields = map[string]bool{
-	"model":         true,
-	"quality":       true,
-	"size":          true,
-	"resolution":    true,
-	"aspect_ratio":  true,
-	"mode":          true,
-	"render_speed":  true,
-	"outputs":       true,
-	"n":             true,
-	"max_images":    true,
-	"num_images":    true,
+	"model":        true,
+	"quality":      true,
+	"size":         true,
+	"resolution":   true,
+	"aspect_ratio": true,
+	"mode":         true,
+	"render_speed": true,
+	"outputs":      true,
+	"n":            true,
+	"max_images":   true,
+	"num_images":   true,
 }
 
 // CostSignature computes a hash for pricing cache lookup.

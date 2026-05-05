@@ -1,6 +1,10 @@
 package jobs
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/aporicho/lovart/internal/downloads"
+)
 
 // Result renders state at the requested detail level.
 func Result(state *RunState, operation string, detail string) *BatchResult {
@@ -22,6 +26,7 @@ func Result(state *RunState, operation string, detail string) *BatchResult {
 		TaskSampleLimit:    taskSampleLimit,
 		Tasks:              taskSamples(requests),
 		Failed:             failedRequests(requests),
+		Downloads:          allDownloads(state),
 		RecommendedActions: recommendedActions(state),
 	}
 	result.TasksTruncated = result.TaskCount > len(result.Tasks)
@@ -32,6 +37,14 @@ func Result(state *RunState, operation string, detail string) *BatchResult {
 		result.Jobs = state.Jobs
 	}
 	return result
+}
+
+func allDownloads(state *RunState) []downloads.FileResult {
+	var out []downloads.FileResult
+	for _, request := range allRequests(state) {
+		out = append(out, request.Downloads...)
+	}
+	return out
 }
 
 func countTasks(requests []RequestSummary) int {

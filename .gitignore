@@ -19,11 +19,12 @@ extension/dist/
 extension/*.zip
 
 # Runtime (generated)
-downloads/
-runs/
+/downloads/
+/runs/
 .lovart/
 .lovart-chrome-profile/
 .mitmproxy/
+v1/lovart_reverse/downloads/
 .pytest_cache/
 .ruff_cache/
 

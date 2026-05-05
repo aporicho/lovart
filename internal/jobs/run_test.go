@@ -1,8 +1,12 @@
 package jobs
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -126,11 +130,80 @@ func TestStatusJobsRefreshesActiveTasks(t *testing.T) {
 	}
 }
 
+func TestRunPreparedJobsDownloadsArtifactsByFields(t *testing.T) {
+	setupRuntimeSchema(t)
+	png, err := base64.StdEncoding.DecodeString("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=")
+	if err != nil {
+		t.Fatal(err)
+	}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(png)
+	}))
+	defer server.Close()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "jobs.jsonl")
+	data := `{"job_id":"scene-001","title":"001 Test Scene / film","fields":{"series":"series-a","scene_no":"001","scene_name":"Test Scene"},"model":"openai/gpt-image-2","outputs":1,"body":{"prompt":"download prompt"}}`
+	if err := os.WriteFile(path, []byte(data), 0644); err != nil {
+		t.Fatal(err)
+	}
+	downloadDir := filepath.Join(dir, "downloads")
+	opts := JobsOptions{
+		AllowPaid:            true,
+		MaxTotalCredits:      10,
+		ProjectID:            "project",
+		CID:                  "cid",
+		Wait:                 true,
+		Download:             true,
+		DownloadDir:          downloadDir,
+		DownloadDirTemplate:  "{{fields.series}}/{{fields.scene_no}} {{fields.scene_name}}",
+		DownloadFileTemplate: "artifact-{{artifact.index:02}}.{{ext}}",
+		PollInterval:         0.01,
+		TimeoutSeconds:       1,
+	}
+	state, validation, err := PrepareRun(path, opts)
+	if err != nil || validation != nil {
+		t.Fatalf("PrepareRun validation=%v err=%v", validation, err)
+	}
+	remote := &fakeRemote{price: 0, taskStatus: "completed", artifactURL: server.URL + "/a.png"}
+	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Summary.RemoteStatusCounts[StatusDownloaded] != 1 {
+		t.Fatalf("summary=%#v", result.Summary)
+	}
+	wantPath := filepath.Join(downloadDir, "series-a", "001 Test Scene", "artifact-01.png")
+	if len(result.Downloads) != 1 || result.Downloads[0].Path != wantPath {
+		t.Fatalf("downloads=%#v want path %s", result.Downloads, wantPath)
+	}
+	file, err := os.ReadFile(wantPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(file, []byte("download prompt")) || bytes.Contains(file, []byte("project")) {
+		t.Fatalf("effect metadata not embedded correctly")
+	}
+
+	resumed, err := ResumeJobs(context.Background(), remote, state.RunDir, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if remote.submits != 1 {
+		t.Fatalf("resume resubmitted task, submits=%d", remote.submits)
+	}
+	if resumed.Summary.RemoteStatusCounts[StatusDownloaded] != 1 {
+		t.Fatalf("resume summary=%#v", resumed.Summary)
+	}
+}
+
 type fakeRemote struct {
-	price      float64
-	submits    int
-	quotes     int
-	taskStatus string
+	price       float64
+	submits     int
+	quotes      int
+	taskStatus  string
+	artifactURL string
 }
 
 func (f *fakeRemote) Quote(ctx context.Context, model string, body map[string]any) (*pricing.QuoteResult, error) {
@@ -148,11 +221,15 @@ func (f *fakeRemote) FetchTask(ctx context.Context, taskID string) (map[string]a
 	if status == "" {
 		status = "running"
 	}
+	artifactURL := f.artifactURL
+	if artifactURL == "" {
+		artifactURL = "https://example.test/a.png"
+	}
 	return map[string]any{
 		"task_id": taskID,
 		"status":  status,
 		"artifact_details": []map[string]any{{
-			"url": "https://example.test/a.png",
+			"url": artifactURL,
 		}},
 	}, nil
 }
