@@ -71,6 +71,7 @@ func newJobsQuoteCmd() *cobra.Command {
 
 func newJobsRunCmd() *cobra.Command {
 	var opts jobs.JobsOptions
+	var post jobPostprocessFlags
 	cmd := &cobra.Command{
 		Use:   "run <jobs.jsonl>",
 		Short: "Submit batch generation",
@@ -89,9 +90,7 @@ func newJobsRunCmd() *cobra.Command {
 				}))
 				return nil
 			}
-			if opts.Download {
-				opts.Wait = true
-			}
+			applyJobPostprocessFlags(&opts, post)
 			applyProjectContext(&opts)
 			state.ProjectID = opts.ProjectID
 			state.CID = opts.CID
@@ -112,7 +111,7 @@ func newJobsRunCmd() *cobra.Command {
 			return nil
 		},
 	}
-	addJobsRunFlags(cmd, &opts)
+	addJobsRunFlags(cmd, &opts, &post)
 	return cmd
 }
 
@@ -152,15 +151,14 @@ func newJobsDryRunCmd() *cobra.Command {
 
 func newJobsResumeCmd() *cobra.Command {
 	var opts jobs.JobsOptions
+	var post jobPostprocessFlags
 	cmd := &cobra.Command{
 		Use:   "resume <run_dir>",
 		Short: "Resume an interrupted batch",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runDir := args[0]
-			if opts.Download {
-				opts.Wait = true
-			}
+			applyJobPostprocessFlags(&opts, post)
 			applyProjectContext(&opts)
 			remote, ok := newJobsRemote()
 			if !ok {
@@ -171,7 +169,7 @@ func newJobsResumeCmd() *cobra.Command {
 			return nil
 		},
 	}
-	addJobsResumeFlags(cmd, &opts)
+	addJobsResumeFlags(cmd, &opts, &post)
 	cmd.Flags().BoolVar(&opts.RetryFailed, "retry-failed", false, "retry failed requests that were never submitted")
 	return cmd
 }
@@ -212,11 +210,21 @@ func addJobsGateFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 	cmd.Flags().Float64Var(&opts.MaxTotalCredits, "max-total-credits", 0, "max total credits allowed with --allow-paid")
 }
 
-func addJobsRunFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
+type jobPostprocessFlags struct {
+	noWait     bool
+	noDownload bool
+	noCanvas   bool
+}
+
+func addJobsRunFlags(cmd *cobra.Command, opts *jobs.JobsOptions, post *jobPostprocessFlags) {
 	addJobsCommonFlags(cmd, opts)
 	addJobsGateFlags(cmd, opts)
-	cmd.Flags().BoolVar(&opts.Wait, "wait", false, "wait for submitted tasks")
-	cmd.Flags().BoolVar(&opts.Download, "download", false, "download artifacts after completion")
+	cmd.Flags().BoolVar(&opts.Wait, "wait", true, "wait for submitted tasks")
+	cmd.Flags().BoolVar(&post.noWait, "no-wait", false, "submit and return without waiting")
+	cmd.Flags().BoolVar(&opts.Download, "download", true, "download artifacts after completion")
+	cmd.Flags().BoolVar(&post.noDownload, "no-download", false, "skip artifact download")
+	cmd.Flags().BoolVar(&opts.Canvas, "canvas", true, "add completed artifacts to the project canvas")
+	cmd.Flags().BoolVar(&post.noCanvas, "no-canvas", false, "skip project canvas writeback")
 	cmd.Flags().StringVar(&opts.DownloadDir, "download-dir", "", "directory for downloaded artifacts")
 	cmd.Flags().StringVar(&opts.DownloadDirTemplate, "download-dir-template", "", "download subdirectory template")
 	cmd.Flags().StringVar(&opts.DownloadFileTemplate, "download-file-template", "", "download filename template")
@@ -226,11 +234,15 @@ func addJobsRunFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 	cmd.Flags().StringVar(&opts.CID, "cid", "", "client id for project-bound generation")
 }
 
-func addJobsResumeFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
+func addJobsResumeFlags(cmd *cobra.Command, opts *jobs.JobsOptions, post *jobPostprocessFlags) {
 	cmd.Flags().StringVar(&opts.Detail, "detail", "summary", "output detail: summary, requests, full")
 	addJobsGateFlags(cmd, opts)
-	cmd.Flags().BoolVar(&opts.Wait, "wait", false, "wait for submitted tasks")
-	cmd.Flags().BoolVar(&opts.Download, "download", false, "download artifacts after completion")
+	cmd.Flags().BoolVar(&opts.Wait, "wait", true, "wait for submitted tasks")
+	cmd.Flags().BoolVar(&post.noWait, "no-wait", false, "submit and return without waiting")
+	cmd.Flags().BoolVar(&opts.Download, "download", true, "download artifacts after completion")
+	cmd.Flags().BoolVar(&post.noDownload, "no-download", false, "skip artifact download")
+	cmd.Flags().BoolVar(&opts.Canvas, "canvas", true, "add completed artifacts to the project canvas")
+	cmd.Flags().BoolVar(&post.noCanvas, "no-canvas", false, "skip project canvas writeback")
 	cmd.Flags().StringVar(&opts.DownloadDir, "download-dir", "", "directory for downloaded artifacts")
 	cmd.Flags().StringVar(&opts.DownloadDirTemplate, "download-dir-template", "", "download subdirectory template")
 	cmd.Flags().StringVar(&opts.DownloadFileTemplate, "download-file-template", "", "download filename template")
@@ -238,6 +250,26 @@ func addJobsResumeFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 	cmd.Flags().Float64Var(&opts.PollInterval, "poll-interval", 5, "task polling interval in seconds")
 	cmd.Flags().StringVar(&opts.ProjectID, "project-id", "", "target project ID")
 	cmd.Flags().StringVar(&opts.CID, "cid", "", "client id for project-bound generation")
+}
+
+func applyJobPostprocessFlags(opts *jobs.JobsOptions, post jobPostprocessFlags) {
+	if post.noWait {
+		opts.Wait = false
+	}
+	if post.noDownload {
+		opts.Download = false
+	}
+	if post.noCanvas {
+		opts.Canvas = false
+	}
+	if !opts.Wait {
+		opts.Download = false
+		opts.Canvas = false
+		return
+	}
+	if opts.Download || opts.Canvas {
+		opts.Wait = true
+	}
 }
 
 func newJobsRemote() (jobs.RemoteClient, bool) {

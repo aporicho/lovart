@@ -71,6 +71,11 @@ func RunPreparedJobs(ctx context.Context, remote RemoteClient, state *RunState, 
 			return nil, err
 		}
 	}
+	if opts.Canvas {
+		if err := canvasCompleted(ctx, remote, state, opts); err != nil {
+			return nil, err
+		}
+	}
 	return Result(state, "run", opts.Detail), nil
 }
 
@@ -110,6 +115,11 @@ func ResumeJobs(ctx context.Context, remote RemoteClient, runDir string, opts Jo
 	}
 	if opts.Download {
 		if err := downloadCompleted(ctx, state, opts); err != nil {
+			return nil, err
+		}
+	}
+	if opts.Canvas {
+		if err := canvasCompleted(ctx, remote, state, opts); err != nil {
 			return nil, err
 		}
 	}

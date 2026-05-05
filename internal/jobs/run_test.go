@@ -13,6 +13,7 @@ import (
 
 	"github.com/aporicho/lovart/internal/generation"
 	"github.com/aporicho/lovart/internal/pricing"
+	"github.com/aporicho/lovart/internal/project"
 )
 
 func TestParseJobsFileDefaultsAndConflicts(t *testing.T) {
@@ -198,12 +199,59 @@ func TestRunPreparedJobsDownloadsArtifactsByFields(t *testing.T) {
 	}
 }
 
+func TestRunPreparedJobsWritesCanvasAndResumeDoesNotRepeat(t *testing.T) {
+	setupRuntimeSchema(t)
+	dir := t.TempDir()
+	path := filepath.Join(dir, "jobs.jsonl")
+	if err := os.WriteFile(path, []byte(`{"job_id":"a","model":"openai/gpt-image-2","body":{"prompt":"test"}}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	opts := JobsOptions{
+		AllowPaid:       true,
+		MaxTotalCredits: 10,
+		ProjectID:       "project",
+		CID:             "cid",
+		Wait:            true,
+		Canvas:          true,
+		PollInterval:    0.01,
+		TimeoutSeconds:  1,
+	}
+	state, validation, err := PrepareRun(path, opts)
+	if err != nil || validation != nil {
+		t.Fatalf("PrepareRun validation=%v err=%v", validation, err)
+	}
+	remote := &fakeRemote{price: 0, taskStatus: "completed"}
+	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if remote.canvasCalls != 1 || remote.canvasImages != 1 {
+		t.Fatalf("canvas calls=%d images=%d", remote.canvasCalls, remote.canvasImages)
+	}
+	if result.Summary.CanvasUpdatedRequests != 1 || result.Summary.CanvasImages != 1 {
+		t.Fatalf("summary=%#v", result.Summary)
+	}
+
+	resumed, err := ResumeJobs(context.Background(), remote, state.RunDir, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if remote.canvasCalls != 1 {
+		t.Fatalf("resume repeated canvas writeback, calls=%d", remote.canvasCalls)
+	}
+	if resumed.Summary.CanvasUpdatedRequests != 1 {
+		t.Fatalf("resume summary=%#v", resumed.Summary)
+	}
+}
+
 type fakeRemote struct {
-	price       float64
-	submits     int
-	quotes      int
-	taskStatus  string
-	artifactURL string
+	price        float64
+	submits      int
+	quotes       int
+	taskStatus   string
+	artifactURL  string
+	canvasCalls  int
+	canvasImages int
 }
 
 func (f *fakeRemote) Quote(ctx context.Context, model string, body map[string]any) (*pricing.QuoteResult, error) {
@@ -232,4 +280,10 @@ func (f *fakeRemote) FetchTask(ctx context.Context, taskID string) (map[string]a
 			"url": artifactURL,
 		}},
 	}, nil
+}
+
+func (f *fakeRemote) AddToCanvas(ctx context.Context, projectID, cid string, images []project.CanvasImage) error {
+	f.canvasCalls++
+	f.canvasImages += len(images)
+	return nil
 }

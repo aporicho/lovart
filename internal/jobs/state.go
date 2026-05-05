@@ -75,6 +75,7 @@ type RemoteRequest struct {
 	Task          map[string]any         `json:"task,omitempty"`
 	Artifacts     []map[string]any       `json:"artifacts,omitempty"`
 	Downloads     []downloads.FileResult `json:"downloads,omitempty"`
+	Canvas        *CanvasResult          `json:"canvas,omitempty"`
 	Attempts      int                    `json:"attempts"`
 	Errors        []JobError             `json:"errors,omitempty"`
 	UpdatedAt     time.Time              `json:"updated_at,omitempty"`
@@ -121,7 +122,17 @@ type BatchSummary struct {
 	UnknownPricingRemoteRequests int            `json:"unknown_pricing_remote_requests"`
 	FailedJobs                   int            `json:"failed_jobs"`
 	DownloadedArtifacts          int            `json:"downloaded_artifacts"`
+	CanvasUpdatedRequests        int            `json:"canvas_updated_requests"`
+	CanvasImages                 int            `json:"canvas_images"`
 	Complete                     bool           `json:"complete"`
+}
+
+// CanvasResult records local canvas writeback state for resume idempotency.
+type CanvasResult struct {
+	Updated    bool      `json:"updated"`
+	ImageCount int       `json:"image_count,omitempty"`
+	Error      string    `json:"error,omitempty"`
+	UpdatedAt  time.Time `json:"updated_at,omitempty"`
 }
 
 // RequestSummary is the compact public view of a remote request.
@@ -137,6 +148,8 @@ type RequestSummary struct {
 	RemoteStatus  string    `json:"remote_status,omitempty"`
 	ArtifactCount int       `json:"artifact_count"`
 	DownloadCount int       `json:"download_count,omitempty"`
+	CanvasUpdated bool      `json:"canvas_updated,omitempty"`
+	CanvasImages  int       `json:"canvas_images,omitempty"`
 	QuoteCredits  float64   `json:"quote_credits,omitempty"`
 	LastError     *JobError `json:"last_error,omitempty"`
 }
@@ -355,6 +368,10 @@ func Summary(state *RunState) BatchSummary {
 			summary.RemoteRequests++
 			summary.RemoteStatusCounts[request.Status]++
 			summary.DownloadedArtifacts += successfulDownloadCount(request.Downloads)
+			if request.Canvas != nil && request.Canvas.Updated {
+				summary.CanvasUpdatedRequests++
+				summary.CanvasImages += request.Canvas.ImageCount
+			}
 			if request.Quote == nil {
 				summary.UnknownPricingRemoteRequests++
 			} else {
@@ -434,6 +451,10 @@ func summarizeRequest(request RemoteRequest) RequestSummary {
 		ArtifactCount: len(request.Artifacts),
 		DownloadCount: len(request.Downloads),
 		LastError:     lastRequestError(request),
+	}
+	if request.Canvas != nil {
+		summary.CanvasUpdated = request.Canvas.Updated
+		summary.CanvasImages = request.Canvas.ImageCount
 	}
 	if request.Quote != nil {
 		summary.QuoteCredits = request.Quote.Price

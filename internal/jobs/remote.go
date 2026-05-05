@@ -6,6 +6,7 @@ import (
 	"github.com/aporicho/lovart/internal/generation"
 	"github.com/aporicho/lovart/internal/http"
 	"github.com/aporicho/lovart/internal/pricing"
+	"github.com/aporicho/lovart/internal/project"
 )
 
 // RemoteClient is the jobs package boundary for Lovart network operations.
@@ -13,6 +14,7 @@ type RemoteClient interface {
 	Quote(ctx context.Context, model string, body map[string]any) (*pricing.QuoteResult, error)
 	Submit(ctx context.Context, model string, body map[string]any, opts generation.Options) (*generation.SubmitResult, error)
 	FetchTask(ctx context.Context, taskID string) (map[string]any, error)
+	AddToCanvas(ctx context.Context, projectID, cid string, images []project.CanvasImage) error
 }
 
 type httpRemoteClient struct {
@@ -34,4 +36,8 @@ func (c *httpRemoteClient) Submit(ctx context.Context, model string, body map[st
 
 func (c *httpRemoteClient) FetchTask(ctx context.Context, taskID string) (map[string]any, error) {
 	return generation.FetchTask(ctx, c.client, taskID)
+}
+
+func (c *httpRemoteClient) AddToCanvas(ctx context.Context, projectID, cid string, images []project.CanvasImage) error {
+	return project.AddToCanvas(ctx, c.client, projectID, cid, images)
 }

@@ -13,9 +13,18 @@ import (
 func TestGenerateCommandExposesProjectOverrides(t *testing.T) {
 	cmd := newGenerateCmd()
 
-	for _, name := range []string{"project-id", "cid"} {
+	for _, name := range []string{"project-id", "cid", "no-wait", "no-download", "no-canvas", "canvas"} {
 		if cmd.Flags().Lookup(name) == nil {
 			t.Fatalf("generate command missing --%s flag", name)
+		}
+	}
+	for _, name := range []string{"wait", "download", "canvas"} {
+		flag := cmd.Flags().Lookup(name)
+		if flag == nil {
+			t.Fatalf("generate command missing --%s flag", name)
+		}
+		if flag.DefValue != "true" {
+			t.Fatalf("--%s default = %q, want true", name, flag.DefValue)
 		}
 	}
 

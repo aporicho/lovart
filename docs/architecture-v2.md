@@ -201,13 +201,13 @@ lovart project create <name>
 lovart project select <id>
 lovart plan [model] [--intent] [--count] [--body-file]
 lovart quote <model> --body-file <file>
-lovart generate <model> --body-file <file> [--project-id <id>] [--cid <cid>] [--mode] [--dry-run] [--allow-paid] [--wait] [--download]
+lovart generate <model> --body-file <file> [--project-id <id>] [--cid <cid>] [--mode] [--dry-run] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]
 lovart task <task_id>
 lovart jobs quote <jobs.jsonl> [--detail]
 lovart jobs quote-status <run_dir>
 lovart jobs dry-run <jobs.jsonl>
-lovart jobs run <jobs.jsonl> [--wait] [--download]
-lovart jobs resume <jobs.jsonl> [--wait] [--download] [--retry-failed]
+lovart jobs run <jobs.jsonl> [--no-wait] [--no-download] [--no-canvas]
+lovart jobs resume <run_dir> [--no-wait] [--no-download] [--no-canvas] [--retry-failed]
 lovart jobs status <run_dir> [--detail]
 lovart update check
 lovart update diff

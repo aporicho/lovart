@@ -22,8 +22,12 @@ func newGenerateCmd() *cobra.Command {
 		dryRun               bool
 		allowPaid            bool
 		maxCredits           float64
-		wait                 bool
-		download             bool
+		wait                 = true
+		download             = true
+		canvas               = true
+		noWait               bool
+		noDownload           bool
+		noCanvas             bool
 		downloadDir          string
 		downloadDirTemplate  string
 		downloadFileTemplate string
@@ -69,7 +73,20 @@ func newGenerateCmd() *cobra.Command {
 				}))
 				return nil
 			}
-			if download {
+			if noWait {
+				wait = false
+			}
+			if noDownload {
+				download = false
+			}
+			if noCanvas {
+				canvas = false
+			}
+			if !wait {
+				download = false
+				canvas = false
+			}
+			if download || canvas {
 				wait = true
 			}
 
@@ -159,7 +176,7 @@ func newGenerateCmd() *cobra.Command {
 					}
 
 					// Add generated images to project canvas.
-					if task["status"] == "completed" && projectID != "" && cid != "" {
+					if task["status"] == "completed" && canvas && projectID != "" && cid != "" {
 						details, _ := task["artifact_details"].([]map[string]any)
 						var images []project.CanvasImage
 						for _, d := range details {
@@ -204,8 +221,12 @@ func newGenerateCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "validate without submitting")
 	cmd.Flags().BoolVar(&allowPaid, "allow-paid", false, "allow paid generation")
 	cmd.Flags().Float64Var(&maxCredits, "max-credits", 0, "max credits to spend")
-	cmd.Flags().BoolVar(&wait, "wait", false, "wait for task completion")
-	cmd.Flags().BoolVar(&download, "download", false, "download artifacts")
+	cmd.Flags().BoolVar(&wait, "wait", true, "wait for task completion")
+	cmd.Flags().BoolVar(&noWait, "no-wait", false, "submit and return without waiting")
+	cmd.Flags().BoolVar(&download, "download", true, "download artifacts")
+	cmd.Flags().BoolVar(&noDownload, "no-download", false, "skip artifact download")
+	cmd.Flags().BoolVar(&canvas, "canvas", true, "add completed artifacts to the project canvas")
+	cmd.Flags().BoolVar(&noCanvas, "no-canvas", false, "skip project canvas writeback")
 	cmd.Flags().StringVar(&downloadDir, "download-dir", "", "directory for downloaded artifacts")
 	cmd.Flags().StringVar(&downloadDirTemplate, "download-dir-template", "", "download subdirectory template")
 	cmd.Flags().StringVar(&downloadFileTemplate, "download-file-template", "", "download filename template")

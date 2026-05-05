@@ -58,6 +58,7 @@ type JobsOptions struct {
 	DownloadDir          string
 	DownloadDirTemplate  string
 	DownloadFileTemplate string
+	Canvas               bool
 	TimeoutSeconds       float64
 	PollInterval         float64
 	Detail               string

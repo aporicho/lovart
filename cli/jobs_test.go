@@ -5,7 +5,28 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/spf13/cobra"
 )
+
+func TestJobsRunAndResumeDefaultPostprocessFlags(t *testing.T) {
+	for _, cmd := range []*cobra.Command{newJobsRunCmd(), newJobsResumeCmd()} {
+		for _, name := range []string{"wait", "download", "canvas"} {
+			flag := cmd.Flags().Lookup(name)
+			if flag == nil {
+				t.Fatalf("%s command missing --%s flag", cmd.Name(), name)
+			}
+			if flag.DefValue != "true" {
+				t.Fatalf("%s --%s default = %q, want true", cmd.Name(), name, flag.DefValue)
+			}
+		}
+		for _, name := range []string{"no-wait", "no-download", "no-canvas"} {
+			if cmd.Flags().Lookup(name) == nil {
+				t.Fatalf("%s command missing --%s flag", cmd.Name(), name)
+			}
+		}
+	}
+}
 
 func TestJobsQuoteValidatesSchemaBeforeSignedClient(t *testing.T) {
 	setupCLIRuntimeMetadata(t)
