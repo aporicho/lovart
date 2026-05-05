@@ -37,11 +37,12 @@ type CanvasLayoutOptions struct {
 
 // CanvasRepairResult reports canvas normalization changes.
 type CanvasRepairResult struct {
-	Changed           bool     `json:"changed"`
-	PicCount          int      `json:"pic_count"`
-	CoverList         []string `json:"cover_list,omitempty"`
-	NormalizedIndexes int      `json:"normalized_indexes,omitempty"`
-	NormalizedTexts   int      `json:"normalized_texts,omitempty"`
+	Changed                   bool     `json:"changed"`
+	PicCount                  int      `json:"pic_count"`
+	CoverList                 []string `json:"cover_list,omitempty"`
+	NormalizedIndexes         int      `json:"normalized_indexes,omitempty"`
+	NormalizedTexts           int      `json:"normalized_texts,omitempty"`
+	NormalizedSchemaSequences int      `json:"normalized_schema_sequences,omitempty"`
 }
 
 // canvasState holds all fields required by saveProject.

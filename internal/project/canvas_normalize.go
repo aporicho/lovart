@@ -37,6 +37,10 @@ func normalizeCanvasJSON(jsonStr string) (*canvasMutation, CanvasRepairResult, e
 	if err != nil {
 		return nil, CanvasRepairResult{}, err
 	}
+	jsonStr, err = ensureCanvasSchemaSequences(jsonStr, &result)
+	if err != nil {
+		return nil, CanvasRepairResult{}, err
+	}
 	jsonStr, err = normalizeCanvasTextNodes(jsonStr, &result)
 	if err != nil {
 		return nil, CanvasRepairResult{}, err

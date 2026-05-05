@@ -71,6 +71,12 @@ func TestAddImagesToCanvasJSONCreatesDefaultCanvas(t *testing.T) {
 	if !reflect.DeepEqual(mutated.CoverList, wantCover) {
 		t.Fatalf("cover list = %#v, want %#v", mutated.CoverList, wantCover)
 	}
+
+	sequences := decodeSchemaSequences(t, mutated.JSON)
+	assertSchemaSequence(t, sequences, "com.tldraw.store", 5)
+	assertSchemaSequence(t, sequences, "com.tldraw.shape.frame", 1)
+	assertSchemaSequence(t, sequences, "com.tldraw.shape.text", 4)
+	assertSchemaSequence(t, sequences, "com.tldraw.shape.c-image", 0)
 }
 
 func TestAddBatchToCanvasJSONCreatesFrameSection(t *testing.T) {
@@ -196,6 +202,9 @@ func TestNormalizeCanvasJSONRepairsTextAndIndexes(t *testing.T) {
 	if result.NormalizedIndexes != 3 {
 		t.Fatalf("normalized indexes = %d, want 3", result.NormalizedIndexes)
 	}
+	if result.NormalizedSchemaSequences == 0 {
+		t.Fatalf("normalized schema sequences = 0, want repairs")
+	}
 	if result.PicCount != 1 {
 		t.Fatalf("pic count = %d, want 1", result.PicCount)
 	}
@@ -216,6 +225,58 @@ func TestNormalizeCanvasJSONRepairsTextAndIndexes(t *testing.T) {
 	if image["index"] != "a2" {
 		t.Fatalf("image index = %v, want a2", image["index"])
 	}
+
+	sequences := decodeSchemaSequences(t, mutated.JSON)
+	assertSchemaSequence(t, sequences, "com.tldraw.store", 5)
+	assertSchemaSequence(t, sequences, "com.tldraw.shape.frame", 1)
+	assertSchemaSequence(t, sequences, "com.tldraw.shape.text", 4)
+	assertSchemaSequence(t, sequences, "com.tldraw.shape.c-image", 0)
+}
+
+func TestNormalizeCanvasJSONPreservesFutureSchemaSequences(t *testing.T) {
+	var doc map[string]any
+	if err := json.Unmarshal([]byte(syntheticCanvasJSON()), &doc); err != nil {
+		t.Fatalf("parse fixture: %v", err)
+	}
+	snapshot := doc["tldrawSnapshot"].(map[string]any)
+	document := snapshot["document"].(map[string]any)
+	document["schema"] = map[string]any{
+		"schemaVersion": 3,
+		"sequences": map[string]any{
+			"com.tldraw.store":      99,
+			"com.tldraw.shape.text": 1,
+			"com.example.future":    7,
+		},
+	}
+	b, err := json.Marshal(doc)
+	if err != nil {
+		t.Fatalf("marshal fixture: %v", err)
+	}
+
+	mutated, result, err := normalizeCanvasJSON(string(b))
+	if err != nil {
+		t.Fatalf("normalizeCanvasJSON returned error: %v", err)
+	}
+	if result.NormalizedSchemaSequences == 0 {
+		t.Fatalf("normalized schema sequences = 0, want repairs")
+	}
+
+	var normalized map[string]any
+	if err := json.Unmarshal([]byte(mutated.JSON), &normalized); err != nil {
+		t.Fatalf("parse normalized canvas: %v", err)
+	}
+	normalizedSnapshot := normalized["tldrawSnapshot"].(map[string]any)
+	normalizedDocument := normalizedSnapshot["document"].(map[string]any)
+	schema := normalizedDocument["schema"].(map[string]any)
+	if int(schema["schemaVersion"].(float64)) != 3 {
+		t.Fatalf("schema version = %v, want 3", schema["schemaVersion"])
+	}
+
+	sequences := schema["sequences"].(map[string]any)
+	assertSchemaSequence(t, sequences, "com.tldraw.store", 99)
+	assertSchemaSequence(t, sequences, "com.tldraw.shape.text", 4)
+	assertSchemaSequence(t, sequences, "com.example.future", 7)
+	assertSchemaSequence(t, sequences, "com.tldraw.shape.frame", 1)
 }
 
 func TestCanvasEncodeDecodeRoundTrip(t *testing.T) {
@@ -257,6 +318,31 @@ func decodeStore(t *testing.T, jsonStr string) map[string]any {
 	snapshot := doc["tldrawSnapshot"].(map[string]any)
 	document := snapshot["document"].(map[string]any)
 	return document["store"].(map[string]any)
+}
+
+func decodeSchemaSequences(t *testing.T, jsonStr string) map[string]any {
+	t.Helper()
+
+	var doc map[string]any
+	if err := json.Unmarshal([]byte(jsonStr), &doc); err != nil {
+		t.Fatalf("parse canvas JSON: %v", err)
+	}
+	snapshot := doc["tldrawSnapshot"].(map[string]any)
+	document := snapshot["document"].(map[string]any)
+	schema := document["schema"].(map[string]any)
+	return schema["sequences"].(map[string]any)
+}
+
+func assertSchemaSequence(t *testing.T, sequences map[string]any, key string, want int) {
+	t.Helper()
+
+	got, ok := intFromJSONValue(sequences[key])
+	if !ok {
+		t.Fatalf("schema sequence %s = %#v, want numeric %d", key, sequences[key], want)
+	}
+	if got != want {
+		t.Fatalf("schema sequence %s = %d, want %d", key, got, want)
+	}
 }
 
 func assertStoreKeysMatchIDs(t *testing.T, store map[string]any) {
