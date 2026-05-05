@@ -1,5 +1,5 @@
 // Package signing defines the Signer interface for Lovart request signing.
-// The default implementation uses wazero to load a WASM module embedded at build time.
+// The default implementation uses wazero to load the runtime WASM cache.
 package signing
 
 import (
@@ -41,4 +41,4 @@ type Signer interface {
 }
 
 // ErrNoSigner is returned when no WASM module or signer is available.
-var ErrNoSigner = fmt.Errorf("no signer available: run capture to extract signing wasm")
+var ErrNoSigner = fmt.Errorf("no signer available: run `lovart update sync --all`")

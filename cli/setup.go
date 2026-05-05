@@ -1,8 +1,12 @@
 package cli
 
 import (
+	"context"
+
 	"github.com/aporicho/lovart/internal/auth"
 	"github.com/aporicho/lovart/internal/envelope"
+	"github.com/aporicho/lovart/internal/metadata"
+	"github.com/aporicho/lovart/internal/paths"
 	"github.com/aporicho/lovart/internal/signing"
 	"github.com/spf13/cobra"
 )
@@ -23,8 +27,9 @@ func newSetupCmd() *cobra.Command {
 					"source":    authStatus.Source,
 					"fields":    authStatus.Fields,
 				},
-				"signer":  checkSigner(),
-				"offline": offline,
+				"signer":   checkSigner(),
+				"metadata": checkMetadata(),
+				"offline":  offline,
 			}))
 			return nil
 		},
@@ -37,10 +42,42 @@ func newSetupCmd() *cobra.Command {
 func checkSigner() map[string]any {
 	s, err := signing.NewSigner()
 	if err != nil {
-		return map[string]any{"available": false, "error": err.Error()}
+		return map[string]any{
+			"available":           false,
+			"path":                paths.SignerWASMFile,
+			"error":               err.Error(),
+			"recommended_actions": []string{"run `lovart update sync --all`"},
+		}
 	}
 	if err := s.Health(); err != nil {
-		return map[string]any{"available": false, "error": err.Error()}
+		return map[string]any{
+			"available":           false,
+			"path":                paths.SignerWASMFile,
+			"error":               err.Error(),
+			"recommended_actions": []string{"run `lovart update sync --all`"},
+		}
 	}
-	return map[string]any{"available": true}
+	if closer, ok := s.(interface{ Close(context.Context) error }); ok {
+		_ = closer.Close(context.Background())
+	}
+	return map[string]any{"available": true, "path": paths.SignerWASMFile}
+}
+
+func checkMetadata() map[string]any {
+	manifest, err := metadata.ReadManifest()
+	if err != nil {
+		return map[string]any{
+			"available":           false,
+			"path":                paths.MetadataManifestFile,
+			"error":               err.Error(),
+			"recommended_actions": []string{"run `lovart update sync --all`"},
+		}
+	}
+	return map[string]any{
+		"available":             true,
+		"path":                  paths.MetadataManifestFile,
+		"generator_list_hash":   manifest.GeneratorListHash,
+		"generator_schema_hash": manifest.GeneratorSchemaHash,
+		"synced_at":             manifest.SyncedAt,
+	}
 }

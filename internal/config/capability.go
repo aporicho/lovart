@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/aporicho/lovart/internal/metadata"
 )
 
 // OutputCap describes a model's multi-output generation capability.
@@ -21,7 +23,7 @@ var fixedBatchModels = map[string]int{
 // OutputCapability returns the output capability for a model by reading the schema.
 func OutputCapability(model string) *OutputCap {
 	cap := &OutputCap{
-		BatchSize: 1,
+		BatchSize:  1,
 		MaxOutputs: 1,
 	}
 
@@ -43,9 +45,9 @@ func OutputCapability(model string) *OutputCap {
 	return cap
 }
 
-// findMultiField looks up the multi-output field from the embedded schema.
+// findMultiField looks up the multi-output field from the runtime schema cache.
 func findMultiField(model string) (fieldName string, maxVal int) {
-	schemaData, err := refAssets.ReadFile("assets/lovart_generator_schema.json")
+	schemaData, err := metadata.ReadGeneratorSchema()
 	if err != nil {
 		return "", 0
 	}

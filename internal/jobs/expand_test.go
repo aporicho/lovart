@@ -1,12 +1,15 @@
 package jobs
 
 import (
+	"os"
 	"testing"
 
 	"github.com/aporicho/lovart/internal/config"
+	"github.com/aporicho/lovart/internal/paths"
 )
 
 func TestExpand_GPT_WithinLimit(t *testing.T) {
+	setupRuntimeSchema(t)
 	body := map[string]any{"prompt": "test", "quality": "low", "size": "1024*1024"}
 	subs, err := Expand("openai/gpt-image-2", 5, body)
 	if err != nil {
@@ -24,6 +27,7 @@ func TestExpand_GPT_WithinLimit(t *testing.T) {
 }
 
 func TestExpand_GPT_OverLimit(t *testing.T) {
+	setupRuntimeSchema(t)
 	body := map[string]any{"prompt": "test", "quality": "high", "size": "2048*2048"}
 	subs, err := Expand("openai/gpt-image-2", 25, body)
 	if err != nil {
@@ -44,6 +48,7 @@ func TestExpand_GPT_OverLimit(t *testing.T) {
 }
 
 func TestExpand_Midjourney(t *testing.T) {
+	setupRuntimeSchema(t)
 	body := map[string]any{"prompt": "test", "aspect_ratio": "1:1"}
 	subs, err := Expand("youchuan/midjourney", 10, body)
 	if err != nil {
@@ -55,6 +60,7 @@ func TestExpand_Midjourney(t *testing.T) {
 }
 
 func TestExpand_SingleImage(t *testing.T) {
+	setupRuntimeSchema(t)
 	body := map[string]any{"prompt": "test", "aspect_ratio": "1:1"}
 	subs, err := Expand("vertex/nano-banana-2", 5, body)
 	if err != nil {
@@ -66,6 +72,7 @@ func TestExpand_SingleImage(t *testing.T) {
 }
 
 func TestExpand_Zero(t *testing.T) {
+	setupRuntimeSchema(t)
 	subs, err := Expand("openai/gpt-image-2", 0, map[string]any{})
 	if err != nil {
 		t.Fatal(err)
@@ -133,3 +140,54 @@ func TestCostSignature_DifferentOutputs(t *testing.T) {
 
 // Ensure config package is used.
 var _ = config.OutputCapability
+
+func setupRuntimeSchema(t *testing.T) {
+	t.Helper()
+	dir := t.TempDir()
+	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	paths.Reset()
+
+	schema := []byte(`{
+  "paths": {
+    "/openai/gpt-image-2": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/GPTImage2Request"}
+            }
+          }
+        }
+      }
+    },
+    "/vertex/nano-banana-2": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/NanoBanana2Request"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GPTImage2Request": {
+        "properties": {
+          "n": {"type": "integer", "maximum": 10}
+        }
+      },
+      "NanoBanana2Request": {
+        "properties": {
+          "prompt": {"type": "string"}
+        }
+      }
+    }
+  }
+}`)
+	if err := os.WriteFile(paths.GeneratorSchemaFile, schema, 0644); err != nil {
+		t.Fatal(err)
+	}
+}

@@ -2,7 +2,7 @@
 
 ## Overview
 
-v2 is a full redesign of the Lovart reverse-engineering toolkit into three independent runtimes, unified by a shared WASM signing module.
+v2 is a full redesign of the Lovart reverse-engineering toolkit into independent runtimes. The Go runtime owns local generation execution and keeps Lovart metadata plus signer WASM in an explicit runtime cache.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -16,10 +16,10 @@ v2 is a full redesign of the Lovart reverse-engineering toolkit into three indep
 │  │ lovart binary   │  │ lovart-reverse│  │ Chrome MV3    │  │
 │  └────────┬────────┘  └──────────────┘  └───────┬───────┘  │
 │           │                                      │           │
-│           │    ┌───────────────────┐             │           │
-│           └───→│ assets/signing/   │←────────────┘           │
-│                │ *.wasm            │                         │
-│                └──────────────[go:embed]──────────────────┘  │
+│           │    ┌───────────────────┐                         │
+│           └───→│ .lovart/          │                         │
+│                │ signing + metadata│                         │
+│                └──────[runtime self-update]────────────────┘ │
 └──────────────────────────────────────────────────────────────┘
 
 v1/  — legacy Python project (preserved as-is)
@@ -49,12 +49,17 @@ implementation details.
 - **Runtime**: content-script + service worker + popup
 - **Background**: service worker continues generation after tab close
 
-## Shared Assets
+## Runtime Metadata
 
-### Signing WASM (`assets/signing/`)
-- Single wasm binary shared by Go (via wazero + embed) and TS (via WebAssembly.instantiate)
-- Source of truth for Lovart request signing
-- Updated via reverse capture when Lovart frontend changes
+### Signer WASM (`.lovart/signing/`)
+- `current.wasm` is the only production signer source for Go.
+- `manifest.json` records source URL, SHA256, frontend hashes, and sync time.
+- `lovart update sync --signer` bootstraps from public Lovart frontend assets without an existing signer.
+
+### Generator Metadata (`.lovart/metadata/`)
+- `generator_list.json` and `generator_schema.json` are runtime cache files.
+- `manifest.json` records stable hashes and the signer SHA used for sync.
+- `lovart update sync --all` refreshes signer first, then signed generator metadata.
 
 ## Directory Layout
 
@@ -83,7 +88,7 @@ lovart-reverse/
 │   └── update/            # Drift detection + metadata sync
 ├── cli/                   # Cobra command definitions
 ├── mcp/                   # MCP stdio server
-├── internal/signing/assets/ # Embedded WASM signing binary (go:embed)
+├── internal/signing/testdata/ # Non-production WASM fixture for signer tests
 ├── reverse/               # Python reverse tooling
 ├── extension/             # Chrome extension
 ├── packaging/             # goreleaser + extension build
@@ -104,7 +109,7 @@ type Signer interface {
     Sign(ctx context.Context, payload SigningPayload) (*SigningResult, error)
     Health() error
 }
-func NewSigner() (Signer, error)  // wazero + embed wasm
+func NewSigner() (Signer, error)  // wazero + .lovart/signing/current.wasm
 ```
 
 ### Auth
@@ -206,6 +211,8 @@ lovart jobs resume <jobs.jsonl> [--wait] [--download] [--retry-failed]
 lovart jobs status <run_dir> [--detail]
 lovart update check
 lovart update diff
+lovart update sync --all
+lovart update sync --signer
 lovart update sync --metadata-only
 lovart mcp
 ```

@@ -2,15 +2,14 @@ package signing
 
 import (
 	"context"
-	"embed"
+	"errors"
 	"fmt"
+	"os"
 
+	"github.com/aporicho/lovart/internal/paths"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
 )
-
-//go:embed assets/*.wasm
-var signingAssets embed.FS
 
 // wazeroSigner loads and calls the Lovart WASM signing module.
 type wazeroSigner struct {
@@ -25,15 +24,26 @@ type wazeroSigner struct {
 	memory   api.Memory
 }
 
-// NewSigner creates a Signer backed by the embedded Lovart WASM module.
+// NewSigner creates a Signer backed by the runtime Lovart WASM module cache.
 // The WASM is instantiated once and reused across all Sign calls.
 func NewSigner() (Signer, error) {
-	ctx := context.Background()
+	return NewSignerFromPath(paths.SignerWASMFile)
+}
 
-	wasmBytes, err := signingAssets.ReadFile("assets/26bd3a5bd74c3c92.wasm")
+// NewSignerFromPath creates a Signer from an explicit WASM file path.
+func NewSignerFromPath(path string) (Signer, error) {
+	wasmBytes, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("signing: read embedded wasm: %w", err)
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("%w: %s", ErrNoSigner, path)
+		}
+		return nil, fmt.Errorf("signing: read wasm %s: %w", path, err)
 	}
+	return newSignerFromBytes(wasmBytes)
+}
+
+func newSignerFromBytes(wasmBytes []byte) (Signer, error) {
+	ctx := context.Background()
 
 	rt := wazero.NewRuntime(ctx)
 
@@ -41,7 +51,7 @@ func NewSigner() (Signer, error) {
 	wbgBuilder := rt.NewHostModuleBuilder("wbg")
 	wbgBuilder.NewFunctionBuilder().WithFunc(func(_ context.Context, _ api.Module, _ uint32, _ uint32) {
 	}).Export("__wbindgen_throw")
-	if _, err = wbgBuilder.Instantiate(ctx); err != nil {
+	if _, err := wbgBuilder.Instantiate(ctx); err != nil {
 		rt.Close(ctx)
 		return nil, fmt.Errorf("signing: host wbg module: %w", err)
 	}
@@ -63,12 +73,12 @@ func NewSigner() (Signer, error) {
 		runtime:  rt,
 		compiled: compiled,
 		mod:      mod,
-		gs:        mod.ExportedFunction("gs"),
-		stackPtr:  mod.ExportedFunction("__wbindgen_add_to_stack_pointer"),
-		wMalloc:   mod.ExportedFunction("__wbindgen_export2"),
-		wRealloc:  mod.ExportedFunction("__wbindgen_export3"),
-		wFree:     mod.ExportedFunction("__wbindgen_export"),
-		memory:    mod.Memory(),
+		gs:       mod.ExportedFunction("gs"),
+		stackPtr: mod.ExportedFunction("__wbindgen_add_to_stack_pointer"),
+		wMalloc:  mod.ExportedFunction("__wbindgen_export2"),
+		wRealloc: mod.ExportedFunction("__wbindgen_export3"),
+		wFree:    mod.ExportedFunction("__wbindgen_export"),
+		memory:   mod.Memory(),
 	}
 
 	if s.gs == nil || s.stackPtr == nil || s.wMalloc == nil ||
@@ -80,6 +90,33 @@ func NewSigner() (Signer, error) {
 	}
 
 	return s, nil
+}
+
+// ValidateWASMBytes verifies that a downloaded signer module can be loaded and
+// produce a non-empty signature before it is promoted into the runtime cache.
+func ValidateWASMBytes(ctx context.Context, wasmBytes []byte) error {
+	signer, err := newSignerFromBytes(wasmBytes)
+	if err != nil {
+		return err
+	}
+	defer signer.(interface {
+		Close(context.Context) error
+	}).Close(ctx)
+
+	if err := signer.Health(); err != nil {
+		return err
+	}
+	result, err := signer.Sign(ctx, SigningPayload{
+		Timestamp: "1746600000000",
+		ReqUUID:   "test1234567890abcdef1234567890ab",
+	})
+	if err != nil {
+		return err
+	}
+	if result.Signature == "" {
+		return fmt.Errorf("signing: validation returned empty signature")
+	}
+	return nil
 }
 
 // Sign computes a Lovart request signature using the WASM module.

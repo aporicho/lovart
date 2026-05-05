@@ -1,13 +1,11 @@
 package config
 
 import (
-	"embed"
 	"encoding/json"
 	"fmt"
-)
 
-//go:embed assets/lovart_generator_schema.json assets/lovart_generator_list.json
-var refAssets embed.FS
+	"github.com/aporicho/lovart/internal/metadata"
+)
 
 // ConfigField describes one configurable parameter.
 type ConfigField struct {
@@ -28,9 +26,9 @@ type ConfigFields struct {
 	Fields []ConfigField `json:"fields"`
 }
 
-// ForModel returns legal config for a model by parsing the embedded OpenAPI schema.
+// ForModel returns legal config for a model by parsing the runtime OpenAPI schema cache.
 func ForModel(model string) (*ConfigFields, error) {
-	schemaData, err := refAssets.ReadFile("assets/lovart_generator_schema.json")
+	schemaData, err := metadata.ReadGeneratorSchema()
 	if err != nil {
 		return nil, fmt.Errorf("config: read schema: %w", err)
 	}
@@ -52,10 +50,10 @@ func ForModel(model string) (*ConfigFields, error) {
 		Components struct {
 			Schemas map[string]struct {
 				Properties map[string]struct {
-					Type        string   `json:"type"`
-					Description string   `json:"description"`
-					Default     any      `json:"default"`
-					Enum        []any    `json:"enum"`
+					Type        string           `json:"type"`
+					Description string           `json:"description"`
+					Default     any              `json:"default"`
+					Enum        []any            `json:"enum"`
 					Items       *json.RawMessage `json:"items"`
 				} `json:"properties"`
 				Required []string `json:"required"`

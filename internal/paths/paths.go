@@ -11,10 +11,17 @@ const defaultHome = ".lovart-reverse"
 
 // Resolved directories.
 var (
-	Root        string
-	CredsFile   string
-	RunsDir     string
-	DownloadsDir string
+	Root                 string
+	CredsFile            string
+	RunsDir              string
+	DownloadsDir         string
+	MetadataDir          string
+	GeneratorListFile    string
+	GeneratorSchemaFile  string
+	MetadataManifestFile string
+	SignerDir            string
+	SignerWASMFile       string
+	SignerManifestFile   string
 )
 
 func init() {
@@ -41,9 +48,18 @@ func resetPaths() {
 	os.MkdirAll(dotDir, 0700)
 
 	CredsFile = filepath.Join(dotDir, "creds.json")
+	MetadataDir = filepath.Join(dotDir, "metadata")
+	GeneratorListFile = filepath.Join(MetadataDir, "generator_list.json")
+	GeneratorSchemaFile = filepath.Join(MetadataDir, "generator_schema.json")
+	MetadataManifestFile = filepath.Join(MetadataDir, "manifest.json")
+	SignerDir = filepath.Join(dotDir, "signing")
+	SignerWASMFile = filepath.Join(SignerDir, "current.wasm")
+	SignerManifestFile = filepath.Join(SignerDir, "manifest.json")
 	RunsDir = filepath.Join(Root, "runs")
 	DownloadsDir = filepath.Join(Root, "downloads")
 
+	os.MkdirAll(MetadataDir, 0755)
+	os.MkdirAll(SignerDir, 0755)
 	os.MkdirAll(RunsDir, 0755)
 	os.MkdirAll(DownloadsDir, 0755)
 }

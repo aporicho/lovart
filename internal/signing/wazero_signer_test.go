@@ -2,14 +2,21 @@ package signing
 
 import (
 	"context"
+	"errors"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/aporicho/lovart/internal/paths"
 )
+
+const testSignerWASM = "testdata/26bd3a5bd74c3c92.wasm"
 
 // TestSignerConsistency verifies that the Go wazero signer produces
 // identical output to the v1 Node.js signer for known inputs.
 // These test vectors were validated against the v1 signature.js output.
 func TestSignerConsistency(t *testing.T) {
-	signer, err := NewSigner()
+	signer, err := NewSignerFromPath(testSignerWASM)
 	if err != nil {
 		t.Fatalf("NewSigner: %v", err)
 	}
@@ -47,7 +54,7 @@ func TestSignerConsistency(t *testing.T) {
 
 // TestSignerHealth verifies the WASM module is loaded and healthy.
 func TestSignerHealth(t *testing.T) {
-	signer, err := NewSigner()
+	signer, err := NewSignerFromPath(testSignerWASM)
 	if err != nil {
 		t.Fatalf("NewSigner: %v", err)
 	}
@@ -58,7 +65,7 @@ func TestSignerHealth(t *testing.T) {
 
 // TestSignerBlank produces unique signatures for different inputs.
 func TestSignerUniqueOutput(t *testing.T) {
-	signer, err := NewSigner()
+	signer, err := NewSignerFromPath(testSignerWASM)
 	if err != nil {
 		t.Fatalf("NewSigner: %v", err)
 	}
@@ -78,5 +85,44 @@ func TestSignerUniqueOutput(t *testing.T) {
 	}
 	if r1.Signature == r2.Signature {
 		t.Error("different inputs produced identical signatures")
+	}
+}
+
+func TestNewSignerLoadsRuntimeCache(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	paths.Reset()
+
+	data, err := os.ReadFile(testSignerWASM)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Dir(paths.SignerWASMFile), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(paths.SignerWASMFile, data, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	signer, err := NewSigner()
+	if err != nil {
+		t.Fatalf("NewSigner: %v", err)
+	}
+	if err := signer.Health(); err != nil {
+		t.Fatalf("Health: %v", err)
+	}
+}
+
+func TestNewSignerMissingRuntimeCache(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	paths.Reset()
+
+	_, err := NewSigner()
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !errors.Is(err, ErrNoSigner) {
+		t.Fatalf("expected ErrNoSigner, got %v", err)
 	}
 }
