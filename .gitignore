@@ -2,7 +2,7 @@
 
 # Go
 dist/
-lovart
+/lovart
 *.exe
 *.test
 *.out

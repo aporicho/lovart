@@ -25,6 +25,11 @@ v2 is a full redesign of the Lovart reverse-engineering toolkit into three indep
 v1/  — legacy Python project (preserved as-is)
 ```
 
+Architecture changes must follow `docs/architecture/file-architecture-philosophy.md`.
+For Go code, package directories are module boundaries and exported package
+symbols are the standard API; callers should not depend on private file-level
+implementation details.
+
 ## Module Boundaries
 
 ### Go (`cmd/lovart`, `internal/`, `cli/`, `mcp/`)
@@ -82,6 +87,7 @@ lovart-reverse/
 ├── reverse/               # Python reverse tooling
 ├── extension/             # Chrome extension
 ├── packaging/             # goreleaser + extension build
+├── docs/architecture/     # Architecture principles and module rules
 ├── docs/                  # Documentation
 ├── v1/                    # Legacy Python project (preserved)
 ├── go.mod
@@ -190,7 +196,7 @@ lovart project create <name>
 lovart project select <id>
 lovart plan [model] [--intent] [--count] [--body-file]
 lovart quote <model> --body-file <file>
-lovart generate <model> --body-file <file> [--mode] [--dry-run] [--allow-paid] [--wait] [--download]
+lovart generate <model> --body-file <file> [--project-id <id>] [--cid <cid>] [--mode] [--dry-run] [--allow-paid] [--wait] [--download]
 lovart task <task_id>
 lovart jobs quote <jobs.jsonl> [--detail]
 lovart jobs quote-status <run_dir>
@@ -245,10 +251,10 @@ User opens Lovart page
 
 | Priority | Module | Status |
 |----------|--------|--------|
-| P0 | Go core (signing, http, auth, envelope, errors, paths) | ⬜ |
-| P1 | Go CLI (single generation, config, quote) | ⬜ |
-| P2 | Project module (create, list, select) | ⬜ |
-| P3 | Jobs batch generation + resume | ⬜ |
-| P4 | MCP server | ⬜ |
-| P5 | Extension (content script + SW + signing) | ⬜ |
-| P6 | Reverse tooling (Python, mitmproxy) | ⬜ |
+| P0 | Go core (signing, http, auth, envelope, errors, paths) | Partial |
+| P1 | Go CLI (single generation, config, quote) | Partial |
+| P2 | Project module (create, list, select, canvas writeback) | Partial |
+| P3 | Jobs batch generation + resume | Partial |
+| P4 | MCP server | Stub |
+| P5 | Extension (content script + SW + signing) | Skeleton |
+| P6 | Reverse tooling (Python, mitmproxy) | Partial |

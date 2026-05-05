@@ -27,7 +27,44 @@ for f in $(find . -name '*.go' -type f | grep -v '/v1/' | grep -v '/vendor/'); d
 done
 pass "no forbidden file names"
 
-# ---- 2. Dependency direction: internal must not import cli or mcp ----
+# ---- 2. Command entrypoint hygiene ----
+echo "==> Checking cmd/lovart entrypoints..."
+cmd_bad=0
+for f in $(find cmd/lovart -maxdepth 1 -name '*.go' -type f 2>/dev/null || true); do
+    base=$(basename "$f")
+    case "$base" in
+        main.go|mcp.go)
+            ;;
+        *)
+            fail "unexpected cmd/lovart source file: $f"
+            cmd_bad=$((cmd_bad+1))
+            ;;
+    esac
+done
+for required in main.go mcp.go; do
+    if [ ! -f "cmd/lovart/$required" ]; then
+        fail "missing cmd/lovart/$required"
+        cmd_bad=$((cmd_bad+1))
+    fi
+done
+if git check-ignore -q cmd/lovart/main.go 2>/dev/null; then
+    fail "cmd/lovart/main.go is ignored by .gitignore"
+    cmd_bad=$((cmd_bad+1))
+fi
+if [ "$cmd_bad" -eq 0 ]; then
+    pass "cmd/lovart contains only official entrypoint files"
+fi
+
+# ---- 3. Generated source pollution ----
+echo "==> Checking generated source pollution..."
+pollution=$(git ls-files 'reverse/.venv/*' 'reverse/*.egg-info/*' 'downloads/*' 'runs/*' '.lovart/*' 2>/dev/null || true)
+if [ -n "$pollution" ]; then
+    fail "generated/runtime files are tracked: $pollution"
+else
+    pass "no tracked generated/runtime files"
+fi
+
+# ---- 4. Dependency direction: internal must not import cli or mcp ----
 echo "==> Checking internal → cli/mcp dependency..."
 violations=$(grep -rl '"github.com/aporicho/lovart/cli"' internal/ 2>/dev/null || true)
 violations="$violations
@@ -38,7 +75,7 @@ else
     pass "internal does not import cli or mcp"
 fi
 
-# ---- 3. File size check (warn > 500 lines) ----
+# ---- 5. File size check ----
 echo "==> Checking file sizes..."
 large=0
 while IFS= read -r f; do
@@ -54,7 +91,7 @@ else
     fail "$large file(s) over 500 lines"
 fi
 
-# ---- 4. TODO/FIXME/HACK in internal/ ----
+# ---- 6. TODO/FIXME/HACK in internal/ ----
 echo "==> Checking TODO/FIXME/HACK in internal..."
 todos=$(grep -rn 'TODO\|FIXME\|HACK' internal/ --include='*.go' 2>/dev/null | grep -v '_test.go' | grep -v '\.git' || true)
 if [ -n "$todos" ]; then
@@ -65,7 +102,7 @@ else
     pass "no TODO markers in internal/"
 fi
 
-# ---- 5. Go build ----
+# ---- 7. Go build ----
 echo "==> Checking go build..."
 if go build -o /dev/null ./cmd/lovart 2>/dev/null; then
     pass "go build ./cmd/lovart"
