@@ -244,6 +244,7 @@ Batch quote credit fields:
 ```bash
 lovart setup
 lovart --version
+lovart version
 lovart self-test
 lovart mcp
 lovart mcp status

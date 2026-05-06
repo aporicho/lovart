@@ -2,14 +2,12 @@
 
 # ===== Go =====
 GO := go
-GO_SRC := ./cmd/lovart ./internal/... ./cli/... ./mcp/...
 
 build:
 	$(GO) build -ldflags="-s -w" -o dist/lovart ./cmd/lovart
 
 test:
-	$(GO) test -race -count=1 ./internal/...
-	$(GO) test -race -count=1 ./mcp/...
+	$(GO) test -race -count=1 ./...
 
 lint:
 	$(GO) vet ./...
@@ -23,7 +21,7 @@ py-setup:
 	cd $(PY_DIR) && uv sync --extra reverse
 
 py-test:
-	cd $(PY_DIR) && uv run pytest || echo "Python tests not configured yet"
+	cd $(PY_DIR) && uv run --extra dev pytest
 
 # One-command browser capture session.
 # Starts mitmproxy + Chrome, captures Lovart traffic to captures/.

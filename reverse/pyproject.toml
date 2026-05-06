@@ -15,6 +15,9 @@ dependencies = [
 reverse = [
     "mitmproxy>=11.0.2",
 ]
+dev = [
+    "pytest>=8.0.0",
+]
 
 [project.scripts]
 lovart-reverse = "lovart_reverse.cli.main:main"

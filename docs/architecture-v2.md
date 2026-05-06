@@ -191,6 +191,7 @@ type Envelope struct {
 
 ```
 lovart --version
+lovart version
 lovart setup [--offline]
 lovart self-test
 lovart doctor
