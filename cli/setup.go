@@ -3,9 +3,9 @@ package cli
 import (
 	"context"
 
-	"github.com/aporicho/lovart/internal/auth"
 	"github.com/aporicho/lovart/internal/metadata"
 	"github.com/aporicho/lovart/internal/paths"
+	"github.com/aporicho/lovart/internal/selftest"
 	"github.com/aporicho/lovart/internal/signing"
 	"github.com/aporicho/lovart/internal/update"
 	"github.com/spf13/cobra"
@@ -14,36 +14,55 @@ import (
 func newSetupCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "setup",
-		Short: "Check Lovart CLI readiness",
+		Short: "Initialize or repair Lovart runtime files",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			authStatus := auth.GetStatus()
-			updateStatus, updateErr := update.Check(context.Background())
-			data := map[string]any{
-				"version": "2.0.0-dev",
-				"auth": map[string]any{
-					"available": authStatus.Available,
-					"source":    authStatus.Source,
-					"fields":    authStatus.Fields,
-				},
-				"signer":   checkSigner(),
-				"metadata": checkMetadata(),
+			result := selftest.Run()
+			data := setupData(result)
+			if !needsRuntimeSync(result) {
+				printEnvelope(okLocal(data, true))
+				return nil
 			}
-			if updateErr != nil {
-				data["status"] = "network_unavailable"
+
+			syncResult, err := update.SyncAll(context.Background())
+			if err != nil {
+				data["status"] = selftest.StatusNeedsSetup
 				data["ready"] = false
-				data["update_error"] = map[string]any{
-					"error":               updateErr.Error(),
-					"recommended_actions": []string{"check network connectivity to www.lovart.ai", "rerun `lovart setup`"},
+				data["sync_error"] = map[string]any{
+					"error": err.Error(),
+					"recommended_actions": []string{
+						"check network connectivity to www.lovart.ai",
+						"rerun `lovart setup`",
+						"rerun `lovart update sync --all` for detailed sync diagnostics",
+					},
 				}
-			} else {
-				data["status"] = "ok"
-				data["ready"] = authStatus.Available
-				data["update"] = updateStatus
+				printEnvelope(okPreflight(data, true))
+				return nil
 			}
+
+			after := selftest.Run()
+			data = setupData(after)
+			data["sync"] = syncResult
 			printEnvelope(okPreflight(data, true))
 			return nil
 		},
 	}
+}
+
+func setupData(result selftest.Result) map[string]any {
+	data := map[string]any{
+		"status":  result.Status,
+		"ready":   result.Status == selftest.StatusReady,
+		"version": result.Version,
+		"checks":  result.Checks,
+	}
+	if len(result.RecommendedActions) > 0 {
+		data["recommended_actions"] = result.RecommendedActions
+	}
+	return data
+}
+
+func needsRuntimeSync(result selftest.Result) bool {
+	return !result.Checks.Signer.OK || !result.Checks.Metadata.OK || !result.Checks.Registry.OK
 }
 
 func checkSigner() map[string]any {

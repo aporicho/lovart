@@ -18,7 +18,7 @@ macOS / Linux:
 gh release download --repo aporicho/lovart-reverse --pattern install.sh -O /tmp/lovart-install.sh
 bash /tmp/lovart-install.sh --mcp-clients auto --yes
 lovart --version
-lovart self-test
+lovart doctor
 lovart mcp status
 ```
 
@@ -28,7 +28,7 @@ Windows:
 gh release download --repo aporicho/lovart-reverse --pattern install.ps1 -O "$env:TEMP\lovart-install.ps1"
 powershell -ExecutionPolicy Bypass -File "$env:TEMP\lovart-install.ps1" -McpClients auto -Yes
 lovart --version
-lovart self-test
+lovart doctor
 lovart mcp status
 ```
 
@@ -61,7 +61,7 @@ mkdir -p ~/.local/bin
 gh release download --repo aporicho/lovart-reverse --pattern "lovart-macos-arm64" -O ~/.local/bin/lovart
 chmod +x ~/.local/bin/lovart
 lovart --version
-lovart self-test
+lovart doctor
 lovart mcp install --clients auto --yes
 lovart mcp status
 ```
@@ -81,6 +81,10 @@ MCP tools return the same JSON envelope as the CLI:
 - `lovart_setup`
 - `lovart_models`
 - `lovart_config`
+- `lovart_balance`
+- `lovart_project_current`
+- `lovart_project_list`
+- `lovart_project_select`
 - `lovart_quote`
 - `lovart_generate_dry_run`
 - `lovart_generate`
@@ -100,9 +104,11 @@ When MCP is unavailable, use the same binary directly:
 
 ```bash
 lovart setup
+lovart doctor
 lovart config <model>
 lovart quote <model> --body-file request.json
 lovart generate <model> --body-file request.json --mode auto --dry-run
+lovart generate <model> --prompt "prompt text" --mode auto --dry-run
 lovart generate <model> --body-file request.json --mode auto --wait --download
 ```
 
@@ -112,7 +118,7 @@ For batch generation:
 lovart jobs quote runs/<project>/jobs.jsonl
 lovart jobs dry-run runs/<project>/jobs.jsonl
 lovart jobs run runs/<project>/jobs.jsonl --wait --download
-lovart jobs resume runs/<project>/jobs.jsonl --wait --download
+lovart jobs resume runs/<project> --wait --download
 ```
 
 Paid generation still requires explicit budget flags in both MCP and CLI calls.

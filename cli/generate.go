@@ -16,6 +16,7 @@ import (
 func newGenerateCmd() *cobra.Command {
 	var (
 		bodyFile             string
+		prompt               string
 		mode                 string
 		projectID            string
 		cid                  string
@@ -34,14 +35,14 @@ func newGenerateCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "generate <model> --body-file <file> [--project-id <id>] [--mode auto|fast|relax]",
+		Use:   "generate <model> (--body-file <file>|--prompt <text>) [--project-id <id>] [--mode auto|fast|relax]",
 		Short: "Submit a single generation request",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			model := args[0]
 			ctx := context.Background()
 
-			body, err := loadBodyFile(bodyFile)
+			body, err := loadBodyInput(bodyFile, prompt)
 			if err != nil {
 				printEnvelope(envelope.Err(errors.CodeInputError, "read body file", map[string]any{"error": err.Error()}))
 				return nil
@@ -215,6 +216,7 @@ func newGenerateCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&bodyFile, "body-file", "", "path to request JSON file")
+	cmd.Flags().StringVar(&prompt, "prompt", "", "prompt text for a minimal generation request")
 	cmd.Flags().StringVar(&mode, "mode", "auto", "generation mode: auto, fast, relax")
 	cmd.Flags().StringVar(&projectID, "project-id", "", "target project ID (defaults to current project context)")
 	cmd.Flags().StringVar(&cid, "cid", "", "client id for project-bound generation (defaults to stored cid)")

@@ -101,3 +101,13 @@ func loadBodyFile(path string) (map[string]any, error) {
 	}
 	return body, nil
 }
+
+func loadBodyInput(bodyFile string, prompt string) (map[string]any, error) {
+	if bodyFile != "" && prompt != "" {
+		return nil, fmt.Errorf("--body-file and --prompt are mutually exclusive")
+	}
+	if prompt != "" {
+		return map[string]any{"prompt": prompt}, nil
+	}
+	return loadBodyFile(bodyFile)
+}

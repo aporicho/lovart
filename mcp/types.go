@@ -39,6 +39,11 @@ type QuoteArgs struct {
 	Body  map[string]any `json:"body"`
 }
 
+// ProjectSelectArgs configures lovart_project_select.
+type ProjectSelectArgs struct {
+	ProjectID string `json:"project_id"`
+}
+
 // GenerateArgs configures single generation tools.
 type GenerateArgs struct {
 	Model                string         `json:"model"`
@@ -122,6 +127,10 @@ type Executor interface {
 	Setup(ctx context.Context, args SetupArgs) envelope.Envelope
 	Models(ctx context.Context, args ModelsArgs) envelope.Envelope
 	Config(ctx context.Context, args ConfigArgs) envelope.Envelope
+	Balance(ctx context.Context) envelope.Envelope
+	ProjectCurrent(ctx context.Context) envelope.Envelope
+	ProjectList(ctx context.Context) envelope.Envelope
+	ProjectSelect(ctx context.Context, args ProjectSelectArgs) envelope.Envelope
 	Quote(ctx context.Context, args QuoteArgs) envelope.Envelope
 	GenerateDryRun(ctx context.Context, args GenerateArgs) envelope.Envelope
 	Generate(ctx context.Context, args GenerateArgs) envelope.Envelope

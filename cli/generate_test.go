@@ -13,7 +13,7 @@ import (
 func TestGenerateCommandExposesProjectOverrides(t *testing.T) {
 	cmd := newGenerateCmd()
 
-	for _, name := range []string{"project-id", "cid", "no-wait", "no-download", "no-canvas", "canvas"} {
+	for _, name := range []string{"project-id", "cid", "body-file", "prompt", "no-wait", "no-download", "no-canvas", "canvas"} {
 		if cmd.Flags().Lookup(name) == nil {
 			t.Fatalf("generate command missing --%s flag", name)
 		}
@@ -28,8 +28,22 @@ func TestGenerateCommandExposesProjectOverrides(t *testing.T) {
 		}
 	}
 
-	if got := cmd.Use; got != "generate <model> --body-file <file> [--project-id <id>] [--mode auto|fast|relax]" {
+	if got := cmd.Use; got != "generate <model> (--body-file <file>|--prompt <text>) [--project-id <id>] [--mode auto|fast|relax]" {
 		t.Fatalf("generate use = %q", got)
+	}
+}
+
+func TestLoadBodyInputSupportsPromptShortcut(t *testing.T) {
+	body, err := loadBodyInput("", "draw a quiet workbench")
+	if err != nil {
+		t.Fatalf("loadBodyInput prompt: %v", err)
+	}
+	if got := body["prompt"]; got != "draw a quiet workbench" {
+		t.Fatalf("prompt body = %#v", body)
+	}
+
+	if _, err := loadBodyInput("request.json", "draw a quiet workbench"); err == nil {
+		t.Fatal("expected --body-file and --prompt conflict")
 	}
 }
 

@@ -9,9 +9,10 @@ import (
 )
 
 type fakeExecutor struct {
-	jobsRun    JobsRunArgs
-	jobsStatus JobsStatusArgs
-	jobsResume JobsResumeArgs
+	projectSelect ProjectSelectArgs
+	jobsRun       JobsRunArgs
+	jobsStatus    JobsStatusArgs
+	jobsResume    JobsResumeArgs
 }
 
 func (f *fakeExecutor) Setup(ctx context.Context, args SetupArgs) envelope.Envelope {
@@ -24,6 +25,23 @@ func (f *fakeExecutor) Models(ctx context.Context, args ModelsArgs) envelope.Env
 
 func (f *fakeExecutor) Config(ctx context.Context, args ConfigArgs) envelope.Envelope {
 	return okLocal(map[string]any{"operation": "config", "model": args.Model})
+}
+
+func (f *fakeExecutor) Balance(ctx context.Context) envelope.Envelope {
+	return okPreflight(map[string]any{"operation": "balance"})
+}
+
+func (f *fakeExecutor) ProjectCurrent(ctx context.Context) envelope.Envelope {
+	return okLocal(map[string]any{"operation": "project_current"})
+}
+
+func (f *fakeExecutor) ProjectList(ctx context.Context) envelope.Envelope {
+	return okPreflight(map[string]any{"operation": "project_list"})
+}
+
+func (f *fakeExecutor) ProjectSelect(ctx context.Context, args ProjectSelectArgs) envelope.Envelope {
+	f.projectSelect = args
+	return okLocal(map[string]any{"operation": "project_select", "project_id": args.ProjectID})
 }
 
 func (f *fakeExecutor) Quote(ctx context.Context, args QuoteArgs) envelope.Envelope {
@@ -85,8 +103,8 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 		t.Fatalf("tools/list failed: %#v", listResp)
 	}
 	tools := listResp.Result.(map[string]any)["tools"].([]Tool)
-	if len(tools) != 11 {
-		t.Fatalf("expected 11 tools, got %d", len(tools))
+	if len(tools) != 15 {
+		t.Fatalf("expected 15 tools, got %d", len(tools))
 	}
 	for _, tool := range tools {
 		if tool.Name == "lovart_update_sync" || tool.Name == "lovart_auth_extract" {
@@ -146,6 +164,23 @@ func TestUnknownToolReturnsEnvelopeError(t *testing.T) {
 	}
 	if env.Error == nil || env.Error.Code != "input_error" {
 		t.Fatalf("unexpected error: %#v", env.Error)
+	}
+}
+
+func TestProjectSelectRequiresProjectID(t *testing.T) {
+	executor := &fakeExecutor{}
+	server := NewServerWithExecutor(executor)
+	env := server.CallTool(context.Background(), "lovart_project_select", map[string]any{})
+	if env.OK {
+		t.Fatalf("expected missing project_id error")
+	}
+
+	env = server.CallTool(context.Background(), "lovart_project_select", map[string]any{"project_id": "proj_123"})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.projectSelect.ProjectID != "proj_123" {
+		t.Fatalf("project select args = %#v", executor.projectSelect)
 	}
 }
 

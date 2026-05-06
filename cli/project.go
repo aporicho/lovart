@@ -24,6 +24,18 @@ func newProjectCmd() *cobra.Command {
 	cmd.AddCommand(newProjectSelectCmd())
 	cmd.AddCommand(newProjectShowCmd())
 	cmd.AddCommand(newProjectOpenCmd())
+	cmd.AddCommand(newProjectAdminCmd())
+	return cmd
+}
+
+func newProjectAdminCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "admin",
+		Short: "Advanced project maintenance commands",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cmd.Help()
+		},
+	}
 	cmd.AddCommand(newProjectRenameCmd())
 	cmd.AddCommand(newProjectDeleteCmd())
 	cmd.AddCommand(newProjectRepairCanvasCmd())

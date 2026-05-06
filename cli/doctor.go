@@ -3,53 +3,50 @@ package cli
 import (
 	"context"
 
-	"github.com/aporicho/lovart/internal/metadata"
-	"github.com/aporicho/lovart/internal/paths"
-	"github.com/aporicho/lovart/internal/signing"
+	"github.com/aporicho/lovart/internal/selftest"
+	"github.com/aporicho/lovart/internal/update"
 	"github.com/spf13/cobra"
 )
 
 func newDoctorCmd() *cobra.Command {
-	return &cobra.Command{
+	var online bool
+	cmd := &cobra.Command{
 		Use:   "doctor",
-		Short: "Run architecture integrity checks",
+		Short: "Run Lovart readiness diagnostics",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			checks := map[string]any{
-				"signer":   checkSigner(),
-				"metadata": checkMetadata(),
-				"paths": map[string]string{
-					"signer_wasm":       paths.SignerWASMFile,
-					"signer_manifest":   paths.SignerManifestFile,
-					"metadata_manifest": paths.MetadataManifestFile,
-					"generator_list":    paths.GeneratorListFile,
-					"generator_schema":  paths.GeneratorSchemaFile,
-				},
+			result := selftest.Run()
+			data := map[string]any{
+				"status":  result.Status,
+				"ready":   result.Status == selftest.StatusReady,
+				"version": result.Version,
+				"root":    result.Root,
+				"checks":  result.Checks,
 			}
-			status := "ok"
-			recommended := recommendedDoctorActions()
-			if len(recommended) > 0 {
-				status = "needs_setup"
-				checks["recommended_actions"] = recommended
+			if len(result.RecommendedActions) > 0 {
+				data["recommended_actions"] = result.RecommendedActions
 			}
-			checks["status"] = status
-			printEnvelope(okLocal(checks, true))
+			if !online {
+				printEnvelope(okLocal(data, true))
+				return nil
+			}
+			updateStatus, err := update.Check(context.Background())
+			if err != nil {
+				data["online"] = map[string]any{
+					"status": "network_unavailable",
+					"error":  err.Error(),
+					"recommended_actions": []string{
+						"check network connectivity to www.lovart.ai",
+						"rerun `lovart doctor --online`",
+					},
+				}
+				printEnvelope(okPreflight(data, true))
+				return nil
+			}
+			data["online"] = updateStatus
+			printEnvelope(okPreflight(data, true))
 			return nil
 		},
 	}
-}
-
-func recommendedDoctorActions() []string {
-	var actions []string
-	s, err := signing.NewSigner()
-	if err != nil {
-		actions = append(actions, "run `lovart update sync --all`")
-	} else {
-		if closer, ok := s.(interface{ Close(context.Context) error }); ok {
-			_ = closer.Close(context.Background())
-		}
-	}
-	if _, err := metadata.ReadManifest(); err != nil && len(actions) == 0 {
-		actions = append(actions, "run `lovart update sync --all`")
-	}
-	return actions
+	cmd.Flags().BoolVar(&online, "online", false, "also check Lovart network/update status")
+	return cmd
 }

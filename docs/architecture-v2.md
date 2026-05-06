@@ -83,7 +83,7 @@ lovart-reverse/
 │   ├── task/              # Task status polling
 │   ├── downloads/         # Artifact download
 │   ├── jobs/              # Batch generation (quote, run, resume, status)
-│   ├── setup/             # Readiness check
+│   ├── setup/             # Runtime readiness and repair checks
 │   └── update/            # Drift detection + metadata sync
 ├── cli/                   # Cobra command definitions
 ├── mcp/                   # MCP stdio server
@@ -209,19 +209,20 @@ lovart version
 lovart setup
 lovart self-test
 lovart doctor
+lovart balance
 lovart models [--refresh]
-lovart config <model> [--all] [--example defaults|zero_credit] [--global]
+lovart config <model> [--all]
 lovart project list
 lovart project create <name>
 lovart project select <id>
 lovart project show [id]
 lovart project open [id]
-lovart project repair-canvas [id] [--cid <cid>]
+lovart project admin rename <id> <name>
+lovart project admin delete <id>
+lovart project admin repair-canvas [id] [--cid <cid>]
 lovart quote <model> --body-file <file>
-lovart generate <model> --body-file <file> [--project-id <id>] [--cid <cid>] [--mode] [--dry-run] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]
-lovart task <task_id>
+lovart generate <model> (--body-file <file>|--prompt <text>) [--project-id <id>] [--cid <cid>] [--mode] [--dry-run] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]
 lovart jobs quote <jobs.jsonl> [--detail]
-lovart jobs quote-status <run_dir>
 lovart jobs dry-run <jobs.jsonl>
 lovart jobs run <jobs.jsonl> [--no-wait] [--no-download] [--no-canvas] [--canvas-layout frame|plain]
 lovart jobs resume <run_dir> [--no-wait] [--no-download] [--no-canvas] [--canvas-layout frame|plain] [--retry-failed]
@@ -234,12 +235,15 @@ lovart update sync --metadata-only
 lovart mcp
 lovart mcp status [--clients auto|all|none|codex,claude,opencode,openclaw]
 lovart mcp install --clients auto --yes [--dry-run] [--force]
+lovart dev sign
 ```
 
-## MCP Tools (11)
+## MCP Tools (15)
 
 ```
 lovart_setup, lovart_models, lovart_config,
+lovart_balance,
+lovart_project_current, lovart_project_list, lovart_project_select,
 lovart_quote,
 lovart_generate_dry_run, lovart_generate,
 lovart_jobs_quote,

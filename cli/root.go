@@ -25,7 +25,6 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	root.AddCommand(
-		newSignCmd(),
 		newSetupCmd(),
 		newProjectCmd(),
 		newModelsCmd(),
@@ -36,6 +35,7 @@ func NewRootCommand() *cobra.Command {
 		newJobsCmd(),
 		newUpdateCmd(),
 		newDoctorCmd(),
+		newDevCmd(),
 		newSelfTestCmd(),
 	)
 

@@ -66,6 +66,12 @@ func Tools() []Tool {
 			"model":       stringSchema("Lovart generator model name"),
 			"include_all": boolSchema("include non-user-facing metadata fields"),
 		}, "model"),
+		tool("lovart_balance", "Return the current Lovart credit balance.", map[string]any{}),
+		tool("lovart_project_current", "Return the selected Lovart project context without exposing secrets.", map[string]any{}),
+		tool("lovart_project_list", "List Lovart projects available to the current account.", map[string]any{}),
+		tool("lovart_project_select", "Select the Lovart project used by generation tools.", map[string]any{
+			"project_id": stringSchema("Lovart project id"),
+		}, "project_id"),
 		tool("lovart_quote", "Fetch an exact Lovart credit quote for a model request.", map[string]any{
 			"model": stringSchema("Lovart generator model name"),
 			"body":  map[string]any{"type": "object"},

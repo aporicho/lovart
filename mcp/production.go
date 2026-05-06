@@ -18,7 +18,6 @@ import (
 	"github.com/aporicho/lovart/internal/registry"
 	"github.com/aporicho/lovart/internal/setup"
 	"github.com/aporicho/lovart/internal/signing"
-	"github.com/aporicho/lovart/internal/update"
 	sharedvalidation "github.com/aporicho/lovart/internal/validation"
 	"github.com/aporicho/lovart/internal/version"
 )
@@ -26,27 +25,16 @@ import (
 // ProductionExecutor executes MCP tools against the Lovart runtime.
 type ProductionExecutor struct{}
 
-// Setup runs online setup checks plus local readiness.
+// Setup runs local readiness checks without exposing secrets.
 func (ProductionExecutor) Setup(ctx context.Context, args SetupArgs) envelope.Envelope {
 	readiness := setup.Readiness()
 	data := map[string]any{
 		"version":   version.Version,
 		"readiness": readiness,
+		"status":    "ok",
+		"ready":     readiness.Ready,
 	}
-	updateStatus, err := update.Check(ctx)
-	if err != nil {
-		data["status"] = "network_unavailable"
-		data["ready"] = false
-		data["update_error"] = map[string]any{
-			"error":               err.Error(),
-			"recommended_actions": []string{"check network connectivity to www.lovart.ai", "rerun `lovart setup`"},
-		}
-		return okPreflight(data, true)
-	}
-	data["status"] = "ok"
-	data["ready"] = readiness.Ready
-	data["update"] = updateStatus
-	return okPreflight(data, true)
+	return okLocal(data, true)
 }
 
 // Models lists known models from registry or remote metadata.
@@ -96,6 +84,64 @@ func (ProductionExecutor) Config(ctx context.Context, args ConfigArgs) envelope.
 		result.Fields = visible
 	}
 	return okLocal(result, true)
+}
+
+// Balance returns the current account balance.
+func (ProductionExecutor) Balance(ctx context.Context) envelope.Envelope {
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	balance, err := pricing.Balance(ctx, client)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "fetch balance", map[string]any{"error": err.Error()})
+	}
+	return okPreflight(map[string]any{"balance": balance})
+}
+
+// ProjectCurrent returns the selected project context without exposing auth values.
+func (ProductionExecutor) ProjectCurrent(ctx context.Context) envelope.Envelope {
+	pc, err := auth.LoadProjectContext()
+	if err != nil {
+		return envelope.Err(errors.CodeInputError, "no project context", map[string]any{
+			"error":               err.Error(),
+			"recommended_actions": []string{"run `lovart project list`", "run `lovart project select <project_id>`"},
+		})
+	}
+	return okLocal(map[string]any{
+		"project_id":  pc.ProjectID,
+		"cid_present": pc.CID != "",
+	}, true)
+}
+
+// ProjectList lists projects available to the current account.
+func (ProductionExecutor) ProjectList(ctx context.Context) envelope.Envelope {
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	projects, err := project.List(ctx, client)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "list projects", map[string]any{"error": err.Error()})
+	}
+	return okPreflight(map[string]any{"count": len(projects), "projects": projects})
+}
+
+// ProjectSelect stores the selected project for future generation calls.
+func (ProductionExecutor) ProjectSelect(ctx context.Context, args ProjectSelectArgs) envelope.Envelope {
+	pc, _ := auth.LoadProjectContext()
+	cid := ""
+	if pc != nil {
+		cid = pc.CID
+	}
+	if err := auth.SetProject(args.ProjectID, cid); err != nil {
+		return envelope.Err(errors.CodeInternal, "set project", map[string]any{"error": err.Error()})
+	}
+	return okLocal(map[string]any{
+		"selected":    true,
+		"project_id":  args.ProjectID,
+		"cid_present": cid != "",
+	})
 }
 
 // Quote fetches live pricing for a single request.

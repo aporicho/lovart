@@ -127,6 +127,18 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 			Model:      model,
 			IncludeAll: boolArg(args, "include_all", false),
 		})
+	case "lovart_balance":
+		return s.executor.Balance(ctx)
+	case "lovart_project_current":
+		return s.executor.ProjectCurrent(ctx)
+	case "lovart_project_list":
+		return s.executor.ProjectList(ctx)
+	case "lovart_project_select":
+		projectID, err := requiredString(args, "project_id")
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.ProjectSelect(ctx, ProjectSelectArgs{ProjectID: projectID})
 	case "lovart_quote":
 		quoteArgs, err := parseQuoteArgs(args)
 		if err != nil {

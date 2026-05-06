@@ -45,7 +45,7 @@ Verify:
 
 ```bash
 lovart --version
-lovart self-test
+lovart doctor
 lovart mcp status
 ```
 
@@ -58,7 +58,7 @@ mkdir -p ~/.local/bin
 gh release download --repo aporicho/lovart-reverse --pattern "lovart-macos-arm64" -O ~/.local/bin/lovart
 chmod +x ~/.local/bin/lovart
 lovart --version
-lovart self-test
+lovart doctor
 ```
 
 Linux x64:
@@ -68,7 +68,7 @@ mkdir -p ~/.local/bin
 gh release download --repo aporicho/lovart-reverse --pattern "lovart-linux-x64" -O ~/.local/bin/lovart
 chmod +x ~/.local/bin/lovart
 lovart --version
-lovart self-test
+lovart doctor
 ```
 
 Windows x64:
@@ -76,7 +76,7 @@ Windows x64:
 ```powershell
 gh release download --repo aporicho/lovart-reverse --pattern "lovart-windows-x64.exe" -O "$env:USERPROFILE\bin\lovart.exe"
 lovart --version
-lovart self-test
+lovart doctor
 ```
 
 If `lovart --version` shows an older command set or a different git commit than expected, replace the binary before using it from an agent.
@@ -109,11 +109,11 @@ uv tool install "git+ssh://git@github.com/aporicho/lovart-reverse.git#egg=lovart
 If auth is missing, a reverse maintainer can capture and extract credentials from a Python environment with the `reverse` extra:
 
 ```bash
-lovart reverse start
-lovart auth extract captures/<lovart-request>.json
+lovart-reverse start
+lovart-reverse auth extract captures/<lovart-request>.json
 ```
 
-`lovart reverse start` launches mitmproxy, opens an isolated Chrome profile through the proxy, and writes Lovart traffic into `captures/`. Stop it with Ctrl-C after the browser flow is complete. `lovart reverse capture` remains available as a low-level command printer when you need to start mitmproxy manually.
+`lovart-reverse start` launches mitmproxy, opens an isolated Chrome profile through the proxy, and writes Lovart traffic into `captures/`. Stop it with Ctrl-C after the browser flow is complete. `lovart-reverse capture` remains available as a low-level command printer when you need to start mitmproxy manually.
 
 ## JSON Envelope
 
@@ -139,6 +139,12 @@ lovart config openai/gpt-image-2
 lovart quote openai/gpt-image-2 --body-file request.json
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
+```
+
+For quick single-prompt submissions, `generate` also accepts a minimal prompt body:
+
+```bash
+lovart generate openai/gpt-image-2 --prompt "a clean product render of a red cube" --mode auto --dry-run
 ```
 
 Example `request.json`:
@@ -172,12 +178,11 @@ Batch flow:
 ```bash
 lovart setup
 lovart config seedream/seedream-5-0
-lovart jobs quote runs/fanren/jobs.jsonl --limit 25
-lovart jobs quote-status runs/fanren
+lovart jobs quote runs/fanren/jobs.jsonl
 lovart jobs dry-run runs/fanren/jobs.jsonl
 lovart jobs run runs/fanren/jobs.jsonl --wait --download --download-dir runs/fanren/images --detail summary
 lovart jobs status runs/fanren
-lovart jobs resume runs/fanren/jobs.jsonl --wait --download --download-dir runs/fanren/images --timeout-seconds 90 --detail summary
+lovart jobs resume runs/fanren --wait --download --download-dir runs/fanren/images --timeout-seconds 90 --detail summary
 ```
 
 Paid batch generation must include a total budget:
@@ -212,7 +217,7 @@ Generation state is stored in `runs/<project>/jobs_state.json`. Quote progress i
 
 `lovart jobs status` also defaults to a lightweight summary. It returns counts, up to 20 compact task samples, warnings, and safe `recommended_actions`; it does not echo prompts, full request bodies, or raw task payloads unless `--detail full` is explicitly requested. Use `--detail requests` when an agent needs every compact remote request.
 
-For long-running models, especially MCP calls, use short resumable polling windows instead of one very long tool call: `lovart jobs resume <jobs.jsonl> --wait --download --download-dir <images-dir> --timeout-seconds 90 --detail summary`. If the local wait times out, submitted `task_id`s are already saved in `jobs_state.json`; rerun `resume` or `status` to continue without resubmitting.
+For long-running models, especially MCP calls, use short resumable polling windows instead of one very long tool call: `lovart jobs resume <run_dir> --wait --download --download-dir <images-dir> --timeout-seconds 90 --detail summary`. If the local wait times out, submitted `task_id`s are already saved in `jobs_state.json`; rerun `resume` or `status` to continue without resubmitting.
 
 `--download` writes artifact files locally. Without `--download-dir`, files go under the runtime downloads directory, normally `downloads/<task_id>/`. With `--download-dir`, files go under `<download-dir>/<task_id>/`. Download failures keep the remote task marked `completed` and are resumable with `jobs resume --download`.
 
@@ -220,9 +225,7 @@ Batch quote reuses one web-style pricing client for each command run: Lovart tim
 
 The quote command computes a strict `cost_signature` from model, mode, price-affecting parameters, output count, and media input counts. Requests with the same signature share one remote quote; prompt/title changes alone do not trigger another quote. A 0-credit result is reusable only within the same signature, never across other parameter combinations.
 
-For large batches, `--limit auto` is the default: more than 100 pending remote requests are processed 100 at a time. Rerun the same `lovart jobs quote <jobs.jsonl>` command until `summary.pending_quote_remote_requests` is `0`, or pass `--all` when you intentionally want to quote every pending request in one command.
-
-If DNS or network access to `www.lovart.ai` fails, quote stops early with `network_unavailable` and leaves the remaining retryable requests pending. Fix network/DNS, then rerun the same `lovart jobs quote ...` command. Use `--refresh` only when you intentionally want to discard that jobs file's quote state.
+If DNS or network access to `www.lovart.ai` fails, quote stops early with `network_unavailable` and leaves the remaining retryable requests pending. Fix network/DNS, then rerun the same `lovart jobs quote ...` command.
 
 Batch quote credit fields:
 
@@ -232,7 +235,7 @@ Batch quote credit fields:
 
 ## Error Handling
 
-- `auth_missing`: run capture/auth extraction.
+- `auth_missing`: reverse maintainers should run capture/auth extraction with `lovart-reverse`.
 - `metadata_stale`: run `lovart update sync --metadata-only`, then retry.
 - `signer_stale`: do not submit real generation until signing is revalidated.
 - `schema_invalid`: fix request JSON according to schema errors.
@@ -247,22 +250,26 @@ Batch quote credit fields:
 lovart setup
 lovart --version
 lovart version
+lovart doctor
 lovart self-test
 lovart mcp
 lovart mcp status
+lovart balance
 lovart models
 lovart config <model>
 lovart quote <model> --body-file request.json
 lovart generate <model> --body-file request.json --mode auto --dry-run
+lovart generate <model> --prompt "prompt text" --mode auto --dry-run
 lovart generate <model> --body-file request.json --mode auto --wait --download
 lovart jobs quote runs/<project>/jobs.jsonl
 lovart jobs dry-run runs/<project>/jobs.jsonl
 lovart jobs run runs/<project>/jobs.jsonl --wait --download
 lovart jobs status runs/<project>
-lovart jobs resume runs/<project>/jobs.jsonl --wait --download
+lovart jobs resume runs/<project> --wait --download
 lovart update check
 lovart update sync --metadata-only
-lovart doctor
+lovart project admin repair-canvas [project_id]
+lovart dev sign
 ```
 
 ## Execution Semantics
@@ -277,12 +284,15 @@ Local registry, manifest, quote state, and job state are caches for speed,
 validation, and resumability. They are not a standalone operating mode;
 generation and remote validation require network access to Lovart.
 
-## Self-Test Command
+## Doctor And Self-Test
 
-`lovart self-test` is a local diagnostic. It does not submit tasks,
-does not generate images, does not spend credits, and does not contact Lovart.
-It checks credentials, project context, signer WASM, generator metadata, and
-the local registry, then returns one of three statuses:
+`lovart doctor` is the primary user diagnostic. By default it is local-only:
+it does not submit tasks, generate images, spend credits, or contact Lovart.
+Use `lovart doctor --online` when you also want Lovart network/update status.
+
+`lovart self-test` remains available as the lower-level local diagnostic. Both
+commands check credentials, project context, signer WASM, generator metadata,
+and the local registry, then return one of three statuses:
 
 - `ready`: local generation prerequisites are present.
 - `needs_setup`: required runtime files or project context are missing.
