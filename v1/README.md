@@ -265,6 +265,19 @@ lovart update sync --metadata-only
 lovart doctor
 ```
 
+## Self-Test Command
+
+`lovart self-test` is an offline local diagnostic. It does not submit tasks,
+does not generate images, does not spend credits, and does not contact Lovart.
+It checks credentials, project context, signer WASM, generator metadata, and
+the local registry, then returns one of three statuses:
+
+- `ready`: local generation prerequisites are present.
+- `needs_setup`: required runtime files or project context are missing.
+- `broken`: a local file exists but is unreadable, malformed, or unusable.
+
+Use the returned `recommended_actions` as the next commands to run.
+
 ## Agent Self-Test
 
 An agent understands this project if it can answer:
