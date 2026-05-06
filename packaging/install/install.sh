@@ -1,0 +1,196 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO="aporicho/lovart-reverse"
+VERSION="latest"
+INSTALL_DIR="${HOME}/.local/bin"
+MCP_CLIENTS="auto"
+YES=0
+FORCE=0
+DRY_RUN=0
+JSON=0
+
+usage() {
+  cat <<'EOF'
+Usage: install.sh [options]
+
+Options:
+  --repo OWNER/REPO
+  --version latest|vX.Y.Z
+  --install-dir PATH
+  --mcp-clients auto|all|none|codex,claude,opencode,openclaw
+  --yes
+  --force
+  --dry-run
+  --json
+EOF
+}
+
+json_escape() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  value="${value//$'\n'/\\n}"
+  value="${value//$'\r'/\\r}"
+  value="${value//$'\t'/\\t}"
+  printf '"%s"' "$value"
+}
+
+emit_json() {
+  local ok="$1"
+  local message="$2"
+  local asset="${3:-}"
+  local path="${4:-}"
+  printf '{"ok":%s,"message":%s,"data":{"repo":%s,"version":%s,"asset":%s,"install_path":%s,"mcp_clients":%s,"dry_run":%s}}\n' \
+    "$ok" \
+    "$(json_escape "$message")" \
+    "$(json_escape "$REPO")" \
+    "$(json_escape "$VERSION")" \
+    "$(json_escape "$asset")" \
+    "$(json_escape "$path")" \
+    "$(json_escape "$MCP_CLIENTS")" \
+    "$([ "$DRY_RUN" -eq 1 ] && echo true || echo false)"
+}
+
+fail() {
+  if [ "$JSON" -eq 1 ]; then
+    emit_json false "$1"
+  else
+    printf 'error: %s\n' "$1" >&2
+  fi
+  exit 1
+}
+
+log() {
+  if [ "$JSON" -eq 0 ]; then
+    printf '%s\n' "$1"
+  fi
+}
+
+require_value() {
+  local option="$1"
+  local value="${2:-}"
+  if [ -z "$value" ]; then
+    fail "${option} requires a value"
+  fi
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --repo) require_value "$1" "${2:-}"; REPO="$2"; shift 2 ;;
+    --version) require_value "$1" "${2:-}"; VERSION="$2"; shift 2 ;;
+    --install-dir) require_value "$1" "${2:-}"; INSTALL_DIR="$2"; shift 2 ;;
+    --mcp-clients) require_value "$1" "${2:-}"; MCP_CLIENTS="$2"; shift 2 ;;
+    --yes) YES=1; shift ;;
+    --force) FORCE=1; shift ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    --json) JSON=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) fail "unknown option: $1" ;;
+  esac
+done
+
+OS="$(uname -s)"
+ARCH="$(uname -m)"
+ASSET=""
+case "${OS}:${ARCH}" in
+  Darwin:arm64) ASSET="lovart-macos-arm64" ;;
+  Linux:x86_64|Linux:amd64) ASSET="lovart-linux-x64" ;;
+  *) fail "unsupported platform: ${OS}/${ARCH}" ;;
+esac
+
+INSTALL_DIR="${INSTALL_DIR/#\~/$HOME}"
+INSTALL_PATH="${INSTALL_DIR}/lovart"
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  if [ "$JSON" -eq 1 ]; then
+    emit_json true "dry run" "$ASSET" "$INSTALL_PATH"
+  else
+    log "Would download ${ASSET} from ${REPO} (${VERSION})"
+    log "Would install to ${INSTALL_PATH}"
+    log "Would run: ${INSTALL_PATH} mcp install --clients ${MCP_CLIENTS} --yes"
+  fi
+  exit 0
+fi
+
+command -v gh >/dev/null 2>&1 || fail "gh CLI is required; install GitHub CLI and run gh auth login"
+gh auth status >/dev/null 2>&1 || fail "gh is not authenticated; run gh auth login"
+
+if [ "$YES" -ne 1 ]; then
+  printf 'Install Lovart to %s and configure MCP clients "%s"? [y/N] ' "$INSTALL_PATH" "$MCP_CLIENTS"
+  read -r answer
+  case "$answer" in
+    y|Y|yes|YES) ;;
+    *) fail "installation cancelled" ;;
+  esac
+fi
+
+TMP_DIR="$(mktemp -d)"
+cleanup() {
+  rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT
+
+download_release_asset() {
+  local pattern="$1"
+  local output="$2"
+  if [ "$VERSION" = "latest" ]; then
+    gh release download --repo "$REPO" --pattern "$pattern" -O "$output"
+  else
+    gh release download "$VERSION" --repo "$REPO" --pattern "$pattern" -O "$output"
+  fi
+}
+
+BIN_TMP="${TMP_DIR}/lovart"
+SUMS_TMP="${TMP_DIR}/SHA256SUMS"
+
+log "Downloading ${ASSET}..."
+download_release_asset "$ASSET" "$BIN_TMP"
+download_release_asset "SHA256SUMS" "$SUMS_TMP"
+
+EXPECTED_LINE="$(grep "  ${ASSET}$" "$SUMS_TMP" || true)"
+if [ -z "$EXPECTED_LINE" ]; then
+  fail "SHA256SUMS does not contain ${ASSET}"
+fi
+EXPECTED_HASH="${EXPECTED_LINE%% *}"
+if command -v sha256sum >/dev/null 2>&1; then
+  ACTUAL_HASH="$(sha256sum "$BIN_TMP" | awk '{print $1}')"
+else
+  ACTUAL_HASH="$(shasum -a 256 "$BIN_TMP" | awk '{print $1}')"
+fi
+[ "$EXPECTED_HASH" = "$ACTUAL_HASH" ] || fail "checksum mismatch for ${ASSET}"
+
+mkdir -p "$INSTALL_DIR"
+if [ -e "$INSTALL_PATH" ]; then
+  if [ "$FORCE" -ne 1 ]; then
+    fail "${INSTALL_PATH} already exists; rerun with --force"
+  fi
+  cp "$INSTALL_PATH" "${INSTALL_PATH}.bak"
+fi
+cp "$BIN_TMP" "$INSTALL_PATH"
+chmod +x "$INSTALL_PATH"
+
+"$INSTALL_PATH" --version >/dev/null
+"$INSTALL_PATH" self-test >/dev/null
+
+if [ "$MCP_CLIENTS" != "none" ]; then
+  MCP_ARGS=("$INSTALL_PATH" "mcp" "install" "--clients" "$MCP_CLIENTS" "--yes")
+  if [ "$FORCE" -eq 1 ]; then
+    MCP_ARGS+=("--force")
+  fi
+  MCP_OUTPUT="$("${MCP_ARGS[@]}")" || fail "MCP client configuration command failed"
+  if ! printf '%s' "$MCP_OUTPUT" | grep -q '"ok":true'; then
+    fail "MCP client configuration failed: ${MCP_OUTPUT}"
+  fi
+fi
+
+if ! command -v lovart >/dev/null 2>&1 && [[ ":$PATH:" != *":${INSTALL_DIR}:"* ]]; then
+  log "Note: ${INSTALL_DIR} is not on PATH. Add it to your shell profile or use ${INSTALL_PATH} directly."
+fi
+
+if [ "$JSON" -eq 1 ]; then
+  emit_json true "installed" "$ASSET" "$INSTALL_PATH"
+else
+  log "Installed Lovart at ${INSTALL_PATH}"
+  log "Run: ${INSTALL_PATH} --version"
+fi

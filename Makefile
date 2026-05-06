@@ -2,6 +2,8 @@
 
 # ===== Go =====
 GO := go
+VERSION ?= snapshot
+LDFLAGS := -s -w -X github.com/aporicho/lovart/internal/version.Version=$(VERSION)
 
 build:
 	$(GO) build -ldflags="-s -w" -o dist/lovart ./cmd/lovart
@@ -13,7 +15,14 @@ lint:
 	$(GO) vet ./...
 
 release:
-	goreleaser release --snapshot --clean
+	mkdir -p dist
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 $(GO) build -trimpath -ldflags="$(LDFLAGS)" -o dist/lovart-macos-arm64 ./cmd/lovart
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -trimpath -ldflags="$(LDFLAGS)" -o dist/lovart-linux-x64 ./cmd/lovart
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 $(GO) build -trimpath -ldflags="$(LDFLAGS)" -o dist/lovart-windows-x64.exe ./cmd/lovart
+	cp packaging/install/install.sh dist/install.sh
+	cp packaging/install/install.ps1 dist/install.ps1
+	chmod +x dist/install.sh
+	cd dist && (sha256sum lovart-macos-arm64 lovart-linux-x64 lovart-windows-x64.exe install.sh install.ps1 2>/dev/null || shasum -a 256 lovart-macos-arm64 lovart-linux-x64 lovart-windows-x64.exe install.sh install.ps1) > SHA256SUMS
 
 # ===== Python reverse =====
 PY_DIR := reverse

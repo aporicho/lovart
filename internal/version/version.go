@@ -3,7 +3,7 @@ package version
 
 import "runtime"
 
-const (
+var (
 	Package = "lovart"
 	Version = "2.0.0-dev"
 )

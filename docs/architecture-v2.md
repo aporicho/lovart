@@ -90,7 +90,7 @@ lovart-reverse/
 ├── internal/signing/testdata/ # Non-production WASM fixture for signer tests
 ├── reverse/               # Python reverse tooling
 ├── extension/             # Chrome extension
-├── packaging/             # goreleaser + extension build
+├── packaging/             # release installers + extension build
 ├── docs/architecture/     # Architecture principles and module rules
 ├── docs/                  # Documentation
 ├── v1/                    # Legacy Python project (preserved)
