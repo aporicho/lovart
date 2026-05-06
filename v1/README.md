@@ -125,7 +125,6 @@ Use this flow for one request:
 
 ```bash
 lovart setup
-lovart plan --intent image-concept
 lovart config openai/gpt-image-2
 lovart quote openai/gpt-image-2 --body-file request.json
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
@@ -162,7 +161,6 @@ Batch flow:
 
 ```bash
 lovart setup
-lovart plan --intent image-concept
 lovart config seedream/seedream-5-0
 lovart jobs quote runs/fanren/jobs.jsonl --limit 25
 lovart jobs quote-status runs/fanren
@@ -178,7 +176,7 @@ Paid batch generation must include a total budget:
 lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wait --download
 ```
 
-## Config And Planning
+## Config
 
 `lovart config <model>` returns the legal fields for a model:
 
@@ -187,13 +185,7 @@ lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wa
 - `minItems` / `maxItems` for array fields.
 - `enumerable=false` for free input fields such as prompt or image URLs.
 
-`lovart plan` returns three non-submitting routes:
-
-- `quality_best`: highest legal settings found from config-derived candidates.
-- `cost_best`: lowest-cost route, preferring zero-credit combinations.
-- `speed_best`: route with fast mode / fast entitlement / fast variant signal. It is not measured wall-clock latency.
-
-If a route has `quote.exact=true`, its credits are exact. If false, run `lovart quote` on the final request before stating exact cost.
+Run `lovart quote` on the final request before stating exact cost.
 
 ## Jobs Semantics
 
@@ -251,7 +243,6 @@ lovart mcp status
 lovart mcp install --clients auto --yes
 lovart models
 lovart config <model>
-lovart plan --intent image-concept
 lovart quote <model> --body-file request.json
 lovart generate <model> --body-file request.json --mode auto --dry-run
 lovart generate <model> --body-file request.json --mode auto --wait --download

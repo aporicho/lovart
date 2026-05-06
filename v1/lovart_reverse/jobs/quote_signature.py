@@ -8,7 +8,7 @@ from hashlib import sha256
 from typing import Any
 
 from lovart_reverse.config import config_for_model
-from lovart_reverse.planning.field_roles import MEDIA_INPUT_FIELDS
+from lovart_reverse.config.field_roles import MEDIA_INPUT_FIELDS
 
 COST_SIGNATURE_VERSION = "quote-cost-v1"
 ALWAYS_EXCLUDED_FIELDS = {"prompt", "negative_prompt", "job_id", "request_id", "title"}

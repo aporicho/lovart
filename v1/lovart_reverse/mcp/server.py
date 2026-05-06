@@ -18,7 +18,6 @@ from lovart_reverse.commands import (
     jobs_run_command,
     jobs_status_command,
     models_command,
-    plan_command,
     quote_command,
     setup_command,
     version_command,
@@ -75,19 +74,6 @@ TOOLS: list[dict[str, Any]] = [
         "Return exhaustive legal config values for one model.",
         {"model": _string_schema(), "include_all": _boolean_schema(), "example": _string_schema()},
         ["model"],
-    ),
-    _tool(
-        "lovart_plan",
-        "Plan quality, cost, and speed routes without submitting generation.",
-        {
-            "model": _string_schema(),
-            "intent": _string_schema(),
-            "count": {"type": "integer"},
-            "body": {"type": "object"},
-            "quote_mode": {"type": "string", "enum": ["live", "auto", "offline"]},
-            "candidate_limit": {"type": "integer"},
-            "offline": _boolean_schema(),
-        },
     ),
     _tool(
         "lovart_quote",
@@ -295,15 +281,6 @@ def call_tool_data(name: str, arguments: dict[str, Any] | None = None) -> dict[s
             str(args["model"]),
             include_all=bool(args.get("include_all", False)),
             example=args.get("example"),
-        ),
-        "lovart_plan": lambda: plan_command(
-            str(args["model"]) if args.get("model") else None,
-            intent=str(args.get("intent") or "general"),
-            count=int(args.get("count") or 1),
-            body=_body(args),
-            quote_mode=str(args.get("quote_mode") or "live"),
-            candidate_limit=int(args.get("candidate_limit") or 12),
-            offline=bool(args.get("offline", False)),
         ),
         "lovart_quote": lambda: quote_command(str(args["model"]), _body(args), language=str(args.get("language") or "en")),
         "lovart_generate_dry_run": lambda: generate_command(

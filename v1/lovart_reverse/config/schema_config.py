@@ -6,7 +6,7 @@ from typing import Any
 
 from lovart_reverse.errors import SchemaInvalidError
 from lovart_reverse.paths import CAPTURES_DIR, DOWNLOADS_DIR, PACKAGE_REF_DIR, REF_DIR, ROOT, RUNS_DIR
-from lovart_reverse.planning.field_roles import (
+from lovart_reverse.config.field_roles import (
     BATCH_RELEVANT_FIELDS,
     COST_AFFECTING_FIELDS,
     MEDIA_INPUT_FIELDS,
@@ -37,15 +37,6 @@ def global_config() -> dict[str, Any]:
             "root_env": "LOVART_REVERSE_ROOT",
             "home_env": "LOVART_REVERSE_HOME",
         },
-        "planning_flags": [
-            "--body-file",
-            "--body",
-            "--intent",
-            "--count",
-            "--offline",
-            "--quote",
-            "--candidate-limit",
-        ],
         "generation_flags": [
             "--body-file",
             "--body",
@@ -65,7 +56,7 @@ def global_config() -> dict[str, Any]:
         },
         "agent_rules": [
             "Call lovart config <model> before presenting model-specific choices.",
-            "Use plan.routes[].quote when exact=true, otherwise call lovart quote <model> before claiming exact credit cost.",
+            "Call lovart quote <model> before claiming exact credit cost.",
             "Use only values returned in field.values for enumerable fields.",
             "Do not infer legal values from descriptions.",
             "Ask the user for enumerable=false fields unless the value is already in context.",

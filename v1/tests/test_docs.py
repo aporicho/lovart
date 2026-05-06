@@ -13,7 +13,6 @@ class DocsTest(unittest.TestCase):
         for command in (
             "lovart setup",
             "lovart config",
-            "lovart plan",
             "lovart quote",
             "lovart jobs quote",
             "lovart jobs quote-status",

@@ -28,7 +28,6 @@ from lovart_reverse.paths import (
     SIGNATURE_JS,
     SIGNER_WASM,
 )
-from lovart_reverse.planning.planner import plan_for_model
 from lovart_reverse.pricing.quote import quote
 from lovart_reverse.registry import load_ref_registry, model_records, validate_body
 from lovart_reverse.setup import setup_status
@@ -169,26 +168,6 @@ def config_command(model: str | None = None, include_all: bool = False, example:
     if not model:
         raise InputError("model is required unless --global is used")
     return config_for_model(model, include_all=include_all, example=example)
-
-
-def plan_command(
-    model: str | None = None,
-    *,
-    intent: str = "general",
-    count: int = 1,
-    body: dict[str, Any] | None = None,
-    quote_mode: str = "live",
-    candidate_limit: int = 12,
-    offline: bool = False,
-) -> dict[str, Any]:
-    return plan_for_model(
-        model,
-        intent=intent,
-        count=count,
-        partial_body=dict(body or {}),
-        quote_mode="offline" if offline else quote_mode,
-        candidate_limit=candidate_limit,
-    )
 
 
 def quote_command(model: str, body: dict[str, Any], language: str = "en") -> dict[str, Any]:

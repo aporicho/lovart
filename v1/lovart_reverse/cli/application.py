@@ -24,7 +24,6 @@ from lovart_reverse.commands import (
     jobs_run_command,
     jobs_status_command,
     models_command,
-    plan_command,
     quote_command,
     self_test_command,
     setup_command,
@@ -95,19 +94,6 @@ def cmd_setup(args: argparse.Namespace) -> dict[str, Any]:
 
 def cmd_config(args: argparse.Namespace) -> dict[str, Any]:
     return config_command(args.model, include_all=args.include_all, example=args.example, global_=args.global_config)
-
-
-def cmd_plan(args: argparse.Namespace) -> dict[str, Any]:
-    body = _load_body_args(args)
-    return plan_command(
-        args.model,
-        intent=args.intent,
-        count=args.count,
-        body=body,
-        quote_mode=args.quote,
-        candidate_limit=args.candidate_limit,
-        offline=args.offline,
-    )
 
 
 def cmd_generate(args: argparse.Namespace) -> dict[str, Any]:
@@ -268,15 +254,6 @@ def build_parser() -> argparse.ArgumentParser:
     config.add_argument("--example", choices=["defaults", "zero_credit"])
     config.add_argument("--global", action="store_true", dest="global_config")
 
-    plan = sub.add_parser("plan")
-    plan.add_argument("model", nargs="?")
-    plan.add_argument("--intent", default="general")
-    plan.add_argument("--count", type=int, default=1)
-    _add_body_args(plan)
-    plan.add_argument("--quote", choices=["live", "auto", "offline"], default="live")
-    plan.add_argument("--candidate-limit", type=int, default=12)
-    plan.add_argument("--offline", action="store_true")
-
     quote_cmd = sub.add_parser("quote")
     quote_cmd.add_argument("model")
     _add_body_args(quote_cmd)
@@ -407,8 +384,6 @@ def dispatch(args: argparse.Namespace) -> dict[str, Any]:
         return self_test_command()
     if args.command == "config":
         return cmd_config(args)
-    if args.command == "plan":
-        return cmd_plan(args)
     if args.command == "auth":
         return cmd_auth(args)
     if args.command == "models":

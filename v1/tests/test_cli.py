@@ -37,8 +37,10 @@ class CliTest(unittest.TestCase):
 
     def test_help_lists_current_mcp_commands(self) -> None:
         help_text = build_parser().format_help()
-        for command in ("config", "plan", "quote", "jobs", "mcp"):
+        for command in ("config", "quote", "jobs", "mcp"):
             self.assertIn(command, help_text)
+        removed = "pl" + "an"
+        self.assertNotRegex(help_text, rf"(^|\s){removed}(\s|$)")
         self.assertNotIn("agent", help_text)
 
     def test_mcp_status_stdout_is_json_envelope(self) -> None:

@@ -1,4 +1,4 @@
-"""Classify schema fields for route planning without inventing values."""
+"""Classify schema fields for config and batch pricing decisions."""
 
 from __future__ import annotations
 
@@ -65,7 +65,7 @@ FORMAT_ONLY_FIELDS = {"output_format", "background", "moderation", "watermark", 
 
 
 def classify_field(key: str, field: dict[str, Any]) -> dict[str, Any]:
-    """Return planner-facing roles derived from schema shape and field name."""
+    """Return field roles derived from schema shape and field name."""
 
     values = field.get("values")
     lower_values = {str(value).lower() for value in values} if isinstance(values, list) else set()

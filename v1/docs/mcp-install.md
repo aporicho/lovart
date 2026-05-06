@@ -70,7 +70,6 @@ MCP tools return the same JSON envelope as the CLI:
 - `lovart_setup`
 - `lovart_models`
 - `lovart_config`
-- `lovart_plan`
 - `lovart_quote`
 - `lovart_generate_dry_run`
 - `lovart_generate`
@@ -91,7 +90,6 @@ When MCP is unavailable, use the same binary directly:
 ```bash
 lovart setup
 lovart config <model>
-lovart plan --intent image-concept
 lovart quote <model> --body-file request.json
 lovart generate <model> --body-file request.json --mode auto --dry-run
 lovart generate <model> --body-file request.json --mode auto --wait --download

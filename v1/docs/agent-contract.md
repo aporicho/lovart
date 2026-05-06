@@ -41,29 +41,6 @@ Important field keys:
 
 If `values` exists, it is the legal enumerable set. If `enumerable=false`, the value must come from user/context input.
 
-## Plan
-
-`lovart plan` returns non-submitting route candidates.
-
-Important route keys:
-
-- `id`
-- `model`
-- `mode`
-- `body_patch`
-- `request_body`
-- `quote`
-- `zero_credit`
-- `requires_paid_confirmation`
-- `constraints`
-- `degraded_steps`
-- `quality_score`
-- `cost_score`
-- `speed_score`
-- `user_message`
-
-If `quote.exact=true`, `quote.credits` is exact. If false, run `lovart quote` on the final request before stating exact cost.
-
 ## Quote
 
 `lovart quote <model> --body-file request.json` calls Lovart's signed pricing endpoint.

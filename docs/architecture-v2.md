@@ -78,7 +78,6 @@ lovart-reverse/
 │   ├── config/            # Schema → config fields
 │   ├── pricing/           # Credit quotes
 │   ├── entitlement/       # Free tier checks
-│   ├── planning/          # Quality/cost/speed routes
 │   ├── project/           # Project mgmt (create, list, select)
 │   ├── generation/        # Single generation (preflight + submit + poll)
 │   ├── task/              # Task status polling
@@ -203,7 +202,6 @@ lovart project select <id>
 lovart project show [id]
 lovart project open [id]
 lovart project repair-canvas [id] [--cid <cid>]
-lovart plan [model] [--intent] [--count] [--body-file]
 lovart quote <model> --body-file <file>
 lovart generate <model> --body-file <file> [--project-id <id>] [--cid <cid>] [--mode] [--dry-run] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]
 lovart task <task_id>
@@ -221,11 +219,11 @@ lovart update sync --metadata-only
 lovart mcp
 ```
 
-## MCP Tools (13)
+## MCP Tools (12)
 
 ```
 lovart_setup, lovart_models, lovart_config,
-lovart_plan, lovart_quote,
+lovart_quote,
 lovart_generate_dry_run, lovart_generate,
 lovart_jobs_quote, lovart_jobs_quote_status,
 lovart_jobs_dry_run, lovart_jobs_run, lovart_jobs_status,

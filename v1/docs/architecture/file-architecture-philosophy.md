@@ -12,7 +12,6 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `lovart_reverse/registry/` owns model records, schema lookup, and request validation.
 - `lovart_reverse/pricing/` owns live quote requests and raw pricing metadata fetches used only for update drift checks.
 - `lovart_reverse/entitlement/` owns fast zero-credit and relaxed unlimited checks.
-- `lovart_reverse/planning/` owns non-submitting route planning from config, pricing, entitlement, and readiness.
 - `lovart_reverse/generation/` owns dry-run previews, paid gate evaluation, and submission.
 - `lovart_reverse/jobs/` owns local batch queue parsing, whole-batch quote/preflight, submission orchestration, state, resume, and batch downloads.
 - `lovart_reverse/commands/` owns the safe command facade shared by CLI and MCP wrappers.
@@ -36,7 +35,6 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `entitlement/checks.py` checks fast zero-credit and relaxed unlimited eligibility.
 - `setup/readiness.py` reports setup, auth, metadata, signer, and runtime readiness.
 - `update/drift.py` compares online Lovart state with local metadata snapshots.
-- `planning/planner.py` builds non-submitting quality, cost, and speed routes.
 - `jobs/orchestrator.py` coordinates user-level batch quote, dry-run, run, status, and resume.
 - `commands/facade.py` exposes safe command functions used by both CLI and MCP.
 - `mcp/server.py` maps safe MCP tools to command facade calls and returns CLI-compatible JSON envelopes.
