@@ -240,7 +240,6 @@ lovart version
 lovart self-test
 lovart mcp
 lovart mcp status
-lovart mcp install --clients auto --yes
 lovart models
 lovart config <model>
 lovart quote <model> --body-file request.json

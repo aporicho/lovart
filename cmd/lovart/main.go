@@ -25,7 +25,7 @@ func run() int {
 
 	// If first arg is "mcp", start the MCP stdio server.
 	if len(os.Args) > 1 && os.Args[1] == "mcp" {
-		if err := runMCP(); err != nil {
+		if err := runMCP(os.Args[2:]); err != nil {
 			e := envelope.Err(errors.CodeInternal, err.Error(), nil)
 			printAndExit(e, 1)
 		}

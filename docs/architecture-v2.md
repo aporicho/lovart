@@ -234,13 +234,13 @@ lovart update sync --metadata-only
 lovart mcp
 ```
 
-## MCP Tools (12)
+## MCP Tools (11)
 
 ```
 lovart_setup, lovart_models, lovart_config,
 lovart_quote,
 lovart_generate_dry_run, lovart_generate,
-lovart_jobs_quote, lovart_jobs_quote_status,
+lovart_jobs_quote,
 lovart_jobs_dry_run, lovart_jobs_run, lovart_jobs_status,
 lovart_jobs_resume
 ```
@@ -279,6 +279,6 @@ User opens Lovart page
 | P1 | Go CLI (single generation, config, quote) | Partial |
 | P2 | Project module (create, list, select, canvas writeback) | Partial |
 | P3 | Jobs batch generation + resume | Partial |
-| P4 | MCP server | Stub |
+| P4 | MCP server | MVP implemented |
 | P5 | Extension (content script + SW + signing) | Skeleton |
 | P6 | Reverse tooling (Python, mitmproxy) | Partial |

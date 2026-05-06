@@ -52,7 +52,7 @@ gh release download --repo aporicho/lovart-reverse --pattern "lovart-macos-arm64
 chmod +x ~/.local/bin/lovart
 lovart --version
 lovart self-test
-lovart mcp install --clients auto --yes
+lovart mcp status
 ```
 
 MCP tools return the same JSON envelope as the CLI:
