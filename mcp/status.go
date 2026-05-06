@@ -3,15 +3,22 @@ package mcp
 import (
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/aporicho/lovart/internal/envelope"
+	"github.com/aporicho/lovart/internal/errors"
 	"github.com/aporicho/lovart/internal/version"
 )
 
 // Status returns local MCP server metadata and a manual config snippet.
-func Status() envelope.Envelope {
-	path := lovartPath()
+func Status(opts ConfigOptions) envelope.Envelope {
+	config, err := ConfigStatus(opts)
+	if err != nil {
+		return envelope.Err(errors.CodeInputError, "mcp status failed", map[string]any{
+			"error":             err.Error(),
+			"supported_clients": supportedMCPClients,
+		})
+	}
+	path, _ := config["lovart_path"].(string)
 	names := ToolNames()
 	return okLocal(map[string]any{
 		"protocol_version": ProtocolVersion,
@@ -28,6 +35,7 @@ func Status() envelope.Envelope {
 			"command":    path,
 			"args":       []string{"mcp"},
 		},
+		"configuration": config,
 	}, true)
 }
 
@@ -45,9 +53,4 @@ func lovartPath() string {
 		return os.Args[0]
 	}
 	return "lovart"
-}
-
-func tomlString(value string) string {
-	replacer := strings.NewReplacer("\\", "\\\\", "\"", "\\\"")
-	return replacer.Replace(value)
 }

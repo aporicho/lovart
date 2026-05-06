@@ -89,6 +89,16 @@ command = "/absolute/path/to/lovart"
 args = ["mcp"]
 ```
 
+MCP client configuration can also be inspected or written directly:
+
+```bash
+lovart mcp status --clients auto
+lovart mcp install --clients auto --yes
+lovart mcp install --clients codex --dry-run --yes
+```
+
+Supported client selectors are `auto`, `all`, `none`, or a comma-separated list of `codex`, `claude`, `opencode`, and `openclaw`.
+
 Python installs are for developers and reverse maintainers:
 
 ```bash

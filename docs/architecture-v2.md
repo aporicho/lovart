@@ -232,6 +232,8 @@ lovart update sync --all
 lovart update sync --signer
 lovart update sync --metadata-only
 lovart mcp
+lovart mcp status [--clients auto|all|none|codex,claude,opencode,openclaw]
+lovart mcp install --clients auto --yes [--dry-run] [--force]
 ```
 
 ## MCP Tools (11)

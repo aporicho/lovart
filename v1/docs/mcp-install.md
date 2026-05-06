@@ -44,6 +44,16 @@ command = "/absolute/path/to/lovart"
 args = ["mcp"]
 ```
 
+You can inspect or configure supported clients directly:
+
+```bash
+lovart mcp status --clients auto
+lovart mcp install --clients auto --yes
+lovart mcp install --clients codex --dry-run --yes
+```
+
+Supported client selectors are `auto`, `all`, `none`, or a comma-separated list of `codex`, `claude`, `opencode`, and `openclaw`. File-based configs are backed up before being changed. Existing unmanaged Lovart MCP config is not overwritten unless `--force` is provided.
+
 Direct binary download remains available as a fallback:
 
 ```bash
@@ -52,6 +62,7 @@ gh release download --repo aporicho/lovart-reverse --pattern "lovart-macos-arm64
 chmod +x ~/.local/bin/lovart
 lovart --version
 lovart self-test
+lovart mcp install --clients auto --yes
 lovart mcp status
 ```
 
