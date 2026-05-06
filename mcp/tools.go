@@ -58,6 +58,7 @@ func tool(name, description string, properties map[string]any, required ...strin
 // Tools returns the safe public MCP tool list.
 func Tools() []Tool {
 	return []Tool{
+		tool("lovart_auth_status", "Show Lovart auth status without exposing secrets.", map[string]any{}),
 		tool("lovart_setup", "Run Lovart readiness checks without exposing secrets.", map[string]any{}),
 		tool("lovart_models", "List known Lovart generator models; pass refresh=true to fetch current remote metadata.", map[string]any{
 			"refresh": boolSchema("fetch current remote metadata"),

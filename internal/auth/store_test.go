@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/aporicho/lovart/internal/paths"
@@ -81,4 +83,58 @@ func TestGetStatus(t *testing.T) {
 	if !s.Available {
 		t.Error("status should be available after save")
 	}
+}
+
+func TestSaveSessionPreservesProjectMetadataAndStatusIsSafe(t *testing.T) {
+	dir := t.TempDir()
+	credsPath := filepath.Join(dir, ".lovart", "creds.json")
+	os.MkdirAll(filepath.Dir(credsPath), 0700)
+	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	paths.Reset()
+
+	session := Session{
+		Cookie:    "secret-cookie",
+		Token:     "secret-token",
+		CSRF:      "secret-csrf",
+		ProjectID: "project-123",
+		CID:       "cid-123",
+		Source:    "test",
+	}
+	if err := SaveSession(session); err != nil {
+		t.Fatalf("SaveSession: %v", err)
+	}
+	pc, err := LoadProjectContext()
+	if err != nil {
+		t.Fatalf("LoadProjectContext: %v", err)
+	}
+	if pc.ProjectID != "project-123" || pc.CID != "cid-123" {
+		t.Fatalf("project context = %#v", pc)
+	}
+
+	status := GetStatus()
+	data, err := json.Marshal(status)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !status.ProjectIDPresent || !status.CIDPresent || status.UpdatedAt == "" {
+		t.Fatalf("status = %#v", status)
+	}
+	if !containsString(status.Fields, "project_id") || !containsString(status.Fields, "cid") {
+		t.Fatalf("status fields = %#v", status.Fields)
+	}
+	if status.Source != "test" || status.CredentialPath == "" {
+		t.Fatalf("status source/path = %#v", status)
+	}
+	if strings.Contains(string(data), "secret-cookie") || strings.Contains(string(data), "secret-token") || strings.Contains(string(data), "secret-csrf") {
+		t.Fatalf("status leaked secrets: %s", data)
+	}
+}
+
+func containsString(values []string, want string) bool {
+	for _, value := range values {
+		if value == want {
+			return true
+		}
+	}
+	return false
 }

@@ -91,9 +91,12 @@ jobs:
         run: |
           cp packaging/install/install.sh release-assets/install.sh
           cp packaging/install/install.ps1 release-assets/install.ps1
+          cd extension
+          zip -qr ../release-assets/lovart-connector-extension.zip manifest.json src
+          cd ..
           chmod +x release-assets/install.sh
           cd release-assets
-          sha256sum lovart-macos-arm64 lovart-linux-x64 lovart-windows-x64.exe install.sh install.ps1 > SHA256SUMS
+          sha256sum lovart-macos-arm64 lovart-linux-x64 lovart-windows-x64.exe lovart-connector-extension.zip install.sh install.ps1 > SHA256SUMS
 
       - name: Smoke test installers and Linux binary
         shell: bash

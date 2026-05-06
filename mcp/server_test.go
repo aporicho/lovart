@@ -15,6 +15,10 @@ type fakeExecutor struct {
 	jobsResume    JobsResumeArgs
 }
 
+func (f *fakeExecutor) AuthStatus(ctx context.Context) envelope.Envelope {
+	return okLocal(map[string]any{"operation": "auth_status"})
+}
+
 func (f *fakeExecutor) Setup(ctx context.Context, args SetupArgs) envelope.Envelope {
 	return okLocal(map[string]any{"operation": "setup"})
 }
@@ -103,11 +107,11 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 		t.Fatalf("tools/list failed: %#v", listResp)
 	}
 	tools := listResp.Result.(map[string]any)["tools"].([]Tool)
-	if len(tools) != 15 {
-		t.Fatalf("expected 15 tools, got %d", len(tools))
+	if len(tools) != 16 {
+		t.Fatalf("expected 16 tools, got %d", len(tools))
 	}
 	for _, tool := range tools {
-		if tool.Name == "lovart_update_sync" || tool.Name == "lovart_auth_extract" {
+		if tool.Name == "lovart_update_sync" || tool.Name == "lovart_auth_extract" || tool.Name == "lovart_auth_login" || tool.Name == "lovart_auth_import" {
 			t.Fatalf("unsafe tool exposed: %s", tool.Name)
 		}
 	}

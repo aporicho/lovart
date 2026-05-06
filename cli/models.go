@@ -46,8 +46,8 @@ func newModelsCmd() *cobra.Command {
 				printEnvelope(envelope.Err(errors.CodeAuthMissing, "no credentials found", map[string]any{
 					"error": err.Error(),
 					"recommended_actions": []string{
-						"run `lovart-reverse start` to capture auth from browser",
-						"run `lovart-reverse auth extract captures/<file>.json` to extract credentials",
+						"run `lovart auth login`",
+						"run `lovart auth import --help`",
 					},
 				}))
 				return nil

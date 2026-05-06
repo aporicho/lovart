@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Lovart Connector",
+  "version": "0.1.0",
+  "description": "Connect your signed-in Lovart browser session to the local Lovart CLI.",
+  "permissions": ["cookies", "storage", "tabs", "webRequest"],
+  "host_permissions": [
+    "https://www.lovart.ai/*",
+    "https://*.lovart.ai/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service_worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.lovart.ai/*", "https://*.lovart.ai/*"],
+      "js": ["src/content/content.js"],
+      "css": ["src/content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Lovart Connector"
+  }
+}

@@ -43,11 +43,11 @@ implementation details.
 - **Independent**: `pip install lovart-reverse`, separate CLI, zero Go dependency
 - **Legacy**: v1 codebase preserved at `v1/` for reference
 
-### TypeScript (`extension/`)
-- **Scope**: Chrome Extension MV3, injects batch panel into Lovart web page
-- **Self-contained**: zero dependency on local Go/Python binaries
+### Chrome Extension (`extension/`)
+- **Scope**: Lovart Connector MV3 extension, browser-session auth handoff, optional page UI
+- **Self-contained**: static extension assets, no Go core logic
 - **Runtime**: content-script + service worker + popup
-- **Background**: service worker continues generation after tab close
+- **Background**: service worker observes Lovart request headers and posts approved auth to local CLI
 
 ## Runtime Metadata
 
@@ -122,8 +122,18 @@ type ProjectContext struct {
     ProjectID string `json:"project_id"`
     CID       string `json:"cid"`
 }
+type Session struct {
+    Cookie    string `json:"cookie,omitempty"`
+    Token     string `json:"token,omitempty"`
+    CSRF      string `json:"csrf,omitempty"`
+    ProjectID string `json:"project_id,omitempty"`
+    CID       string `json:"cid,omitempty"`
+    Source    string `json:"source,omitempty"`
+}
 func LoadCreds() (*Credentials, error)
 func LoadProjectContext() (*ProjectContext, error)
+func SaveSession(session Session) error
+func GetStatus() Status
 func SetProject(projectID, cid string) error
 ```
 
@@ -206,6 +216,10 @@ network access.
 ```
 lovart --version
 lovart version
+lovart auth status
+lovart auth login
+lovart auth import [--file <file>|--stdin|--curl-file <file>|--cookie <value> --token <value>]
+lovart auth logout --yes
 lovart setup
 lovart self-test
 lovart doctor
@@ -238,9 +252,10 @@ lovart mcp install --clients auto --yes [--dry-run] [--force]
 lovart dev sign
 ```
 
-## MCP Tools (15)
+## MCP Tools (16)
 
 ```
+lovart_auth_status,
 lovart_setup, lovart_models, lovart_config,
 lovart_balance,
 lovart_project_current, lovart_project_list, lovart_project_select,
@@ -254,16 +269,14 @@ lovart_jobs_resume
 ## Chrome Extension Flow
 
 ```
-User opens Lovart page
-  → Content script injects right-side panel (React)
-  → Reads DOM: project_id, model, mode
-  → User enters N prompts → clicks "Batch Generate"
-  → Content script → Service Worker (chrome.runtime.sendMessage)
-  → SW reads cookies, loads wasm signer, submits tasks
-  → SW polls status, stores in chrome.storage.local
-  → Progress pushed to content script in real-time
-  → Tab closed → SW continues, chrome.notifications on completion
-  → Tab reopens → content script restores state from chrome.storage
+User runs `lovart auth login`
+  → CLI starts a one-time callback on 127.0.0.1:47821-47830
+  → CLI opens Lovart with `lovart_cli_auth=1`
+  → Content script detects the local callback and shows a Connect prompt
+  → User clicks Connect on the Lovart page
+  → Service worker reads Lovart cookies and recent auth headers
+  → Service worker posts the approved session to the local callback
+  → CLI stores `.lovart/creds.json` and prints safe next steps
 ```
 
 ## API Endpoints
@@ -286,5 +299,5 @@ User opens Lovart page
 | P2 | Project module (create, list, select, canvas writeback) | Partial |
 | P3 | Jobs batch generation + resume | Partial |
 | P4 | MCP server | MVP implemented |
-| P5 | Extension (content script + SW + signing) | Skeleton |
+| P5 | Extension (auth connector content script + SW + popup) | Implemented |
 | P6 | Reverse tooling (Python, mitmproxy) | Partial |

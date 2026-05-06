@@ -118,7 +118,7 @@ func checkAuth(snapshot credsSnapshot) Check {
 			Status:             CheckMissing,
 			Source:             snapshot.source,
 			Error:              "credentials file not found",
-			RecommendedActions: []string{"run `lovart-reverse start`", "run `lovart-reverse extract captures/<file>.json`"},
+			RecommendedActions: []string{"run `lovart auth login`", "run `lovart auth import --help`"},
 		}
 	}
 	if snapshot.readErr != nil {
@@ -136,7 +136,7 @@ func checkAuth(snapshot credsSnapshot) Check {
 			Status:             StatusBroken,
 			Source:             snapshot.source,
 			Error:              snapshot.parseErr.Error(),
-			RecommendedActions: []string{"rerun `lovart-reverse extract captures/<file>.json`"},
+			RecommendedActions: []string{"run `lovart auth login`", "run `lovart auth import --help`"},
 		}
 	}
 	if snapshot.credsErr != nil {
@@ -145,7 +145,7 @@ func checkAuth(snapshot credsSnapshot) Check {
 			Status:             CheckIncomplete,
 			Source:             snapshot.source,
 			Error:              snapshot.credsErr.Error(),
-			RecommendedActions: []string{"rerun `lovart-reverse extract captures/<file>.json`"},
+			RecommendedActions: []string{"run `lovart auth login`", "run `lovart auth import --help`"},
 		}
 	}
 	fields := credentialFields(snapshot.creds)
@@ -169,7 +169,7 @@ func checkProject(snapshot credsSnapshot) Check {
 			Source:             snapshot.source,
 			Error:              "credentials file not found",
 			Details:            details,
-			RecommendedActions: []string{"run `lovart-reverse extract captures/<file>.json`"},
+			RecommendedActions: []string{"run `lovart auth login`", "run `lovart auth import --help`"},
 		}
 	}
 	if snapshot.readErr != nil || snapshot.parseErr != nil {
@@ -183,7 +183,7 @@ func checkProject(snapshot credsSnapshot) Check {
 			Source:             snapshot.source,
 			Error:              err.Error(),
 			Details:            details,
-			RecommendedActions: []string{"rerun `lovart-reverse extract captures/<file>.json`"},
+			RecommendedActions: []string{"run `lovart auth login`", "run `lovart auth import --help`"},
 		}
 	}
 	if snapshot.projectErr != nil {
@@ -214,7 +214,7 @@ func checkProject(snapshot credsSnapshot) Check {
 
 	actions := []string{"run `lovart project list`", "run `lovart project select <project_id>`"}
 	if !cidPresent {
-		actions = append(actions, "rerun `lovart-reverse extract captures/<file>.json` to capture cid")
+		actions = append(actions, "run `lovart auth login` to refresh browser project context")
 	}
 	return Check{
 		OK:                 false,

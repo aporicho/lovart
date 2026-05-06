@@ -25,6 +25,7 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	root.AddCommand(
+		newAuthCmd(),
 		newSetupCmd(),
 		newProjectCmd(),
 		newModelsCmd(),

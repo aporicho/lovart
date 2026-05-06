@@ -114,6 +114,8 @@ func (s *Server) HandleMessage(ctx context.Context, message map[string]any) *rpc
 // CallTool validates arguments, applies MCP defaults, and invokes executor.
 func (s *Server) CallTool(ctx context.Context, name string, args map[string]any) envelope.Envelope {
 	switch name {
+	case "lovart_auth_status":
+		return s.executor.AuthStatus(ctx)
 	case "lovart_setup":
 		return s.executor.Setup(ctx, SetupArgs{})
 	case "lovart_models":

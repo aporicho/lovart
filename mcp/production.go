@@ -25,6 +25,11 @@ import (
 // ProductionExecutor executes MCP tools against the Lovart runtime.
 type ProductionExecutor struct{}
 
+// AuthStatus reports credential presence without exposing secret values.
+func (ProductionExecutor) AuthStatus(ctx context.Context) envelope.Envelope {
+	return okLocal(auth.GetStatus(), true)
+}
+
 // Setup runs local readiness checks without exposing secrets.
 func (ProductionExecutor) Setup(ctx context.Context, args SetupArgs) envelope.Envelope {
 	readiness := setup.Readiness()

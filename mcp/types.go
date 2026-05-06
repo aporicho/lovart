@@ -124,6 +124,7 @@ type JobsResumeArgs struct {
 
 // Executor runs validated MCP tool calls.
 type Executor interface {
+	AuthStatus(ctx context.Context) envelope.Envelope
 	Setup(ctx context.Context, args SetupArgs) envelope.Envelope
 	Models(ctx context.Context, args ModelsArgs) envelope.Envelope
 	Config(ctx context.Context, args ConfigArgs) envelope.Envelope

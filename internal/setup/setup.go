@@ -24,16 +24,17 @@ func Readiness() *Status {
 	authStatus := auth.GetStatus()
 	status := &Status{
 		Auth: map[string]any{
-			"available": authStatus.Available,
-			"source":    authStatus.Source,
-			"fields":    authStatus.Fields,
+			"available":       authStatus.Available,
+			"source":          authStatus.Source,
+			"credential_path": authStatus.CredentialPath,
+			"fields":          authStatus.Fields,
 		},
 		Signer: signerStatus(),
 		Refs:   metadataStatus(),
 	}
 	status.Ready = authStatus.Available && boolField(status.Signer, "available") && boolField(status.Refs, "available")
 	if !status.Ready {
-		status.Warnings = append(status.Warnings, "run `lovart update sync --all` after credentials are available")
+		status.Warnings = append(status.Warnings, "run `lovart auth login` if credentials are missing", "run `lovart update sync --all` after credentials are available")
 	}
 	return status
 }

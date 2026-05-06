@@ -4,7 +4,7 @@ This project is distributed as a self-contained `lovart` binary. The same binary
 
 ## Installer
 
-The recommended path is the release installer. It uses `gh release download`, verifies checksums, installs the matching binary, and configures detected MCP clients for `lovart mcp`.
+The recommended path is the release installer. It uses `gh release download`, verifies checksums, installs the matching binary plus Lovart Connector extension files, and configures detected MCP clients for `lovart mcp`.
 
 Authenticate first:
 
@@ -33,6 +33,19 @@ lovart mcp status
 ```
 
 If `lovart --version` shows an unexpected version, commit, or command set, replace the binary before calling generation commands.
+
+After installation, load the connector extension from the path printed by the installer:
+
+1. Open `chrome://extensions`.
+2. Enable Developer mode.
+3. Click `Load unpacked` and select `~/.lovart-reverse/extension/lovart-connector`.
+
+Connect the browser session before generation:
+
+```bash
+lovart auth login
+lovart doctor
+```
 
 ## MCP Config
 
@@ -78,6 +91,7 @@ MCP tools return the same JSON envelope as the CLI:
 
 ## Safe MCP Tools
 
+- `lovart_auth_status`
 - `lovart_setup`
 - `lovart_models`
 - `lovart_config`
@@ -94,7 +108,7 @@ MCP tools return the same JSON envelope as the CLI:
 - `lovart_jobs_status`
 - `lovart_jobs_resume`
 
-The MCP server does not expose capture, credential extraction, reverse replay submission, metadata sync, or direct `ref/` mutation.
+The MCP server does not expose interactive login, credential import/logout, capture, credential extraction, reverse replay submission, metadata sync, or direct `ref/` mutation.
 
 Long batch waits are resumable. MCP clients commonly cap a tool call around two minutes, so `lovart_jobs_run` and `lovart_jobs_resume` use compact summary output by default and cap `wait` windows at 90 seconds. If a batch is still running, call `lovart_jobs_resume` again or inspect `lovart_jobs_status`; saved `task_id`s are reused and are not resubmitted. For local files, call jobs tools with `download=true` and optionally `download_dir="/path/to/images"`.
 
@@ -104,6 +118,8 @@ When MCP is unavailable, use the same binary directly:
 
 ```bash
 lovart setup
+lovart auth status
+lovart auth login
 lovart doctor
 lovart config <model>
 lovart quote <model> --body-file request.json

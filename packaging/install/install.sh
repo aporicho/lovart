@@ -4,6 +4,7 @@ set -euo pipefail
 REPO="aporicho/lovart-reverse"
 VERSION="latest"
 INSTALL_DIR="${HOME}/.local/bin"
+EXTENSION_DIR="${HOME}/.lovart-reverse/extension/lovart-connector"
 MCP_CLIENTS="auto"
 YES=0
 FORCE=0
@@ -18,6 +19,7 @@ Options:
   --repo OWNER/REPO
   --version latest|vX.Y.Z
   --install-dir PATH
+  --extension-dir PATH
   --mcp-clients auto|all|none|codex,claude,opencode,openclaw
   --yes
   --force
@@ -41,13 +43,14 @@ emit_json() {
   local message="$2"
   local asset="${3:-}"
   local path="${4:-}"
-  printf '{"ok":%s,"message":%s,"data":{"repo":%s,"version":%s,"asset":%s,"install_path":%s,"mcp_clients":%s,"dry_run":%s}}\n' \
+  printf '{"ok":%s,"message":%s,"data":{"repo":%s,"version":%s,"asset":%s,"install_path":%s,"extension_path":%s,"mcp_clients":%s,"dry_run":%s}}\n' \
     "$ok" \
     "$(json_escape "$message")" \
     "$(json_escape "$REPO")" \
     "$(json_escape "$VERSION")" \
     "$(json_escape "$asset")" \
     "$(json_escape "$path")" \
+    "$(json_escape "$EXTENSION_DIR")" \
     "$(json_escape "$MCP_CLIENTS")" \
     "$([ "$DRY_RUN" -eq 1 ] && echo true || echo false)"
 }
@@ -80,6 +83,7 @@ while [ "$#" -gt 0 ]; do
     --repo) require_value "$1" "${2:-}"; REPO="$2"; shift 2 ;;
     --version) require_value "$1" "${2:-}"; VERSION="$2"; shift 2 ;;
     --install-dir) require_value "$1" "${2:-}"; INSTALL_DIR="$2"; shift 2 ;;
+    --extension-dir) require_value "$1" "${2:-}"; EXTENSION_DIR="$2"; shift 2 ;;
     --mcp-clients) require_value "$1" "${2:-}"; MCP_CLIENTS="$2"; shift 2 ;;
     --yes) YES=1; shift ;;
     --force) FORCE=1; shift ;;
@@ -100,6 +104,7 @@ case "${OS}:${ARCH}" in
 esac
 
 INSTALL_DIR="${INSTALL_DIR/#\~/$HOME}"
+EXTENSION_DIR="${EXTENSION_DIR/#\~/$HOME}"
 INSTALL_PATH="${INSTALL_DIR}/lovart"
 
 if [ "$DRY_RUN" -eq 1 ]; then
@@ -108,6 +113,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
   else
     log "Would download ${ASSET} from ${REPO} (${VERSION})"
     log "Would install to ${INSTALL_PATH}"
+    log "Would install Lovart Connector extension to ${EXTENSION_DIR}"
     log "Would run: ${INSTALL_PATH} mcp install --clients ${MCP_CLIENTS} --yes"
   fi
   exit 0
@@ -115,6 +121,7 @@ fi
 
 command -v gh >/dev/null 2>&1 || fail "gh CLI is required; install GitHub CLI and run gh auth login"
 gh auth status >/dev/null 2>&1 || fail "gh is not authenticated; run gh auth login"
+command -v unzip >/dev/null 2>&1 || fail "unzip is required to install Lovart Connector extension"
 
 if [ "$YES" -ne 1 ]; then
   printf 'Install Lovart to %s and configure MCP clients "%s"? [y/N] ' "$INSTALL_PATH" "$MCP_CLIENTS"
@@ -142,23 +149,33 @@ download_release_asset() {
 }
 
 BIN_TMP="${TMP_DIR}/lovart"
+EXT_TMP="${TMP_DIR}/lovart-connector-extension.zip"
 SUMS_TMP="${TMP_DIR}/SHA256SUMS"
 
 log "Downloading ${ASSET}..."
 download_release_asset "$ASSET" "$BIN_TMP"
+download_release_asset "lovart-connector-extension.zip" "$EXT_TMP"
 download_release_asset "SHA256SUMS" "$SUMS_TMP"
 
-EXPECTED_LINE="$(grep "  ${ASSET}$" "$SUMS_TMP" || true)"
-if [ -z "$EXPECTED_LINE" ]; then
-  fail "SHA256SUMS does not contain ${ASSET}"
-fi
-EXPECTED_HASH="${EXPECTED_LINE%% *}"
-if command -v sha256sum >/dev/null 2>&1; then
-  ACTUAL_HASH="$(sha256sum "$BIN_TMP" | awk '{print $1}')"
-else
-  ACTUAL_HASH="$(shasum -a 256 "$BIN_TMP" | awk '{print $1}')"
-fi
-[ "$EXPECTED_HASH" = "$ACTUAL_HASH" ] || fail "checksum mismatch for ${ASSET}"
+verify_release_asset() {
+  local asset="$1"
+  local path="$2"
+  local expected_line expected_hash actual_hash
+  expected_line="$(grep "  ${asset}$" "$SUMS_TMP" || true)"
+  if [ -z "$expected_line" ]; then
+    fail "SHA256SUMS does not contain ${asset}"
+  fi
+  expected_hash="${expected_line%% *}"
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual_hash="$(sha256sum "$path" | awk '{print $1}')"
+  else
+    actual_hash="$(shasum -a 256 "$path" | awk '{print $1}')"
+  fi
+  [ "$expected_hash" = "$actual_hash" ] || fail "checksum mismatch for ${asset}"
+}
+
+verify_release_asset "$ASSET" "$BIN_TMP"
+verify_release_asset "lovart-connector-extension.zip" "$EXT_TMP"
 
 mkdir -p "$INSTALL_DIR"
 if [ -e "$INSTALL_PATH" ]; then
@@ -172,6 +189,10 @@ chmod +x "$INSTALL_PATH"
 
 "$INSTALL_PATH" --version >/dev/null
 "$INSTALL_PATH" self-test >/dev/null
+
+rm -rf "$EXTENSION_DIR"
+mkdir -p "$EXTENSION_DIR"
+unzip -q "$EXT_TMP" -d "$EXTENSION_DIR"
 
 if [ "$MCP_CLIENTS" != "none" ]; then
   MCP_ARGS=("$INSTALL_PATH" "mcp" "install" "--clients" "$MCP_CLIENTS" "--yes")
@@ -192,5 +213,7 @@ if [ "$JSON" -eq 1 ]; then
   emit_json true "installed" "$ASSET" "$INSTALL_PATH"
 else
   log "Installed Lovart at ${INSTALL_PATH}"
+  log "Installed Lovart Connector extension at ${EXTENSION_DIR}"
+  log "Chrome setup: open chrome://extensions, enable Developer mode, then Load unpacked ${EXTENSION_DIR}"
   log "Run: ${INSTALL_PATH} --version"
 fi

@@ -21,7 +21,7 @@ This README is the main manual. Other docs are references or role methods; they 
 
 ## Install
 
-Normal users should use the release installer. It downloads the self-contained `lovart` binary and configures supported MCP clients for `lovart mcp`. It requires GitHub CLI authentication:
+Normal users should use the release installer. It downloads the self-contained `lovart` binary, installs the Lovart Connector extension files, and configures supported MCP clients for `lovart mcp`. It requires GitHub CLI authentication:
 
 ```bash
 gh auth login
@@ -47,6 +47,21 @@ Verify:
 lovart --version
 lovart doctor
 lovart mcp status
+```
+
+Load the extension from the path printed by the installer:
+
+1. Open `chrome://extensions`.
+2. Enable Developer mode.
+3. Click `Load unpacked` and select `~/.lovart-reverse/extension/lovart-connector`.
+
+Then connect your Lovart browser session:
+
+```bash
+lovart auth login
+lovart doctor
+lovart project list
+lovart project select <project_id>
 ```
 
 Direct binary download is the fallback path.
@@ -106,11 +121,17 @@ uv tool install git+ssh://git@github.com/aporicho/lovart-reverse.git
 uv tool install "git+ssh://git@github.com/aporicho/lovart-reverse.git#egg=lovart-reverse[reverse]"
 ```
 
-If auth is missing, a reverse maintainer can capture and extract credentials from a Python environment with the `reverse` extra:
+If auth is missing and the connector cannot be used, advanced users can import copied browser credentials:
+
+```bash
+lovart auth import --help
+```
+
+Reverse maintainers can still capture and extract credentials from a Python environment with the `reverse` extra:
 
 ```bash
 lovart-reverse start
-lovart-reverse auth extract captures/<lovart-request>.json
+lovart-reverse extract captures/<lovart-request>.json
 ```
 
 `lovart-reverse start` launches mitmproxy, opens an isolated Chrome profile through the proxy, and writes Lovart traffic into `captures/`. Stop it with Ctrl-C after the browser flow is complete. `lovart-reverse capture` remains available as a low-level command printer when you need to start mitmproxy manually.
@@ -134,6 +155,7 @@ Failure:
 Use this flow for one request:
 
 ```bash
+lovart auth status
 lovart setup
 lovart config openai/gpt-image-2
 lovart quote openai/gpt-image-2 --body-file request.json
@@ -235,7 +257,7 @@ Batch quote credit fields:
 
 ## Error Handling
 
-- `auth_missing`: reverse maintainers should run capture/auth extraction with `lovart-reverse`.
+- `auth_missing`: run `lovart auth login`; use `lovart auth import --help` as an advanced fallback.
 - `metadata_stale`: run `lovart update sync --metadata-only`, then retry.
 - `signer_stale`: do not submit real generation until signing is revalidated.
 - `schema_invalid`: fix request JSON according to schema errors.
@@ -250,6 +272,10 @@ Batch quote credit fields:
 lovart setup
 lovart --version
 lovart version
+lovart auth status
+lovart auth login
+lovart auth import --help
+lovart auth logout --yes
 lovart doctor
 lovart self-test
 lovart mcp

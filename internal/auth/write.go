@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/aporicho/lovart/internal/paths"
 )
@@ -13,12 +15,57 @@ func Save(c *Credentials) error {
 	if c == nil {
 		return fmt.Errorf("auth: cannot save nil credentials")
 	}
-	data, err := json.Marshal(c)
-	if err != nil {
-		return fmt.Errorf("auth: marshal credentials: %w", err)
+	return SaveSession(Session{Cookie: c.Cookie, Token: c.Token, CSRF: c.CSRF})
+}
+
+// SaveSession persists credentials and project context to the creds file.
+func SaveSession(session Session) error {
+	if session.Cookie == "" && session.Token == "" {
+		return fmt.Errorf("auth: cannot save session without cookie or token")
 	}
-	if err := os.WriteFile(paths.CredsFile, data, 0600); err != nil {
-		return fmt.Errorf("auth: write creds file: %w", err)
+	if session.UpdatedAt == "" {
+		session.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+	}
+	data := map[string]any{
+		"updated_at": session.UpdatedAt,
+	}
+	if session.Cookie != "" {
+		data["cookie"] = session.Cookie
+	}
+	if session.Token != "" {
+		data["token"] = session.Token
+	}
+	if session.CSRF != "" {
+		data["csrf"] = session.CSRF
+	}
+	if session.ProjectID != "" {
+		data["project_id"] = session.ProjectID
+		data["projectId"] = session.ProjectID
+	}
+	if session.CID != "" {
+		data["cid"] = session.CID
+	}
+	if session.ProjectID != "" || session.CID != "" {
+		ids := map[string]any{}
+		if session.ProjectID != "" {
+			ids["project_id"] = session.ProjectID
+			ids["projectId"] = session.ProjectID
+		}
+		if session.CID != "" {
+			ids["cid"] = session.CID
+		}
+		data["ids"] = ids
+	}
+	if session.Source != "" {
+		data["source"] = session.Source
+	}
+	return writeCredentialMap(data)
+}
+
+// Delete removes the primary v2 credentials file.
+func Delete() error {
+	if err := os.Remove(paths.CredsFile); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("auth: delete creds file: %w", err)
 	}
 	return nil
 }
@@ -26,7 +73,6 @@ func Save(c *Credentials) error {
 // SetProject saves the project context alongside existing credentials.
 // It preserves any existing non-project fields in the creds file.
 func SetProject(projectID, cid string) error {
-	// Read existing creds to preserve non-project fields.
 	existing := make(map[string]any)
 	if data, err := os.ReadFile(paths.CredsFile); err == nil {
 		_ = json.Unmarshal(data, &existing)
@@ -38,7 +84,6 @@ func SetProject(projectID, cid string) error {
 		existing["cid"] = cid
 	}
 
-	// Also update the nested ids sub-object for v1 compatibility.
 	if ids, ok := existing["ids"].(map[string]any); ok {
 		ids["project_id"] = projectID
 		ids["projectId"] = projectID
@@ -47,14 +92,25 @@ func SetProject(projectID, cid string) error {
 		}
 	} else if cid != "" {
 		existing["ids"] = map[string]any{
-			"projectId": projectID,
-			"cid":       cid,
+			"project_id": projectID,
+			"projectId":  projectID,
+			"cid":        cid,
 		}
 	}
+	if _, ok := existing["updated_at"]; !ok {
+		existing["updated_at"] = time.Now().UTC().Format(time.RFC3339)
+	}
 
-	data, err := json.Marshal(existing)
+	return writeCredentialMap(existing)
+}
+
+func writeCredentialMap(value map[string]any) error {
+	data, err := json.Marshal(value)
 	if err != nil {
-		return fmt.Errorf("auth: marshal project context: %w", err)
+		return fmt.Errorf("auth: marshal credentials: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(paths.CredsFile), 0700); err != nil {
+		return fmt.Errorf("auth: create creds directory: %w", err)
 	}
 	if err := os.WriteFile(paths.CredsFile, data, 0600); err != nil {
 		return fmt.Errorf("auth: write creds file: %w", err)

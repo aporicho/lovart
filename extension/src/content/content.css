@@ -1,0 +1,59 @@
+#lovart-cli-connect {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2147483647;
+  width: 300px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.2);
+  color: #111827;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 14px;
+}
+
+#lovart-cli-connect .lovart-cli-title {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 650;
+  margin: 0 0 6px;
+}
+
+#lovart-cli-connect .lovart-cli-body {
+  font-size: 13px;
+  line-height: 18px;
+  margin: 0 0 12px;
+  color: #4b5563;
+}
+
+#lovart-cli-connect .lovart-cli-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+#lovart-cli-connect button {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  min-height: 32px;
+  padding: 0 11px;
+}
+
+#lovart-cli-connect button[data-primary="true"] {
+  border-color: #111827;
+  background: #111827;
+  color: #ffffff;
+}
+
+#lovart-cli-connect .lovart-cli-status {
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b7280;
+  margin-top: 10px;
+}

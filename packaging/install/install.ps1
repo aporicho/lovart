@@ -2,6 +2,7 @@ param(
   [string]$Repo = "aporicho/lovart-reverse",
   [string]$Version = "latest",
   [string]$InstallDir = "$env:USERPROFILE\bin",
+  [string]$ExtensionDir = "$env:USERPROFILE\.lovart-reverse\extension\lovart-connector",
   [string]$McpClients = "auto",
   [switch]$Yes,
   [switch]$Force,
@@ -22,6 +23,7 @@ function Write-Result {
         version = $Version
         asset = $Asset
         install_path = $Path
+        extension_path = $ExtensionDir
         mcp_clients = $McpClients
         dry_run = [bool]$DryRun
       }
@@ -52,6 +54,7 @@ if ($DryRun) {
   } else {
     Write-Host "Would download $Asset from $Repo ($Version)"
     Write-Host "Would install to $InstallPath"
+    Write-Host "Would install Lovart Connector extension to $ExtensionDir"
     Write-Host "Would run: $InstallPath mcp install --clients $McpClients --yes"
   }
   exit 0
@@ -78,6 +81,7 @@ New-Item -ItemType Directory -Path $TmpDir | Out-Null
 
 try {
   $BinTmp = Join-Path $TmpDir "lovart.exe"
+  $ExtTmp = Join-Path $TmpDir "lovart-connector-extension.zip"
   $SumsTmp = Join-Path $TmpDir "SHA256SUMS"
 
   function Download-Asset {
@@ -93,17 +97,24 @@ try {
   }
 
   Download-Asset -Pattern $Asset -Output $BinTmp
+  Download-Asset -Pattern "lovart-connector-extension.zip" -Output $ExtTmp
   Download-Asset -Pattern "SHA256SUMS" -Output $SumsTmp
 
-  $Line = Get-Content $SumsTmp | Where-Object { $_ -match "\s+$([regex]::Escape($Asset))$" } | Select-Object -First 1
-  if (-not $Line) {
-    Fail "SHA256SUMS does not contain $Asset"
+  function Test-Checksum {
+    param([string]$AssetName, [string]$Path)
+    $Line = Get-Content $SumsTmp | Where-Object { $_ -match "\s+$([regex]::Escape($AssetName))$" } | Select-Object -First 1
+    if (-not $Line) {
+      Fail "SHA256SUMS does not contain $AssetName"
+    }
+    $ExpectedHash = ($Line -split "\s+")[0].ToLowerInvariant()
+    $ActualHash = (Get-FileHash -Algorithm SHA256 $Path).Hash.ToLowerInvariant()
+    if ($ExpectedHash -ne $ActualHash) {
+      Fail "checksum mismatch for $AssetName"
+    }
   }
-  $ExpectedHash = ($Line -split "\s+")[0].ToLowerInvariant()
-  $ActualHash = (Get-FileHash -Algorithm SHA256 $BinTmp).Hash.ToLowerInvariant()
-  if ($ExpectedHash -ne $ActualHash) {
-    Fail "checksum mismatch for $Asset"
-  }
+
+  Test-Checksum -AssetName $Asset -Path $BinTmp
+  Test-Checksum -AssetName "lovart-connector-extension.zip" -Path $ExtTmp
 
   New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
   if (Test-Path $InstallPath) {
@@ -122,6 +133,12 @@ try {
   if ($LASTEXITCODE -ne 0) {
     Fail "installed binary failed self-test"
   }
+
+  if (Test-Path $ExtensionDir) {
+    Remove-Item -Recurse -Force $ExtensionDir
+  }
+  New-Item -ItemType Directory -Force -Path $ExtensionDir | Out-Null
+  Expand-Archive -Path $ExtTmp -DestinationPath $ExtensionDir -Force
 
   if ($McpClients -ne "none") {
     $Args = @("mcp", "install", "--clients", $McpClients, "--yes")
@@ -146,6 +163,8 @@ try {
     Write-Result -Ok:$true -Message "installed" -Asset $Asset -Path $InstallPath
   } else {
     Write-Host "Installed Lovart at $InstallPath"
+    Write-Host "Installed Lovart Connector extension at $ExtensionDir"
+    Write-Host "Chrome setup: open chrome://extensions, enable Developer mode, then Load unpacked $ExtensionDir"
     Write-Host "Run: $InstallPath --version"
   }
 } finally {
