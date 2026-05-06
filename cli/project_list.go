@@ -10,18 +10,10 @@ import (
 )
 
 func newProjectListCmd() *cobra.Command {
-	var live bool
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "list",
 		Short: "List Lovart projects",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if !live {
-				printEnvelope(envelope.OK(map[string]any{
-					"projects": []any{},
-					"status":   "use --live to fetch from API",
-				}))
-				return nil
-			}
 			client, err := newSignedClient()
 			if err != nil {
 				printEnvelope(envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()}))
@@ -32,13 +24,11 @@ func newProjectListCmd() *cobra.Command {
 				printEnvelope(envelope.Err(errors.CodeInternal, "list projects", map[string]any{"error": err.Error()}))
 				return nil
 			}
-			printEnvelope(envelope.OK(map[string]any{
+			printEnvelope(okPreflight(map[string]any{
 				"count":    len(projects),
 				"projects": projects,
 			}))
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&live, "live", false, "fetch from Lovart API")
-	return cmd
 }

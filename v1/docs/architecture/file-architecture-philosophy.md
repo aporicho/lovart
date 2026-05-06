@@ -7,10 +7,10 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `lovart_reverse/auth/` owns credential loading, capture extraction, and secret-safe summaries.
 - `lovart_reverse/signing/` owns LGW signing, time sync, and signing fixtures.
 - `lovart_reverse/http/` owns Lovart HTTP sessions and base URLs.
-- `lovart_reverse/discovery/` owns live and reference generator list/schema retrieval.
+- `lovart_reverse/discovery/` owns remote and reference generator list/schema retrieval.
 - `lovart_reverse/config/` owns exhaustive agent-facing configuration discovery from schema values.
 - `lovart_reverse/registry/` owns model records, schema lookup, and request validation.
-- `lovart_reverse/pricing/` owns live quote requests and raw pricing metadata fetches used only for update drift checks.
+- `lovart_reverse/pricing/` owns remote quote requests and raw pricing metadata fetches used only for update drift checks.
 - `lovart_reverse/entitlement/` owns fast zero-credit and relaxed unlimited checks.
 - `lovart_reverse/generation/` owns dry-run previews, paid gate evaluation, and submission.
 - `lovart_reverse/jobs/` owns local batch queue parsing, whole-batch quote/preflight, submission orchestration, state, resume, and batch downloads.
@@ -31,7 +31,7 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 ## Primary Module Names
 
 - `config/schema_config.py` turns Lovart request schema into agent-facing config fields.
-- `discovery/generators.py` fetches live generator list and schema metadata.
+- `discovery/generators.py` fetches remote generator list and schema metadata.
 - `entitlement/checks.py` checks fast zero-credit and relaxed unlimited eligibility.
 - `setup/readiness.py` reports setup, auth, metadata, signer, and runtime readiness.
 - `update/drift.py` compares online Lovart state with local metadata snapshots.
@@ -45,7 +45,7 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `__init__.py` files export module APIs only. Business logic lives in named modules.
 - Do not add vague modules named `utils.py`, `helpers.py`, `common.py`, `service.py`, `legacy.py`, `compat.py`, or `glue.py`.
 - Business modules must not import `lovart_reverse.cli`.
-- CLI stdout must be JSON only. Diagnostics and live fallback warnings go to stderr.
+- CLI stdout must be JSON only. Diagnostics and remote fallback warnings go to stderr.
 - MCP tool results must wrap the same JSON envelope as CLI stdout.
 - Normal agent distribution is binary-first. Python package installs are for development and reverse maintenance.
 - Reverse-only dependencies such as mitmproxy must be optional extras, not default runtime dependencies.
@@ -58,4 +58,4 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 
 `ref/lovart_manifest.json` records hashes for the Lovart canvas HTML, static JS list, signer WASM, generator list, generator schema, pricing table, and entitlement shape. `lovart update check` is read-only. `lovart update sync --metadata-only` refreshes metadata snapshots without generating content.
 
-When frontend or signer artifacts change, real generation must be treated as unsafe until signing fixtures are revalidated. When pricing or entitlement hashes change, batch generation must rerun live quote and free checks.
+When frontend or signer artifacts change, real generation must be treated as unsafe until signing fixtures are revalidated. When pricing or entitlement hashes change, batch generation must rerun remote quote and free checks.

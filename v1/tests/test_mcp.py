@@ -4,6 +4,7 @@ import json
 import unittest
 from unittest.mock import patch
 
+from lovart_reverse.errors import AuthMissingError
 from lovart_reverse.mcp.server import UNSAFE_TOOL_NAMES, call_tool_envelope, handle_message, list_tools
 
 
@@ -23,8 +24,11 @@ class McpTest(unittest.TestCase):
             self.assertNotIn("update_sync", name)
 
     def test_tool_call_returns_cli_compatible_envelope(self) -> None:
-        result = call_tool_envelope("lovart_setup", {"offline": True})
+        with patch("lovart_reverse.commands.facade.setup_status", return_value={"ready": False}):
+            result = call_tool_envelope("lovart_setup", {})
         self.assertTrue(result["ok"])
+        self.assertEqual(result["execution_class"], "preflight")
+        self.assertTrue(result["network_required"])
         self.assertIn("ready", result["data"])
 
     def test_json_rpc_tools_list(self) -> None:
@@ -34,14 +38,15 @@ class McpTest(unittest.TestCase):
         self.assertIn("tools", response["result"])
 
     def test_json_rpc_tool_call_wraps_envelope_as_text(self) -> None:
-        response = handle_message(
-            {
-                "jsonrpc": "2.0",
-                "id": 2,
-                "method": "tools/call",
-                "params": {"name": "lovart_setup", "arguments": {"offline": True}},
-            }
-        )
+        with patch("lovart_reverse.commands.facade.setup_status", return_value={"ready": False}):
+            response = handle_message(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/call",
+                    "params": {"name": "lovart_setup", "arguments": {}},
+                }
+            )
         self.assertIsNotNone(response)
         content = response["result"]["content"]
         payload = json.loads(content[0]["text"])
@@ -49,12 +54,18 @@ class McpTest(unittest.TestCase):
 
     def test_generate_uses_paid_gate_and_does_not_submit_when_blocked(self) -> None:
         with (
-            patch("lovart_reverse.generation.preflight.auth_status", return_value={"exists": False, "header_names": []}),
+            patch(
+                "lovart_reverse.commands.facade.generation_preflight",
+                return_value=(
+                    {"can_submit": False, "blocking_error": {"code": "auth_missing"}},
+                    AuthMissingError("Lovart authentication is missing"),
+                ),
+            ),
             patch("lovart_reverse.commands.facade.submit_model") as submit,
         ):
             result = call_tool_envelope(
                 "lovart_generate",
-                {"model": "openai/gpt-image-2", "body": {"prompt": "x", "quality": "low", "size": "1024*1024"}, "offline": True},
+                {"model": "openai/gpt-image-2", "body": {"prompt": "x", "quality": "low", "size": "1024*1024"}},
             )
         self.assertFalse(result["ok"])
         self.assertEqual(result["error"]["code"], "auth_missing")

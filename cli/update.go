@@ -31,7 +31,7 @@ func newUpdateCmd() *cobra.Command {
 				}))
 				return nil
 			}
-			printEnvelope(envelope.OK(result))
+			printEnvelope(okPreflight(result, true))
 			return nil
 		},
 	})
@@ -102,6 +102,6 @@ func printUpdateSyncResult(result any, err error) error {
 		}))
 		return nil
 	}
-	printEnvelope(envelope.OK(result))
+	printEnvelope(okPreflight(result, true))
 	return nil
 }

@@ -20,7 +20,7 @@ def generator_list(biz_type: int = 16, language: str = "zh", live: bool = True) 
         try:
             return _unwrap(lgw_request("GET", "/v1/generator/list", params={"biz_type": biz_type}, language=language).json())
         except Exception as exc:
-            print(f"warning: live generator list fetch failed, falling back to ref: {exc}", file=sys.stderr)
+            print(f"warning: remote generator list fetch failed, falling back to ref: {exc}", file=sys.stderr)
     return _unwrap(read_json(GENERATOR_LIST_FILE))
 
 
@@ -29,5 +29,5 @@ def generator_schema(biz_type: int = 16, language: str = "zh", live: bool = True
         try:
             return _unwrap(lgw_request("GET", "/v1/generator/schema", params={"biz_type": biz_type}, language=language).json())
         except Exception as exc:
-            print(f"warning: live generator schema fetch failed, falling back to ref: {exc}", file=sys.stderr)
+            print(f"warning: remote generator schema fetch failed, falling back to ref: {exc}", file=sys.stderr)
     return _unwrap(read_json(GENERATOR_SCHEMA_FILE))

@@ -67,8 +67,8 @@ def _tool(name: str, description: str, properties: dict[str, Any], required: lis
 
 
 TOOLS: list[dict[str, Any]] = [
-    _tool("lovart_setup", "Check Lovart CLI readiness without exposing secrets.", {"offline": _boolean_schema()}),
-    _tool("lovart_models", "List known Lovart generator models.", {"live": _boolean_schema()}),
+    _tool("lovart_setup", "Run online Lovart readiness checks without exposing secrets.", {}),
+    _tool("lovart_models", "List known Lovart generator models; pass refresh=true to fetch current remote metadata.", {"refresh": _boolean_schema()}),
     _tool(
         "lovart_config",
         "Return exhaustive legal config values for one model.",
@@ -83,7 +83,7 @@ TOOLS: list[dict[str, Any]] = [
     ),
     _tool(
         "lovart_generate_dry_run",
-        "Run generation preflight without submitting.",
+        "Run online generation preflight without submitting.",
         {
             "model": _string_schema(),
             "body": {"type": "object"},
@@ -91,7 +91,6 @@ TOOLS: list[dict[str, Any]] = [
             "allow_paid": _boolean_schema(),
             "max_credits": _number_schema(),
             "language": _string_schema(),
-            "offline": _boolean_schema(),
         },
         ["model", "body"],
     ),
@@ -107,7 +106,6 @@ TOOLS: list[dict[str, Any]] = [
             "language": _string_schema(),
             "wait": _boolean_schema(),
             "download": _boolean_schema(),
-            "offline": _boolean_schema(),
         },
         ["model", "body"],
     ),
@@ -275,8 +273,8 @@ def _mcp_jobs_resume(args: dict[str, Any]) -> dict[str, Any]:
 def call_tool_data(name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
     args = arguments or {}
     handlers: dict[str, Callable[[], dict[str, Any]]] = {
-        "lovart_setup": lambda: setup_command(offline=bool(args.get("offline", False))),
-        "lovart_models": lambda: models_command(live=bool(args.get("live", False))),
+        "lovart_setup": lambda: setup_command(),
+        "lovart_models": lambda: models_command(refresh=bool(args.get("refresh", False))),
         "lovart_config": lambda: config_command(
             str(args["model"]),
             include_all=bool(args.get("include_all", False)),
@@ -291,7 +289,6 @@ def call_tool_data(name: str, arguments: dict[str, Any] | None = None) -> dict[s
             allow_paid=bool(args.get("allow_paid", False)),
             max_credits=args.get("max_credits"),
             language=str(args.get("language") or "en"),
-            offline=bool(args.get("offline", False)),
         ),
         "lovart_generate": lambda: generate_command(
             str(args["model"]),
@@ -302,7 +299,6 @@ def call_tool_data(name: str, arguments: dict[str, Any] | None = None) -> dict[s
             language=str(args.get("language") or "en"),
             wait=bool(args.get("wait", False)),
             download=bool(args.get("download", False)),
-            offline=bool(args.get("offline", False)),
         ),
         "lovart_jobs_quote": lambda: jobs_quote_command(
             Path(str(args["jobs_file"])),

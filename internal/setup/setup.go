@@ -19,8 +19,8 @@ type Status struct {
 	Warnings []string       `json:"warnings,omitempty"`
 }
 
-// Readiness checks all components needed for generation.
-func Readiness(offline bool) *Status {
+// Readiness checks local components needed before online generation.
+func Readiness() *Status {
 	authStatus := auth.GetStatus()
 	status := &Status{
 		Auth: map[string]any{
@@ -32,7 +32,7 @@ func Readiness(offline bool) *Status {
 		Refs:   metadataStatus(),
 	}
 	status.Ready = authStatus.Available && boolField(status.Signer, "available") && boolField(status.Refs, "available")
-	if !status.Ready && !offline {
+	if !status.Ready {
 		status.Warnings = append(status.Warnings, "run `lovart update sync --all` after credentials are available")
 	}
 	return status

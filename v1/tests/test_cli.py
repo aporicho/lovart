@@ -12,6 +12,20 @@ from lovart_reverse.cli.main import main
 from lovart_reverse.cli.application import build_parser
 
 
+FRESH_UPDATE = {
+    "status": "fresh",
+    "changes": {},
+    "signer_maybe_stale": False,
+    "recommended_actions": [],
+}
+
+ALLOW_GATE = {
+    "allowed": True,
+    "reason": "ok",
+    "quote": {"payable_credits": 0},
+}
+
+
 class CliTest(unittest.TestCase):
     def test_version_stdout_is_json_envelope(self) -> None:
         output = io.StringIO()
@@ -21,6 +35,8 @@ class CliTest(unittest.TestCase):
         payload = json.loads(output.getvalue())
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["data"]["package"], "lovart-reverse")
+        self.assertEqual(payload["execution_class"], "local")
+        self.assertFalse(payload["network_required"])
         self.assertIn("manifest", payload["data"])
 
     def test_self_test_stdout_is_json_envelope(self) -> None:
@@ -77,21 +93,31 @@ class CliTest(unittest.TestCase):
 
     def test_setup_stdout_is_json_envelope(self) -> None:
         output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            code = main(["setup", "--offline"])
+        with (
+            patch("lovart_reverse.setup.readiness.check_update", return_value=FRESH_UPDATE),
+            contextlib.redirect_stdout(output),
+        ):
+            code = main(["setup"])
         self.assertEqual(code, 0)
         payload = json.loads(output.getvalue())
         self.assertTrue(payload["ok"])
+        self.assertEqual(payload["execution_class"], "preflight")
+        self.assertTrue(payload["network_required"])
         self.assertIn("ready", payload["data"])
 
     def test_generate_dry_run_returns_preflight(self) -> None:
         output = io.StringIO()
-        with contextlib.redirect_stdout(output):
+        with (
+            patch(
+                "lovart_reverse.commands.facade.generation_preflight",
+                return_value=({"can_submit": True, "blocking_error": None}, None),
+            ),
+            contextlib.redirect_stdout(output),
+        ):
             code = main(
                 [
                     "generate",
                     "openai/gpt-image-2",
-                    "--offline",
                     "--dry-run",
                     "--body",
                     '{"prompt":"test","quality":"low","size":"1024*1024"}',
@@ -99,6 +125,9 @@ class CliTest(unittest.TestCase):
             )
         self.assertEqual(code, 0)
         payload = json.loads(output.getvalue())
+        self.assertEqual(payload["execution_class"], "preflight")
+        self.assertTrue(payload["network_required"])
+        self.assertFalse(payload["submitted"])
         self.assertFalse(payload["data"]["submitted"])
         self.assertIn("preflight", payload["data"])
 
@@ -106,6 +135,8 @@ class CliTest(unittest.TestCase):
         output = io.StringIO()
         with (
             patch("lovart_reverse.generation.preflight.auth_status", return_value={"exists": False, "header_names": []}),
+            patch("lovart_reverse.generation.preflight._update_status", return_value=FRESH_UPDATE),
+            patch("lovart_reverse.generation.preflight.generation_gate", return_value=ALLOW_GATE),
             patch("lovart_reverse.commands.facade.submit_model") as submit,
             contextlib.redirect_stdout(output),
         ):
@@ -113,7 +144,6 @@ class CliTest(unittest.TestCase):
                 [
                     "generate",
                     "openai/gpt-image-2",
-                    "--offline",
                     "--body",
                     '{"prompt":"test","quality":"low","size":"1024*1024"}',
                 ]
@@ -121,26 +151,6 @@ class CliTest(unittest.TestCase):
         self.assertEqual(code, 2)
         payload = json.loads(output.getvalue())
         self.assertEqual(payload["error"]["code"], "auth_missing")
-        submit.assert_not_called()
-
-    def test_generate_offline_real_submit_is_rejected(self) -> None:
-        output = io.StringIO()
-        with (
-            patch("lovart_reverse.commands.facade.submit_model") as submit,
-            contextlib.redirect_stdout(output),
-        ):
-            code = main(
-                [
-                    "generate",
-                    "openai/gpt-image-2",
-                    "--offline",
-                    "--body",
-                    '{"prompt":"test","quality":"low","size":"1024*1024"}',
-                ]
-            )
-        self.assertEqual(code, 2)
-        payload = json.loads(output.getvalue())
-        self.assertEqual(payload["error"]["code"], "unknown_pricing")
         submit.assert_not_called()
 
     def test_generate_stale_signer_errors_before_submit(self) -> None:

@@ -275,7 +275,7 @@ def sync_metadata() -> dict[str, Any]:
             str(WRITABLE_MANIFEST_FILE),
         ],
         "manifest": {key: manifest.get(key) for key in MANIFEST_KEYS},
-        "offline_checks": checks,
+        "local_checks": checks,
     }
 
 

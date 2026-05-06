@@ -14,7 +14,7 @@ import (
 )
 
 func newModelsCmd() *cobra.Command {
-	var live bool
+	var refresh bool
 
 	cmd := &cobra.Command{
 		Use:   "models",
@@ -22,7 +22,7 @@ func newModelsCmd() *cobra.Command {
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 
-			if !live {
+			if !refresh {
 				reg, err := registry.Load()
 				if err != nil {
 					printEnvelope(envelope.Err(errors.CodeMetadataStale, "failed to load model registry", map[string]any{
@@ -32,11 +32,11 @@ func newModelsCmd() *cobra.Command {
 					return nil
 				}
 				models := summarizeRegistryModels(reg.Models())
-				printEnvelope(envelope.OK(map[string]any{
+				printEnvelope(okLocal(map[string]any{
 					"models": models,
 					"count":  len(models),
 					"source": "registry",
-				}))
+				}, true))
 				return nil
 			}
 
@@ -85,16 +85,16 @@ func newModelsCmd() *cobra.Command {
 				return nil
 			}
 
-			printEnvelope(envelope.OK(map[string]any{
-				"source": "live",
+			printEnvelope(okPreflight(map[string]any{
+				"source": "remote",
 				"count":  len(models),
 				"models": models,
-			}))
+			}, false))
 			return nil
 		},
 	}
 
-	cmd.Flags().BoolVar(&live, "live", false, "fetch live model list from Lovart API")
+	cmd.Flags().BoolVar(&refresh, "refresh", false, "fetch current model list from Lovart API")
 	return cmd
 }
 

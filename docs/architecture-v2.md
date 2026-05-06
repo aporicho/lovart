@@ -179,22 +179,37 @@ func StatusJobs(runDir string, detail string) (*StatusSummary, error)
 ### Envelope
 ```go
 type Envelope struct {
-    OK       bool        `json:"ok"`
-    Data     any         `json:"data,omitempty"`
-    Warnings []string    `json:"warnings,omitempty"`
-    Error    *ErrorBody  `json:"error,omitempty"`
+    OK              bool       `json:"ok"`
+    Data            any        `json:"data,omitempty"`
+    ExecutionClass  string     `json:"execution_class,omitempty"`  // local | preflight | submit
+    NetworkRequired *bool      `json:"network_required,omitempty"`
+    RemoteWrite     *bool      `json:"remote_write,omitempty"`
+    Submitted       *bool      `json:"submitted,omitempty"`
+    CacheUsed       *bool      `json:"cache_used,omitempty"`
+    Warnings        []string   `json:"warnings,omitempty"`
+    Error           *ErrorBody `json:"error,omitempty"`
 }
 ```
+
+Execution classes are user-facing semantics, not a separate runtime mode:
+
+- `local`: reads local files, credentials, registry data, or saved job state. Network is not required.
+- `preflight`: contacts Lovart or validates against current remote state, but does not create generation tasks or mutate remote projects.
+- `submit`: performs a remote write, such as creating a generation task or mutating a project.
+
+Local registry, manifest, quote state, and job state are caches used for speed,
+resumability, and validation. They do not make Lovart generation usable without
+network access.
 
 ## CLI Command Tree
 
 ```
 lovart --version
 lovart version
-lovart setup [--offline]
+lovart setup
 lovart self-test
 lovart doctor
-lovart models [--live]
+lovart models [--refresh]
 lovart config <model> [--all] [--example defaults|zero_credit] [--global]
 lovart project list
 lovart project create <name>

@@ -208,7 +208,7 @@ For long-running models, especially MCP calls, use short resumable polling windo
 
 Batch quote reuses one web-style pricing client for each command run: Lovart time is synced once, signed pricing requests reuse that offset, and internal `original_unit_data` may be added only to the pricing payload. Users and agents should not put `original_unit_data` in request JSON.
 
-The quote command computes a strict `cost_signature` from model, mode, price-affecting parameters, output count, and media input counts. Requests with the same signature share one live quote; prompt/title changes alone do not trigger another quote. A 0-credit result is reusable only within the same signature, never across other parameter combinations.
+The quote command computes a strict `cost_signature` from model, mode, price-affecting parameters, output count, and media input counts. Requests with the same signature share one remote quote; prompt/title changes alone do not trigger another quote. A 0-credit result is reusable only within the same signature, never across other parameter combinations.
 
 For large batches, `--limit auto` is the default: more than 100 pending remote requests are processed 100 at a time. Rerun the same `lovart jobs quote <jobs.jsonl>` command until `summary.pending_quote_remote_requests` is `0`, or pass `--all` when you intentionally want to quote every pending request in one command.
 
@@ -256,9 +256,21 @@ lovart update sync --metadata-only
 lovart doctor
 ```
 
+## Execution Semantics
+
+Every JSON success envelope identifies what the command actually did:
+
+- `execution_class=local`: reads local files, credentials, registry data, or saved job state. It never contacts Lovart.
+- `execution_class=preflight`: contacts Lovart or checks current remote state without creating generation tasks or mutating remote projects.
+- `execution_class=submit`: performs a remote write, such as creating a generation task.
+
+Local registry, manifest, quote state, and job state are caches for speed,
+validation, and resumability. They are not a standalone operating mode;
+generation and remote validation require network access to Lovart.
+
 ## Self-Test Command
 
-`lovart self-test` is an offline local diagnostic. It does not submit tasks,
+`lovart self-test` is a local diagnostic. It does not submit tasks,
 does not generate images, does not spend credits, and does not contact Lovart.
 It checks credentials, project context, signer WASM, generator metadata, and
 the local registry, then returns one of three statuses:

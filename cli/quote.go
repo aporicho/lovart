@@ -49,7 +49,7 @@ func newQuoteCmd() *cobra.Command {
 				return nil
 			}
 
-			printEnvelope(envelope.OK(map[string]any{
+			printEnvelope(okPreflight(map[string]any{
 				"price":        result.Price,
 				"balance":      result.Balance,
 				"price_detail": result.PriceDetail,
@@ -79,7 +79,7 @@ func newBalanceCmd() *cobra.Command {
 				return nil
 			}
 
-			printEnvelope(envelope.OK(map[string]any{
+			printEnvelope(okPreflight(map[string]any{
 				"balance": bal,
 			}))
 			return nil

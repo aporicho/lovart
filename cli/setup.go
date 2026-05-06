@@ -4,23 +4,21 @@ import (
 	"context"
 
 	"github.com/aporicho/lovart/internal/auth"
-	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/metadata"
 	"github.com/aporicho/lovart/internal/paths"
 	"github.com/aporicho/lovart/internal/signing"
+	"github.com/aporicho/lovart/internal/update"
 	"github.com/spf13/cobra"
 )
 
 func newSetupCmd() *cobra.Command {
-	var offline bool
-
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "setup",
 		Short: "Check Lovart CLI readiness",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			authStatus := auth.GetStatus()
-			printEnvelope(envelope.OK(map[string]any{
-				"status":  "ok",
+			updateStatus, updateErr := update.Check(context.Background())
+			data := map[string]any{
 				"version": "2.0.0-dev",
 				"auth": map[string]any{
 					"available": authStatus.Available,
@@ -29,14 +27,23 @@ func newSetupCmd() *cobra.Command {
 				},
 				"signer":   checkSigner(),
 				"metadata": checkMetadata(),
-				"offline":  offline,
-			}))
+			}
+			if updateErr != nil {
+				data["status"] = "network_unavailable"
+				data["ready"] = false
+				data["update_error"] = map[string]any{
+					"error":               updateErr.Error(),
+					"recommended_actions": []string{"check network connectivity to www.lovart.ai", "rerun `lovart setup`"},
+				}
+			} else {
+				data["status"] = "ok"
+				data["ready"] = authStatus.Available
+				data["update"] = updateStatus
+			}
+			printEnvelope(okPreflight(data, true))
 			return nil
 		},
 	}
-
-	cmd.Flags().BoolVar(&offline, "offline", false, "skip live checks")
-	return cmd
 }
 
 func checkSigner() map[string]any {

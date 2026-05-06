@@ -16,16 +16,13 @@ from lovart_reverse.errors import (
 )
 from lovart_reverse.generation.gate import generation_gate
 from lovart_reverse.registry import load_ref_registry, validate_body
-from lovart_reverse.setup.readiness import offline_update_status
 from lovart_reverse.update import check_update
 
 
 RISKY_UPDATE_KEYS = {"generator_schema", "pricing", "entitlements"}
 
 
-def _update_status(live: bool) -> dict[str, Any]:
-    if not live:
-        return offline_update_status()
+def _update_status() -> dict[str, Any]:
     try:
         return check_update()
     except Exception as exc:
@@ -44,10 +41,9 @@ def _gate_result(
     mode: str,
     allow_paid: bool,
     max_credits: float | None,
-    live: bool,
 ) -> tuple[dict[str, Any], LovartError | None]:
     try:
-        return generation_gate(model, body, mode=mode, allow_paid=allow_paid, max_credits=max_credits, live=live), None
+        return generation_gate(model, body, mode=mode, allow_paid=allow_paid, max_credits=max_credits, live=True), None
     except (UnknownPricingError, CreditRiskError) as exc:
         return {"allowed": False, "reason": exc.code, "error": {"code": exc.code, "message": exc.message, "details": exc.details}}, exc
 
@@ -58,12 +54,11 @@ def generation_preflight(
     mode: str,
     allow_paid: bool,
     max_credits: float | None,
-    live: bool = True,
 ) -> tuple[dict[str, Any], LovartError | None]:
     auth = auth_status()
-    update = _update_status(live=live)
+    update = _update_status()
     schema_errors = validate_body(load_ref_registry(), model, body)
-    gate, gate_error = _gate_result(model, body, mode, allow_paid, max_credits, live=live)
+    gate, gate_error = _gate_result(model, body, mode, allow_paid, max_credits)
     changes = update.get("changes") or {}
     recommended_actions = list(update.get("recommended_actions") or [])
     blocking_error: LovartError | None = None
@@ -77,7 +72,7 @@ def generation_preflight(
             "Lovart frontend or signer changed; real generation is disabled until signing is revalidated",
             {"update": update, "recommended_actions": recommended_actions},
         )
-    elif update.get("status") not in {"fresh", "offline_cached"}:
+    elif update.get("status") != "fresh":
         blocking_error = MetadataStaleError(
             "Lovart metadata is not fresh enough for real generation",
             {"update": update, "recommended_actions": recommended_actions},

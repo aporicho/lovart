@@ -63,7 +63,7 @@ func newJobsQuoteCmd() *cobra.Command {
 				return nil
 			}
 
-			printEnvelope(envelope.OK(result))
+			printEnvelope(okPreflight(result))
 			return nil
 		},
 	}
@@ -107,7 +107,7 @@ func newJobsRunCmd() *cobra.Command {
 				return nil
 			}
 			result, err := jobs.RunPreparedJobs(context.Background(), remote, state, opts)
-			printJobsResult(result, err, "run jobs")
+			printJobsResult(result, err, "run jobs", okSubmit)
 			return nil
 		},
 	}
@@ -140,7 +140,7 @@ func newJobsDryRunCmd() *cobra.Command {
 				return nil
 			}
 			result, err := jobs.DryRunPreparedJobs(context.Background(), remote, state, opts)
-			printJobsResult(result, err, "dry-run jobs")
+			printJobsResult(result, err, "dry-run jobs", okPreflightSubmission)
 			return nil
 		},
 	}
@@ -165,7 +165,7 @@ func newJobsResumeCmd() *cobra.Command {
 				return nil
 			}
 			result, err := jobs.ResumeJobs(context.Background(), remote, runDir, opts)
-			printJobsResult(result, err, "resume jobs")
+			printJobsResult(result, err, "resume jobs", okSubmit)
 			return nil
 		},
 	}
@@ -191,7 +191,15 @@ func newJobsStatusCmd() *cobra.Command {
 				}
 			}
 			result, err := jobs.StatusJobs(context.Background(), remote, runDir, opts)
-			printJobsResult(result, err, "status jobs")
+			if opts.Refresh {
+				printJobsResult(result, err, "status jobs", func(data any, _ bool) envelope.Envelope {
+					return okPreflight(data)
+				})
+			} else {
+				printJobsResult(result, err, "status jobs", func(data any, _ bool) envelope.Envelope {
+					return okLocal(data)
+				})
+			}
 			return nil
 		},
 	}
@@ -296,9 +304,9 @@ func applyProjectContext(opts *jobs.JobsOptions) {
 	}
 }
 
-func printJobsResult(result *jobs.BatchResult, err error, message string) {
+func printJobsResult(result *jobs.BatchResult, err error, message string, okFn func(any, bool) envelope.Envelope) {
 	if err == nil {
-		printEnvelope(envelope.OK(result))
+		printEnvelope(okFn(result, result != nil && hasSubmittedJobs(result)))
 		return
 	}
 	var validationErr *jobs.ValidationError
@@ -317,4 +325,9 @@ func printJobsResult(result *jobs.BatchResult, err error, message string) {
 		return
 	}
 	printEnvelope(envelope.Err(errors.CodeInternal, message, map[string]any{"error": err.Error()}))
+}
+
+func hasSubmittedJobs(result *jobs.BatchResult) bool {
+	counts := result.Summary.RemoteStatusCounts
+	return counts[jobs.StatusSubmitted] > 0 || counts[jobs.StatusRunning] > 0 || counts[jobs.StatusCompleted] > 0 || counts[jobs.StatusDownloaded] > 0
 }

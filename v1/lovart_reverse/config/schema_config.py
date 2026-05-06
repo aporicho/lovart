@@ -46,7 +46,6 @@ def global_config() -> dict[str, Any]:
             "--download",
             "--allow-paid",
             "--max-credits",
-            "--offline",
         ],
         "update_flags": ["update check", "update diff", "update sync --metadata-only"],
         "paid_policy": {

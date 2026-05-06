@@ -45,7 +45,7 @@ func newProjectRepairCanvasCmd() *cobra.Command {
 				printEnvelope(envelope.Err(errors.CodeInternal, "repair canvas", map[string]any{"error": err.Error()}))
 				return nil
 			}
-			printEnvelope(envelope.OK(map[string]any{
+			printEnvelope(okRemoteWrite(map[string]any{
 				"project_id": projectID,
 				"repair":     result,
 			}))

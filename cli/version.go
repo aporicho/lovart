@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/version"
 	"github.com/spf13/cobra"
 )
@@ -15,7 +14,7 @@ func newVersionCmd() *cobra.Command {
 		Use:   "version",
 		Short: "Print version information",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			printEnvelope(envelope.OK(versionData()))
+			printEnvelope(okLocal(versionData()))
 			return nil
 		},
 	}

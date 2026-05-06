@@ -44,7 +44,7 @@ Refresh metadata without generation:
 lovart update sync --metadata-only
 ```
 
-This rewrites generator list/schema, pricing table, and manifest in `ref/`, then runs offline registry/pricing/entitlement checks.
+This rewrites generator list/schema, pricing table, and manifest in `ref/`, then runs local registry/pricing/entitlement cache checks.
 
 ## 4. Validate Generation Safely
 

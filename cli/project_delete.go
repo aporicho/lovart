@@ -27,7 +27,7 @@ func newProjectDeleteCmd() *cobra.Command {
 				printEnvelope(envelope.Err(errors.CodeInternal, "delete project", map[string]any{"error": err.Error()}))
 				return nil
 			}
-			printEnvelope(envelope.OK(map[string]any{
+			printEnvelope(okRemoteWrite(map[string]any{
 				"deleted":    true,
 				"project_id": projectID,
 			}))

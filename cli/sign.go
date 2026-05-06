@@ -40,7 +40,7 @@ func newSignCmd() *cobra.Command {
 				return nil
 			}
 
-			printEnvelope(envelope.OK(map[string]any{
+			printEnvelope(okLocal(map[string]any{
 				"signer":    "wazero+wasm",
 				"healthy":   true,
 				"signature": result.Signature,

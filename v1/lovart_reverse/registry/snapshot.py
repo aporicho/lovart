@@ -103,7 +103,7 @@ def request_schema(snapshot: RegistrySnapshot, model: str) -> dict[str, Any] | N
 
 
 def validate_body(snapshot: RegistrySnapshot, model: str, body: dict[str, Any]) -> list[str]:
-    """Run a conservative offline request-schema validation.
+    """Run a conservative local request-schema validation.
 
     This does not implement full JSON Schema. It catches missing required
     fields and obvious type mismatches without becoming another dependency.

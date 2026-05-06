@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 
-	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/metadata"
 	"github.com/aporicho/lovart/internal/paths"
 	"github.com/aporicho/lovart/internal/signing"
@@ -33,7 +32,7 @@ func newDoctorCmd() *cobra.Command {
 				checks["recommended_actions"] = recommended
 			}
 			checks["status"] = status
-			printEnvelope(envelope.OK(checks))
+			printEnvelope(okLocal(checks, true))
 			return nil
 		},
 	}

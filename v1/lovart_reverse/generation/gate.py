@@ -36,8 +36,6 @@ def generation_gate(
                 {"quoted_credits": credits, "max_credits": max_credits},
             )
         return {"allowed": True, "reason": "paid_allowed", "entitlement": entitlement, "pricing": pricing}
-    if not live and entitlement.get("zero_credit"):
-        return {"allowed": True, "reason": "zero_credit_entitlement", "entitlement": entitlement, "pricing": pricing}
     if not pricing.get("quoted"):
         raise UnknownPricingError(
             "pricing is unknown; refusing to submit generation",

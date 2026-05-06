@@ -31,6 +31,7 @@ from lovart_reverse.commands import (
 )
 from lovart_reverse.discovery import generator_schema
 from lovart_reverse.errors import InputError, LovartError
+from lovart_reverse.execution import LOCAL, PREFLIGHT, SUBMIT, annotate
 from lovart_reverse.io_json import load_body
 from lovart_reverse.mcp import mcp_install, mcp_status
 from lovart_reverse.paths import PACKAGE_DIR
@@ -54,24 +55,24 @@ def _schema_validation(model: str, body: dict[str, Any]) -> list[str]:
 
 def cmd_auth(args: argparse.Namespace) -> dict[str, Any]:
     if args.auth_cmd == "status":
-        return auth_status()
+        return annotate(auth_status(), LOCAL, network_required=False, remote_write=False)
     if args.auth_cmd == "extract":
-        return extract_from_capture(args.capture)
+        return annotate(extract_from_capture(args.capture), LOCAL, network_required=False, remote_write=False)
     raise ValueError("unknown auth command")
 
 
 def cmd_models(args: argparse.Namespace) -> dict[str, Any]:
-    return models_command(live=args.live)
+    return models_command(refresh=args.refresh)
 
 
 def cmd_schema(args: argparse.Namespace) -> dict[str, Any]:
-    if args.live:
+    if args.refresh:
         schema = generator_schema(live=True)
-        return {"source": "live", "raw": schema}
+        return annotate({"source": "remote", "raw": schema}, PREFLIGHT, network_required=True, remote_write=False, cache_used=False)
     schema = request_schema(load_ref_registry(), args.model)
     if not schema:
         raise InputError("model schema not found", {"model": args.model})
-    return {"source": "ref", "model": args.model, "schema": schema}
+    return annotate({"source": "ref", "model": args.model, "schema": schema}, LOCAL, network_required=False, remote_write=False, cache_used=True)
 
 
 def cmd_quote(args: argparse.Namespace) -> dict[str, Any]:
@@ -83,13 +84,13 @@ def cmd_free(args: argparse.Namespace) -> dict[str, Any]:
     from lovart_reverse.entitlement import free_check
 
     body = _load_body_args(args)
-    result = free_check(args.model, body, mode=args.mode, live=not args.offline)
+    result = free_check(args.model, body, mode=args.mode, live=True)
     result["schema_errors"] = _schema_validation(args.model, body)
-    return result
+    return annotate(result, PREFLIGHT, network_required=True, remote_write=False, cache_used=True)
 
 
 def cmd_setup(args: argparse.Namespace) -> dict[str, Any]:
-    return setup_command(offline=args.offline)
+    return setup_command()
 
 
 def cmd_config(args: argparse.Namespace) -> dict[str, Any]:
@@ -108,12 +109,11 @@ def cmd_generate(args: argparse.Namespace) -> dict[str, Any]:
         language=args.language,
         wait=args.wait,
         download=args.download,
-        offline=args.offline,
     )
 
 
 def cmd_task(args: argparse.Namespace) -> dict[str, Any]:
-    return task_info(args.task_id)
+    return annotate(task_info(args.task_id), PREFLIGHT, network_required=True, remote_write=False)
 
 
 def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
@@ -178,52 +178,52 @@ def cmd_jobs(args: argparse.Namespace) -> dict[str, Any]:
 
 def cmd_update(args: argparse.Namespace) -> dict[str, Any]:
     if args.update_cmd == "check":
-        return check_update()
+        return annotate(check_update(), PREFLIGHT, network_required=True, remote_write=False, cache_used=True)
     if args.update_cmd == "diff":
-        return diff_update()
+        return annotate(diff_update(), PREFLIGHT, network_required=True, remote_write=False, cache_used=True)
     if args.update_cmd == "sync":
         if not args.metadata_only:
             raise InputError("only --metadata-only sync is supported")
-        return sync_metadata()
+        return annotate(sync_metadata(), PREFLIGHT, network_required=True, remote_write=False, cache_used=True)
     raise ValueError("unknown update command")
 
 
 def cmd_reverse(args: argparse.Namespace) -> dict[str, Any]:
     if args.reverse_cmd == "replay":
-        return replay_capture(args.capture, submit=args.submit)
+        return annotate(replay_capture(args.capture, submit=args.submit), SUBMIT if args.submit else LOCAL, network_required=args.submit, remote_write=args.submit, submitted=args.submit)
     if args.reverse_cmd == "capture":
         addon = PACKAGE_DIR / "capture" / "mitm_addon.py"
-        return capture_command(args.port, addon)
+        return annotate(capture_command(args.port, addon), LOCAL, network_required=False, remote_write=False)
     if args.reverse_cmd == "start":
-        return run_capture_session(
+        return annotate(run_capture_session(
             port=args.port,
             url=args.url,
             profile_dir=args.profile_dir,
             browser=args.browser,
             open_browser=not args.no_browser,
             dry_run=args.dry_run,
-        )
+        ), LOCAL, network_required=False, remote_write=False)
     raise ValueError("unknown reverse command")
 
 
 def cmd_doctor(args: argparse.Namespace) -> dict[str, Any]:
     from lovart_reverse.diagnostics.architecture import run_checks
 
-    return run_checks().to_dict()
+    return annotate(run_checks().to_dict(), LOCAL, network_required=False, remote_write=False, cache_used=True)
 
 
 def cmd_mcp(args: argparse.Namespace) -> dict[str, Any]:
     if args.mcp_cmd == "status":
-        return mcp_status(clients=args.clients, lovart_path=args.lovart_path, home=args.home)
+        return annotate(mcp_status(clients=args.clients, lovart_path=args.lovart_path, home=args.home), LOCAL, network_required=False, remote_write=False)
     if args.mcp_cmd == "install":
-        return mcp_install(
+        return annotate(mcp_install(
             clients=args.clients,
             lovart_path=args.lovart_path,
             home=args.home,
             dry_run=args.dry_run,
             yes=args.yes,
             force=args.force,
-        )
+        ), LOCAL, network_required=False, remote_write=False)
     raise ValueError("unknown mcp command")
 
 
@@ -232,8 +232,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="store_true", dest="show_version")
     sub = parser.add_subparsers(dest="command")
 
-    setup = sub.add_parser("setup")
-    setup.add_argument("--offline", action="store_true")
+    sub.add_parser("setup")
 
     auth = sub.add_parser("auth")
     auth_sub = auth.add_subparsers(dest="auth_cmd", required=True)
@@ -242,11 +241,11 @@ def build_parser() -> argparse.ArgumentParser:
     auth_extract.add_argument("capture", type=Path)
 
     models = sub.add_parser("models")
-    models.add_argument("--live", action="store_true")
+    models.add_argument("--refresh", action="store_true")
 
     schema = sub.add_parser("schema")
     schema.add_argument("model")
-    schema.add_argument("--live", action="store_true")
+    schema.add_argument("--refresh", action="store_true")
 
     config = sub.add_parser("config")
     config.add_argument("model", nargs="?")
@@ -263,7 +262,6 @@ def build_parser() -> argparse.ArgumentParser:
     free.add_argument("model")
     _add_body_args(free)
     free.add_argument("--mode", choices=["fast", "relax", "auto"], default="auto")
-    free.add_argument("--offline", action="store_true")
 
     update = sub.add_parser("update")
     update_sub = update.add_subparsers(dest="update_cmd", required=True)
@@ -283,7 +281,6 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--language", default="en")
     generate.add_argument("--wait", action="store_true")
     generate.add_argument("--download", action="store_true")
-    generate.add_argument("--offline", action="store_true")
 
     task = sub.add_parser("task")
     task.add_argument("task_id")

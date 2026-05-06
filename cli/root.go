@@ -2,7 +2,6 @@
 package cli
 
 import (
-	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +15,7 @@ func NewRootCommand() *cobra.Command {
 		Long:  "Lovart is a CLI and MCP tool for interacting with the Lovart AI image generation platform.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if showVersion {
-				printEnvelope(envelope.OK(versionData()))
+				printEnvelope(okLocal(versionData()))
 				return nil
 			}
 			return cmd.Help()

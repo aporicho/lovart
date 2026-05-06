@@ -19,10 +19,10 @@ from lovart_reverse.update import check_update
 from lovart_reverse.update.manifest import load_manifest
 
 
-def offline_update_status() -> dict[str, Any]:
+def local_cache_status() -> dict[str, Any]:
     manifest = load_manifest()
     return {
-        "status": "offline_cached" if manifest else "missing_manifest",
+        "status": "cache_available" if manifest else "missing_manifest",
         "changes": {},
         "signer_maybe_stale": False if manifest else True,
         "recommended_actions": [] if manifest else ["run lovart update sync --metadata-only"],
@@ -30,9 +30,7 @@ def offline_update_status() -> dict[str, Any]:
     }
 
 
-def _safe_update_status(offline: bool) -> dict[str, Any]:
-    if offline:
-        return offline_update_status()
+def _safe_update_status() -> dict[str, Any]:
     try:
         return check_update()
     except Exception as exc:
@@ -45,9 +43,9 @@ def _safe_update_status(offline: bool) -> dict[str, Any]:
         }
 
 
-def setup_status(offline: bool = False) -> dict[str, Any]:
+def setup_status() -> dict[str, Any]:
     auth = auth_status()
-    update = _safe_update_status(offline=offline)
+    update = _safe_update_status()
     refs = {
         "manifest": {"path": str(MANIFEST_FILE), "exists": MANIFEST_FILE.exists()},
         "generator_list": {"path": str(GENERATOR_LIST_FILE), "exists": GENERATOR_LIST_FILE.exists()},
@@ -65,7 +63,7 @@ def setup_status(offline: bool = False) -> dict[str, Any]:
     }
     auth_ready = bool(auth.get("exists") and auth.get("header_names"))
     refs_ready = all(item["exists"] for item in refs.values())
-    update_ready = update.get("status") in {"fresh", "offline_cached"}
+    update_ready = update.get("status") == "fresh"
     signer_ready = signer["signature_js_exists"] and signer["wasm_exists"] and not signer["maybe_stale"]
     recommended_actions: list[str] = []
     if not auth_ready:

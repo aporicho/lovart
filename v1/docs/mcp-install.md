@@ -58,7 +58,7 @@ lovart mcp install --clients auto --yes
 MCP tools return the same JSON envelope as the CLI:
 
 ```json
-{"ok":true,"data":{},"warnings":[]}
+{"ok":true,"data":{},"execution_class":"preflight","network_required":true,"remote_write":false,"warnings":[]}
 ```
 
 ```json
@@ -105,6 +105,11 @@ lovart jobs resume runs/<project>/jobs.jsonl --wait --download
 ```
 
 Paid generation still requires explicit budget flags in both MCP and CLI calls.
+
+The tool has one network-required operating model for Lovart state checks and
+submission. Local registry, quote, and job state are caches for speed and
+resumability; commands that validate current Lovart state or submit work still
+require network access.
 
 ## Developer And Reverse Maintainer Install
 

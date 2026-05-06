@@ -171,7 +171,7 @@ def _normalize_quote_response(
 
 
 def quote_or_unknown(model: str, body: dict[str, Any], *, live: bool = True, language: str = "en") -> dict[str, Any]:
-    """Use the live quote endpoint when available; never estimate spend."""
+    """Use the remote quote endpoint when available; never estimate spend."""
 
     if live:
         try:
@@ -189,11 +189,11 @@ def quote_or_unknown(model: str, body: dict[str, Any], *, live: bool = True, lan
                 "payable_credits": None,
                 "listed_credits": None,
                 "quote_error": {"type": exc.__class__.__name__, "message": str(exc), "code": code},
-                "warnings": ["live quote failed; credit spend is unknown"],
+                "warnings": ["remote quote failed; credit spend is unknown"],
             }
     return {
         "model": model,
         "quoted": False,
         "credits": None,
-        "warnings": ["live quote was disabled; credit spend is unknown"],
+        "warnings": ["remote quote was disabled; credit spend is unknown"],
     }

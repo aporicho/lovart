@@ -26,7 +26,7 @@ def fetch_pricing_payload(live: bool = True) -> Any:
             if isinstance(link_url, str) and link_url.strip()[:1] in "[{":
                 return json.loads(link_url)
         except Exception as exc:
-            print(f"warning: live pricing fetch failed, falling back to local data: {exc}", file=sys.stderr)
+            print(f"warning: remote pricing fetch failed, falling back to local data: {exc}", file=sys.stderr)
 
     if PRICING_TABLE_FILE.exists():
         return json.loads(PRICING_TABLE_FILE.read_text())

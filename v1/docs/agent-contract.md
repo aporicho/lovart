@@ -7,7 +7,7 @@ This is the field-level API reference for agents. For workflow and rules, read `
 Success:
 
 ```json
-{"ok":true,"data":{},"warnings":[]}
+{"ok":true,"data":{},"execution_class":"local","network_required":false,"remote_write":false,"warnings":[]}
 ```
 
 Failure:
@@ -19,6 +19,15 @@ Failure:
 stdout is the machine contract. stderr is diagnostic only.
 
 MCP tools return the same envelope as JSON text in their `content[0].text` result. Agents should parse that text exactly like CLI stdout.
+
+Execution metadata is part of the stable envelope:
+
+- `execution_class=local`: local reads and diagnostics only.
+- `execution_class=preflight`: current remote checks without remote writes.
+- `execution_class=submit`: remote write or generation submission.
+- `network_required`, `remote_write`, `submitted`, and `cache_used` make the side effects explicit.
+
+Local caches are used for speed, validation, and resumability. They do not make generation or remote validation available without network access.
 
 ## Config
 
@@ -127,7 +136,7 @@ Quote state is isolated per jobs file at `<run_dir>/.lovart_quote/<jobs-stem>-<j
 
 Quote reuse is based on `cost_signature`. The signature includes model, mode, price-affecting parameters, output count, media input counts/types, and the quote signature version. It excludes prompt/title fields and schema-marked format-only fields. A 0-credit quote may be reused only for the same `cost_signature`.
 
-If live quote cannot reach Lovart, the quote report includes `summary.network_unavailable_remote_requests`, one of `summary.error_counts.network_unavailable`, `summary.error_counts.timestamp_network_unavailable`, or `summary.error_counts.pricing_network_unavailable`, and a matching `quote_blocker.code` when the whole quote run is blocked. In that case the CLI stops early, keeps remaining retryable requests pending, and the agent should fix DNS/network access to `www.lovart.ai` before rerunning the same quote command.
+If remote quote cannot reach Lovart, the quote report includes `summary.network_unavailable_remote_requests`, one of `summary.error_counts.network_unavailable`, `summary.error_counts.timestamp_network_unavailable`, or `summary.error_counts.pricing_network_unavailable`, and a matching `quote_blocker.code` when the whole quote run is blocked. In that case the CLI stops early, keeps remaining retryable requests pending, and the agent should fix DNS/network access to `www.lovart.ai` before rerunning the same quote command.
 
 `lovart jobs dry-run|run|resume` can return compact or full detail. CLI defaults to full for `run/resume` for backward compatibility, while MCP defaults to `detail=summary` to avoid oversized tool results. `lovart jobs status` defaults to `detail=summary`.
 

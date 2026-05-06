@@ -33,7 +33,7 @@ func newProjectCreateCmd() *cobra.Command {
 				return nil
 			}
 			auth.SetProject(p.ID, cid)
-			printEnvelope(envelope.OK(map[string]any{
+			printEnvelope(okRemoteWrite(map[string]any{
 				"created":    true,
 				"project_id": p.ID,
 				"name":       p.Name,

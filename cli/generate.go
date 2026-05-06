@@ -114,11 +114,11 @@ func newGenerateCmd() *cobra.Command {
 			}
 
 			if dryRun {
-				printEnvelope(envelope.OK(map[string]any{
+				printEnvelope(okPreflightSubmission(map[string]any{
 					"submitted":  false,
 					"preflight":  preflight,
 					"project_id": projectID,
-				}))
+				}, false))
 				return nil
 			}
 
@@ -209,7 +209,7 @@ func newGenerateCmd() *cobra.Command {
 				}
 			}
 
-			printEnvelope(envelope.OK(output))
+			printEnvelope(okSubmit(output, true))
 			return nil
 		},
 	}

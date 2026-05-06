@@ -47,7 +47,7 @@ func newProjectShowCmd() *cobra.Command {
 				printEnvelope(envelope.Err(errors.CodeInternal, "query project", map[string]any{"error": err.Error()}))
 				return nil
 			}
-			printEnvelope(envelope.OK(map[string]any{
+			printEnvelope(okPreflight(map[string]any{
 				"project_id":   p.ID,
 				"project_name": p.Name,
 				"canvas_url":   fmt.Sprintf("https://www.lovart.ai/canvas?projectId=%s", p.ID),

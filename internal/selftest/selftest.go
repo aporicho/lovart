@@ -1,4 +1,4 @@
-// Package selftest provides offline diagnostics for the Lovart runtime.
+// Package selftest provides local diagnostics for the Lovart runtime.
 package selftest
 
 import (
@@ -37,7 +37,7 @@ type Result struct {
 	RecommendedActions []string `json:"recommended_actions,omitempty"`
 }
 
-// Checks groups all offline diagnostics.
+// Checks groups all local diagnostics.
 type Checks struct {
 	CLI      Check `json:"cli"`
 	Auth     Check `json:"auth"`
@@ -193,7 +193,7 @@ func checkProject(snapshot credsSnapshot) Check {
 			Source:             snapshot.source,
 			Error:              snapshot.projectErr.Error(),
 			Details:            details,
-			RecommendedActions: []string{"run `lovart project list --live`", "run `lovart project select <project_id>`"},
+			RecommendedActions: []string{"run `lovart project list`", "run `lovart project select <project_id>`"},
 		}
 	}
 
@@ -212,7 +212,7 @@ func checkProject(snapshot credsSnapshot) Check {
 		return Check{OK: true, Status: CheckOK, Source: snapshot.source, Fields: fields, Details: details}
 	}
 
-	actions := []string{"run `lovart project list --live`", "run `lovart project select <project_id>`"}
+	actions := []string{"run `lovart project list`", "run `lovart project select <project_id>`"}
 	if !cidPresent {
 		actions = append(actions, "rerun `lovart-reverse extract captures/<file>.json` to capture cid")
 	}

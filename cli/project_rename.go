@@ -28,7 +28,7 @@ func newProjectRenameCmd() *cobra.Command {
 				printEnvelope(envelope.Err(errors.CodeInternal, "rename project", map[string]any{"error": err.Error()}))
 				return nil
 			}
-			printEnvelope(envelope.OK(map[string]any{
+			printEnvelope(okRemoteWrite(map[string]any{
 				"renamed":    true,
 				"project_id": projectID,
 				"name":       newName,

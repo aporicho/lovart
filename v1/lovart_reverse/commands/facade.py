@@ -14,7 +14,8 @@ from lovart_reverse.capture.runtime import reverse_extra_status
 from lovart_reverse.config import config_for_model, global_config
 from lovart_reverse.discovery import generator_list
 from lovart_reverse.downloads import download_artifacts
-from lovart_reverse.errors import InputError, UnknownPricingError
+from lovart_reverse.errors import InputError
+from lovart_reverse.execution import LOCAL, PREFLIGHT, SUBMIT, annotate
 from lovart_reverse.generation import dry_run_request, find_task_id, generation_preflight, submit_model
 from lovart_reverse.io_json import hash_bytes
 from lovart_reverse.jobs import dry_run_jobs, quote_jobs, quote_status, resume_jobs, run_jobs, status_jobs
@@ -30,7 +31,7 @@ from lovart_reverse.paths import (
 )
 from lovart_reverse.pricing.quote import quote
 from lovart_reverse.registry import load_ref_registry, model_records, validate_body
-from lovart_reverse.setup import setup_status
+from lovart_reverse.setup import local_cache_status, setup_status
 from lovart_reverse.task import task_info
 
 
@@ -94,7 +95,7 @@ def _file_hash(path: Path) -> str | None:
 
 
 def version_command() -> dict[str, Any]:
-    return {
+    return annotate({
         "package": "lovart-reverse",
         "version": _package_version(),
         "git_commit": _git_commit(),
@@ -105,7 +106,7 @@ def version_command() -> dict[str, Any]:
         "package_ref_dir": str(PACKAGE_REF_DIR),
         "manifest": {"path": str(MANIFEST_FILE), "hash": _file_hash(MANIFEST_FILE)},
         "generator_schema": {"path": str(GENERATOR_SCHEMA_FILE), "hash": _file_hash(GENERATOR_SCHEMA_FILE)},
-    }
+    }, LOCAL, network_required=False, remote_write=False, cache_used=True)
 
 
 def self_test_command() -> dict[str, Any]:
@@ -115,7 +116,7 @@ def self_test_command() -> dict[str, Any]:
         "signer_wasm": {"path": str(SIGNER_WASM), "exists": SIGNER_WASM.exists()},
         "signature_js": {"path": str(SIGNATURE_JS), "exists": SIGNATURE_JS.exists()},
     }
-    setup = setup_status(offline=True)
+    setup = {"update": local_cache_status()}
     registry = load_ref_registry()
     models = model_records(registry)
     doctor = _doctor_payload()
@@ -126,7 +127,7 @@ def self_test_command() -> dict[str, Any]:
         "doctor_ok": bool(doctor.get("ok")),
         "mcp_command_supported": True,
     }
-    return {
+    return annotate({
         "ok": all(checks.values()),
         "version": version_command(),
         "checks": checks,
@@ -140,7 +141,7 @@ def self_test_command() -> dict[str, Any]:
         "auth": auth_status(),
         "setup": setup,
         "doctor": doctor,
-    }
+    }, LOCAL, network_required=False, remote_write=False, cache_used=True)
 
 
 def _doctor_payload() -> dict[str, Any]:
@@ -149,31 +150,31 @@ def _doctor_payload() -> dict[str, Any]:
     return run_checks().to_dict()
 
 
-def setup_command(offline: bool = False) -> dict[str, Any]:
-    return setup_status(offline=offline)
+def setup_command() -> dict[str, Any]:
+    return annotate(setup_status(), PREFLIGHT, network_required=True, remote_write=False, cache_used=True)
 
 
-def models_command(live: bool = False) -> dict[str, Any]:
-    if live:
+def models_command(refresh: bool = False) -> dict[str, Any]:
+    if refresh:
         listing = generator_list(live=True)
-        return {"source": "live", "raw": listing}
+        return annotate({"source": "remote", "raw": listing}, PREFLIGHT, network_required=True, remote_write=False, cache_used=False)
     snapshot = load_ref_registry()
     records = [record.to_dict() for record in model_records(snapshot)]
-    return {"source": "ref", "count": len(records), "models": records}
+    return annotate({"source": "ref", "count": len(records), "models": records}, LOCAL, network_required=False, remote_write=False, cache_used=True)
 
 
 def config_command(model: str | None = None, include_all: bool = False, example: str | None = None, global_: bool = False) -> dict[str, Any]:
     if global_:
-        return global_config()
+        return annotate(global_config(), LOCAL, network_required=False, remote_write=False, cache_used=True)
     if not model:
         raise InputError("model is required unless --global is used")
-    return config_for_model(model, include_all=include_all, example=example)
+    return annotate(config_for_model(model, include_all=include_all, example=example), LOCAL, network_required=False, remote_write=False, cache_used=True)
 
 
 def quote_command(model: str, body: dict[str, Any], language: str = "en") -> dict[str, Any]:
     result = quote(model, body, language=language)
     result["schema_errors"] = validate_body(load_ref_registry(), model, body)
-    return result
+    return annotate(result, PREFLIGHT, network_required=True, remote_write=False, cache_used=True)
 
 
 def generate_command(
@@ -187,7 +188,6 @@ def generate_command(
     language: str = "en",
     wait: bool = False,
     download: bool = False,
-    offline: bool = False,
 ) -> dict[str, Any]:
     preflight, blocking_error = generation_preflight(
         model,
@@ -195,18 +195,12 @@ def generate_command(
         mode=mode,
         allow_paid=allow_paid,
         max_credits=max_credits,
-        live=not offline,
     )
     request = dry_run_request(model, body, language=language)
     if dry_run:
-        return {"submitted": False, "preflight": preflight, "request": request}
+        return annotate({"submitted": False, "preflight": preflight, "request": request}, PREFLIGHT, network_required=True, remote_write=False, submitted=False, cache_used=True)
     if blocking_error:
         raise blocking_error
-    if offline:
-        raise UnknownPricingError(
-            "offline mode cannot submit real generation; rerun without --offline so live pricing and update checks can run",
-            {"model": model, "request": request},
-        )
     response = submit_model(model, body, language=language, mode=mode)
     task_id = find_task_id(response)
     data: dict[str, Any] = {
@@ -224,7 +218,7 @@ def generate_command(
         data.update({"status": current.get("status"), "task": current, "artifacts": artifacts})
         if download:
             data["downloads"] = download_artifacts(artifacts, task_id=task_id)
-    return data
+    return annotate(data, SUBMIT, network_required=True, remote_write=True, submitted=True, cache_used=True)
 
 
 def jobs_quote_command(
@@ -239,7 +233,7 @@ def jobs_quote_command(
     refresh: bool = False,
     progress: bool = True,
 ) -> dict[str, Any]:
-    return quote_jobs(
+    return annotate(quote_jobs(
         jobs_file,
         out_dir=out_dir,
         language=language,
@@ -249,7 +243,7 @@ def jobs_quote_command(
         all_requests=all_requests,
         refresh=refresh,
         progress=progress,
-    )
+    ), PREFLIGHT, network_required=True, remote_write=False, cache_used=True)
 
 
 def jobs_dry_run_command(
@@ -261,7 +255,7 @@ def jobs_dry_run_command(
     language: str = "en",
     detail: str = "full",
 ) -> dict[str, Any]:
-    return dry_run_jobs(
+    result = dry_run_jobs(
         jobs_file,
         out_dir=out_dir,
         allow_paid=allow_paid,
@@ -269,6 +263,7 @@ def jobs_dry_run_command(
         language=language,
         detail=detail,
     )
+    return annotate(result, PREFLIGHT, network_required=True, remote_write=False, submitted=False, cache_used=True)
 
 
 def jobs_run_command(
@@ -285,7 +280,7 @@ def jobs_run_command(
     poll_interval: float = 5,
     detail: str = "full",
 ) -> dict[str, Any]:
-    return run_jobs(
+    result = run_jobs(
         jobs_file,
         out_dir=out_dir,
         allow_paid=allow_paid,
@@ -298,14 +293,16 @@ def jobs_run_command(
         poll_interval=poll_interval,
         detail=detail,
     )
+    submitted = _has_submitted_jobs(result)
+    return annotate(result, SUBMIT, network_required=True, remote_write=submitted, submitted=submitted, cache_used=True)
 
 
 def jobs_status_command(run_dir: Path, *, detail: str = "summary") -> dict[str, Any]:
-    return status_jobs(run_dir, detail=detail)
+    return annotate(status_jobs(run_dir, detail=detail), LOCAL, network_required=False, remote_write=False)
 
 
 def jobs_quote_status_command(run_dir: Path, jobs_file: Path | None = None) -> dict[str, Any]:
-    return quote_status(run_dir, jobs_file=jobs_file)
+    return annotate(quote_status(run_dir, jobs_file=jobs_file), LOCAL, network_required=False, remote_write=False)
 
 
 def jobs_resume_command(
@@ -323,7 +320,7 @@ def jobs_resume_command(
     poll_interval: float = 5,
     detail: str = "full",
 ) -> dict[str, Any]:
-    return resume_jobs(
+    result = resume_jobs(
         jobs_file,
         out_dir=out_dir,
         allow_paid=allow_paid,
@@ -337,3 +334,16 @@ def jobs_resume_command(
         poll_interval=poll_interval,
         detail=detail,
     )
+    submitted = _has_submitted_jobs(result)
+    return annotate(result, SUBMIT, network_required=True, remote_write=submitted, submitted=submitted, cache_used=True)
+
+
+def _has_submitted_jobs(result: dict[str, Any]) -> bool:
+    submitted = result.get("submitted")
+    if isinstance(submitted, list) and submitted:
+        return True
+    summary = result.get("summary")
+    counts = summary.get("remote_status_counts") if isinstance(summary, dict) else None
+    if not isinstance(counts, dict):
+        return False
+    return any(int(counts.get(status) or 0) > 0 for status in ("submitted", "running", "completed", "downloaded"))

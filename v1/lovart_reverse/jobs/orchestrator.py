@@ -481,8 +481,8 @@ def _signature_groups(requests: list[dict[str, Any]]) -> list[list[dict[str, Any
     return [grouped[signature] for signature in order]
 
 
-def _apply_live_quote_to_group(state: dict[str, Any], representative: dict[str, Any], group: list[dict[str, Any]]) -> None:
-    representative["quote_source"] = "live"
+def _apply_remote_quote_to_group(state: dict[str, Any], representative: dict[str, Any], group: list[dict[str, Any]]) -> None:
+    representative["quote_source"] = "remote"
     representative["representative_request_id"] = representative.get("request_id")
     signature = representative.get("cost_signature")
     if signature:
@@ -530,17 +530,17 @@ def _quote_selected_requests(
                     if request["quote_status"] == "failed":
                         error_code, message = _quote_failure_code_and_message(request.get("quote"))
                         _add_error(request, error_code, message, {"quote": request.get("quote")})
-                        request["quote_source"] = "live_failed"
+                        request["quote_source"] = "remote_failed"
                         completed_total += 1
                     else:
-                        _apply_live_quote_to_group(state, request, group)
+                        _apply_remote_quote_to_group(state, request, group)
                         completed_total += len(group)
                 except Exception as exc:
                     request["quote_status"] = "failed"
                     request["quote"] = _quote_exception_payload(request.get("model"), exc)
                     error_code, message = _quote_failure_code_and_message(request.get("quote"))
                     _add_error(request, error_code, message, {"type": exc.__class__.__name__, "message": str(exc)})
-                    request["quote_source"] = "live_failed"
+                    request["quote_source"] = "remote_failed"
                     completed_total += 1
                 completed_chunk.append(request)
                 _refresh_job_statuses(state["jobs"])
@@ -594,7 +594,7 @@ def _chunks(items: list[dict[str, Any]], size: int) -> list[list[dict[str, Any]]
 
 def _quote_exception_payload(model: Any, exc: Exception) -> dict[str, Any]:
     error_code = _network_error_code(exc) if _looks_like_network_error(exc) else "unknown_pricing"
-    warning = "Lovart network/DNS unavailable; credit spend is unknown" if _is_network_error_code(error_code) else "live quote failed; credit spend is unknown"
+    warning = "Lovart network/DNS unavailable; credit spend is unknown" if _is_network_error_code(error_code) else "remote quote failed; credit spend is unknown"
     return {
         "model": model,
         "quoted": False,
@@ -610,9 +610,9 @@ def _quote_failure_code_and_message(quote_result: Any) -> tuple[str, str]:
     if _quote_result_has_network_error(quote_result):
         quote_error = quote_result.get("quote_error") if isinstance(quote_result, dict) else None
         if isinstance(quote_error, dict) and quote_error.get("code"):
-            return str(quote_error["code"]), "live quote failed because Lovart is not reachable"
-        return "network_unavailable", "live quote failed because Lovart is not reachable"
-    return "unknown_pricing", "live quote did not return an exact credit cost"
+            return str(quote_error["code"]), "remote quote failed because Lovart is not reachable"
+        return "network_unavailable", "remote quote failed because Lovart is not reachable"
+    return "unknown_pricing", "remote quote did not return an exact credit cost"
 
 
 def _request_has_network_failure(request: dict[str, Any]) -> bool:
@@ -667,7 +667,6 @@ def _preflight_remote_requests(
             mode=request["mode"],
             allow_paid=allow_paid,
             max_credits=max_total_credits,
-            live=True,
         )
         request["preflight"] = preflight
         request["request"] = dry_run_request(request["model"], request["body"], language=language)
@@ -675,7 +674,7 @@ def _preflight_remote_requests(
         if blocking_error:
             _add_error(request, blocking_error.code, blocking_error.message, blocking_error.details)
         if _quote_is_unknown(request):
-            _add_error(request, "unknown_pricing", "live quote did not return an exact credit cost", {"quote": request.get("quote")})
+            _add_error(request, "unknown_pricing", "remote quote did not return an exact credit cost", {"quote": request.get("quote")})
     _refresh_job_statuses(state["jobs"])
 
 
@@ -1154,7 +1153,7 @@ def _quote_summary_payload(quote_result: Any) -> dict[str, Any] | None:
 def _quote_summary_warnings(summary: dict[str, Any]) -> list[str]:
     warnings: list[str] = []
     if summary.get("network_unavailable_remote_requests"):
-        warnings.append("Lovart network/DNS is unavailable; live quote cannot reach www.lovart.ai")
+        warnings.append("Lovart network/DNS is unavailable; remote quote cannot reach www.lovart.ai")
     if summary.get("listed_but_zero_payable_remote_requests"):
         warnings.append("some requests have payable_credits=0 but listed_credits>0; total_credits uses payable_credits")
     if summary.get("remote_requests", 0) > 50:
@@ -1193,7 +1192,7 @@ def _quote_summary(state: dict[str, Any]) -> dict[str, Any]:
         quote_source = request.get("quote_source")
         if quote_source == "cost_signature_cache":
             cache_hits += 1
-        elif quote_source in {"live", "live_failed"}:
+        elif quote_source in {"remote", "remote_failed", "live", "live_failed"}:
             cache_misses += 1
         quote_status = str(request.get("quote_status") or "pending")
         quote_status_counts[quote_status] = quote_status_counts.get(quote_status, 0) + 1
@@ -1210,7 +1209,7 @@ def _quote_summary(state: dict[str, Any]) -> dict[str, Any]:
         quote_result = request.get("quote")
         if isinstance(quote_result, dict) and quote_result.get("quoted"):
             quoted += 1
-            if quote_source == "live":
+            if quote_source in {"remote", "live"}:
                 quoted_representatives += 1
     return {
         **summary,

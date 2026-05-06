@@ -24,7 +24,7 @@ func newConfigCmd() *cobra.Command {
 			}
 
 			if includeAll {
-				printEnvelope(envelope.OK(result))
+				printEnvelope(okLocal(result, true))
 				return nil
 			}
 
@@ -37,7 +37,7 @@ func newConfigCmd() *cobra.Command {
 			}
 			result.Fields = visibleFields
 
-			printEnvelope(envelope.OK(result))
+			printEnvelope(okLocal(result, true))
 			return nil
 		},
 	}

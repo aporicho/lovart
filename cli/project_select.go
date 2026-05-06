@@ -23,7 +23,7 @@ func newProjectSelectCmd() *cobra.Command {
 				printEnvelope(envelope.Err(errors.CodeInternal, "set project", map[string]any{"error": err.Error()}))
 				return nil
 			}
-			printEnvelope(envelope.OK(map[string]any{
+			printEnvelope(okLocal(map[string]any{
 				"selected":   true,
 				"project_id": projectID,
 			}))
