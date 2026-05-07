@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/aporicho/lovart/internal/paths"
 )
@@ -111,10 +110,6 @@ func credentialData() ([]byte, string, error) {
 	data, err := os.ReadFile(paths.CredsFile)
 	if err == nil {
 		return data, paths.CredsFile, nil
-	}
-	legacy := filepath.Join(paths.Root, "scripts", "creds.json")
-	if d, e2 := os.ReadFile(legacy); e2 == nil {
-		return d, legacy, nil
 	}
 	return nil, "", fmt.Errorf("auth: no credentials found (run `lovart auth login`)")
 }

@@ -34,13 +34,13 @@ func NewRootCommand() *cobra.Command {
 		newBalanceCmd(),
 		newGenerateCmd(),
 		newJobsCmd(),
+		newCleanCmd(),
 		newUpdateCmd(),
 		newDoctorCmd(),
 		newDevCmd(),
 		newSelfTestCmd(),
 	)
 
-	root.AddCommand(newVersionCmd())
-	root.Flags().BoolVar(&showVersion, "version", false, "print version information as JSON")
+	root.Flags().BoolVarP(&showVersion, "version", "v", false, "print version information as JSON")
 	return root
 }

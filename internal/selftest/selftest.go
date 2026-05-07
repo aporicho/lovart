@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/aporicho/lovart/internal/auth"
@@ -395,13 +394,6 @@ func credentialSource() (string, bool, error) {
 		return paths.CredsFile, false, nil
 	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return paths.CredsFile, false, err
-	}
-
-	legacy := filepath.Join(paths.Root, "scripts", "creds.json")
-	if _, err := os.Stat(legacy); err == nil {
-		return legacy, false, nil
-	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return legacy, false, err
 	}
 	return paths.CredsFile, true, nil
 }

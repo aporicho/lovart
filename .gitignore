@@ -7,12 +7,6 @@ dist/
 *.test
 *.out
 
-# Python (reverse/)
-__pycache__/
-*.pyc
-.venv/
-*.egg-info/
-
 # Extension
 node_modules/
 extension/dist/
@@ -24,12 +18,7 @@ extension/*.zip
 .lovart/
 .lovart-chrome-profile/
 .mitmproxy/
-v1/lovart_reverse/downloads/
-.pytest_cache/
-.ruff_cache/
 
 # OS
 .DS_Store
 .env
-
-# v1 (preserved as-is; v1's own .gitignore inside v1/ handles its patterns)

@@ -1,8 +1,8 @@
 param(
-  [string]$Repo = "aporicho/lovart-reverse",
+  [string]$Repo = "aporicho/lovart",
   [string]$Version = "latest",
   [string]$InstallDir = "$env:USERPROFILE\bin",
-  [string]$ExtensionDir = "$env:USERPROFILE\.lovart-reverse\extension\lovart-connector",
+  [string]$ExtensionDir = "$env:USERPROFILE\.lovart\extension\lovart-connector",
   [string]$McpClients = "auto",
   [switch]$Yes,
   [switch]$Force,

@@ -2,7 +2,6 @@ package cli
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -98,9 +97,9 @@ func resetCLIRuntimeRoot(t *testing.T) {
 	t.Helper()
 	t.Cleanup(paths.Reset)
 	dir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(dir, ".lovart"), 0700); err != nil {
+	if err := os.MkdirAll(dir, 0700); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
 }

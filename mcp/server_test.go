@@ -197,7 +197,7 @@ func TestProjectSelectRequiresProjectID(t *testing.T) {
 
 func TestProductionProjectCurrentDoesNotExposeCID(t *testing.T) {
 	t.Cleanup(paths.Reset)
-	t.Setenv("LOVART_REVERSE_ROOT", t.TempDir())
+	t.Setenv("LOVART_HOME", t.TempDir())
 	paths.Reset()
 	if err := auth.SaveSession(auth.Session{Cookie: "cookie", ProjectID: "project-123", CID: "cid-123"}); err != nil {
 		t.Fatal(err)

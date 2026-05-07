@@ -17,7 +17,7 @@ fail() { red "  FAIL $1"; FAIL=$((FAIL+1)); }
 echo "==> Checking forbidden file names..."
 cd "$ROOT"
 IFS=$'\n'
-for f in $(find . -name '*.go' -type f | grep -v '/v1/' | grep -v '/vendor/'); do
+for f in $(find . -name '*.go' -type f | grep -v '/vendor/'); do
     base=$(basename "$f")
     case "$base" in
         utils.go|helpers.go|misc.go|common.go|legacy.go|compat.go|glue.go)
@@ -33,7 +33,7 @@ cmd_bad=0
 for f in $(find cmd/lovart -maxdepth 1 -name '*.go' -type f 2>/dev/null || true); do
     base=$(basename "$f")
     case "$base" in
-        main.go|mcp.go)
+        main.go|mcp.go|selfmanage.go|selfmanage_test.go)
             ;;
         *)
             fail "unexpected cmd/lovart source file: $f"
@@ -57,7 +57,7 @@ fi
 
 # ---- 3. Generated source pollution ----
 echo "==> Checking generated source pollution..."
-pollution=$(git ls-files 'reverse/.venv/*' 'reverse/*.egg-info/*' 'downloads/*' 'runs/*' '.lovart/*' 2>/dev/null || true)
+pollution=$(git ls-files 'downloads/*' 'runs/*' '.lovart/*' 2>/dev/null || true)
 if [ -n "$pollution" ]; then
     fail "generated/runtime files are tracked: $pollution"
 else

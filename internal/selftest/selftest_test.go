@@ -122,8 +122,11 @@ func resetRuntimeRoot(t *testing.T) {
 	t.Helper()
 	t.Cleanup(paths.Reset)
 	dir := t.TempDir()
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
+	if err := paths.EnsureRuntimeDirs(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func writeCreds(t *testing.T, value map[string]any) {

@@ -74,9 +74,13 @@ func TestGenerateValidatesSchemaBeforeSignedClient(t *testing.T) {
 
 func setupCLIRuntimeMetadata(t *testing.T) {
 	t.Helper()
+	t.Cleanup(paths.Reset)
 	dir := t.TempDir()
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
+	if err := os.MkdirAll(paths.MetadataDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	list := []byte(`{"items":[{"name":"openai/gpt-image-2","display_name":"GPT Image 2","type":"image"}]}`)
 	schema := []byte(`{

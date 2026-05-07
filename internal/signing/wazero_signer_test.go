@@ -90,7 +90,7 @@ func TestSignerUniqueOutput(t *testing.T) {
 
 func TestNewSignerLoadsRuntimeCache(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
 
 	data, err := os.ReadFile(testSignerWASM)
@@ -115,7 +115,7 @@ func TestNewSignerLoadsRuntimeCache(t *testing.T) {
 
 func TestNewSignerMissingRuntimeCache(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
 
 	_, err := NewSigner()

@@ -108,6 +108,73 @@ func TestInstallOpenCodeDryRunPreview(t *testing.T) {
 	}
 }
 
+func TestUninstallCodexRemovesManagedBlock(t *testing.T) {
+	restoreClock(t)
+	home := t.TempDir()
+	path := filepath.Join(home, ".codex", "config.toml")
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		t.Fatal(err)
+	}
+	text := "[other]\nvalue = true\n\n" + managedMarker + "\n[mcp_servers.lovart]\ncommand = \"/tmp/lovart\"\nargs = [\"mcp\"]\n\n[next]\nvalue = false\n"
+	if err := os.WriteFile(path, []byte(text), 0644); err != nil {
+		t.Fatal(err)
+	}
+	env := Uninstall(ConfigOptions{Clients: "codex", LovartPath: "/tmp/lovart", Home: home, Yes: true})
+	if !env.OK {
+		t.Fatalf("unexpected uninstall envelope: %#v", env)
+	}
+	got := readText(path)
+	if strings.Contains(got, "[mcp_servers.lovart]") || strings.Contains(got, managedMarker) {
+		t.Fatalf("managed block still present:\n%s", got)
+	}
+	if !strings.Contains(got, "[other]") || !strings.Contains(got, "[next]") {
+		t.Fatalf("unrelated config was removed:\n%s", got)
+	}
+	if _, err := os.Stat(path + ".20260102T030405Z.bak"); err != nil {
+		t.Fatalf("backup missing: %v", err)
+	}
+}
+
+func TestUninstallOpenCodeConflictAndForce(t *testing.T) {
+	home := t.TempDir()
+	path := filepath.Join(home, ".config", "opencode", "opencode.json")
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(`{"mcp":{"lovart":{"type":"local","managed_by":"someone-else"}}}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	env := Uninstall(ConfigOptions{Clients: "opencode", LovartPath: "/tmp/lovart", Home: home, Yes: true})
+	if env.OK || env.Error == nil || env.Error.Code != "config_conflict" {
+		t.Fatalf("expected config conflict, got %#v", env)
+	}
+	env = Uninstall(ConfigOptions{Clients: "opencode", LovartPath: "/tmp/lovart", Home: home, Yes: true, Force: true})
+	if !env.OK {
+		t.Fatalf("force uninstall failed: %#v", env)
+	}
+	if strings.Contains(readText(path), `"lovart"`) {
+		t.Fatalf("lovart entry still present:\n%s", readText(path))
+	}
+}
+
+func TestUninstallClaudeRunsRemoveCommand(t *testing.T) {
+	restoreCommandHooks(t)
+	lookPath = func(name string) (string, error) { return "/bin/" + name, nil }
+	var got []string
+	runCommand = func(command []string) (commandResult, error) {
+		got = append([]string(nil), command...)
+		return commandResult{ReturnCode: 0, Stdout: "removed"}, nil
+	}
+	env := Uninstall(ConfigOptions{Clients: "claude", LovartPath: "/tmp/lovart", Home: t.TempDir(), Yes: true})
+	if !env.OK {
+		t.Fatalf("unexpected uninstall envelope: %#v", env)
+	}
+	want := []string{"claude", "mcp", "remove", "--scope", "user", "lovart"}
+	if strings.Join(got, " ") != strings.Join(want, " ") {
+		t.Fatalf("command = %#v, want %#v", got, want)
+	}
+}
+
 func TestInstallRequiresYesUnlessDryRun(t *testing.T) {
 	env := Install(ConfigOptions{Clients: "codex", LovartPath: "/tmp/lovart", Home: t.TempDir()})
 	if env.OK || env.Error == nil || env.Error.Code != "input_error" {

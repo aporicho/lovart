@@ -10,7 +10,7 @@ import (
 func TestDoctorCommandDefaultsToLocalDiagnostics(t *testing.T) {
 	t.Cleanup(paths.Reset)
 	dir := t.TempDir()
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
 
 	cmd := newDoctorCmd()

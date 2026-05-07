@@ -51,6 +51,16 @@ func installCodex(ctx configContext) (map[string]any, error) {
 	return writeConfigResult("codex", path, next, ctx, map[string]any{"toml": block})
 }
 
+func uninstallCodex(ctx configContext) (map[string]any, error) {
+	path := codexConfigPath(ctx)
+	text := readText(path)
+	next, changed, err := removeTOMLLovartBlock(text, ctx.force)
+	if err != nil {
+		return nil, err
+	}
+	return writeConfigRemovalResult("codex", path, next, changed, ctx, map[string]any{"remove": "[mcp_servers.lovart]"})
+}
+
 func replaceTOMLLovartBlock(text string, block string) string {
 	lines := strings.Split(text, "\n")
 	start := -1
@@ -84,6 +94,45 @@ func replaceTOMLLovartBlock(text string, block string) string {
 	return strings.TrimRight(strings.Join(newLines, "\n"), "\n") + "\n"
 }
 
+func removeTOMLLovartBlock(text string, force bool) (string, bool, error) {
+	lines := strings.Split(text, "\n")
+	start := -1
+	for i, line := range lines {
+		if strings.TrimSpace(line) == "[mcp_servers.lovart]" {
+			start = i
+			break
+		}
+	}
+	if start == -1 {
+		return text, false, nil
+	}
+	managed := start > 0 && strings.TrimSpace(lines[start-1]) == managedMarker
+	if !managed && !force {
+		return "", false, configConflictError{Message: "existing unmanaged Codex Lovart MCP config", Details: map[string]any{
+			"client":              "codex",
+			"recommended_actions": []string{"rerun with --force", "edit the config manually"},
+		}}
+	}
+	if managed {
+		start--
+	}
+	end := start + 1
+	for end < len(lines) {
+		stripped := strings.TrimSpace(lines[end])
+		if strings.HasPrefix(stripped, "[") && strings.HasSuffix(stripped, "]") && stripped != "[mcp_servers.lovart]" {
+			break
+		}
+		end++
+	}
+	newLines := append([]string{}, lines[:start]...)
+	newLines = append(newLines, lines[end:]...)
+	next := strings.TrimRight(strings.Join(newLines, "\n"), "\n")
+	if next != "" {
+		next += "\n"
+	}
+	return next, true, nil
+}
+
 func opencodeConfigPath(ctx configContext) string {
 	return filepath.Join(ctx.home, ".config", "opencode", "opencode.json")
 }
@@ -100,7 +149,7 @@ func opencodeStatus(ctx configContext) map[string]any {
 		"path":       path,
 		"exists":     pathExists(path),
 		"configured": configured,
-		"managed":    config["managed_by"] == "lovart-reverse",
+		"managed":    config["managed_by"] == "lovart",
 	}
 }
 
@@ -109,7 +158,7 @@ func installOpenCode(ctx configContext) (map[string]any, error) {
 	data := readJSON(path)
 	mcp := mapValue(data, "mcp")
 	existing, hasExisting := mcp["lovart"].(map[string]any)
-	if hasExisting && existing["managed_by"] != "lovart-reverse" && !ctx.force {
+	if hasExisting && existing["managed_by"] != "lovart" && !ctx.force {
 		return nil, configConflictError{Message: "existing unmanaged OpenCode Lovart MCP config", Details: map[string]any{
 			"client":              "opencode",
 			"path":                path,
@@ -120,12 +169,33 @@ func installOpenCode(ctx configContext) (map[string]any, error) {
 		"type":       "local",
 		"command":    []string{ctx.lovartPath, "mcp"},
 		"enabled":    true,
-		"managed_by": "lovart-reverse",
+		"managed_by": "lovart",
 	}
 	mcp["lovart"] = config
 	data["mcp"] = mcp
 	text, _ := json.MarshalIndent(data, "", "  ")
 	return writeConfigResult("opencode", path, string(text)+"\n", ctx, map[string]any{"json": config})
+}
+
+func uninstallOpenCode(ctx configContext) (map[string]any, error) {
+	path := opencodeConfigPath(ctx)
+	data := readJSON(path)
+	mcp := mapValue(data, "mcp")
+	existing, hasExisting := mcp["lovart"].(map[string]any)
+	if !hasExisting {
+		return writeConfigRemovalResult("opencode", path, "", false, ctx, map[string]any{"remove": "mcp.lovart"})
+	}
+	if existing["managed_by"] != "lovart" && !ctx.force {
+		return nil, configConflictError{Message: "existing unmanaged OpenCode Lovart MCP config", Details: map[string]any{
+			"client":              "opencode",
+			"path":                path,
+			"recommended_actions": []string{"rerun with --force", "edit the config manually"},
+		}}
+	}
+	delete(mcp, "lovart")
+	data["mcp"] = mcp
+	text, _ := json.MarshalIndent(data, "", "  ")
+	return writeConfigRemovalResult("opencode", path, string(text)+"\n", true, ctx, map[string]any{"remove": "mcp.lovart"})
 }
 
 func writeConfigResult(client string, path string, text string, ctx configContext, preview map[string]any) (map[string]any, error) {
@@ -156,6 +226,40 @@ func writeConfigResult(client string, path string, text string, ctx configContex
 		return nil, configInputError{Message: "write config failed", Details: map[string]any{"path": path, "error": err.Error()}}
 	}
 	result["status"] = "configured"
+	result["changed"] = true
+	result["backup_created"] = hadExisting
+	return result, nil
+}
+
+func writeConfigRemovalResult(client string, path string, text string, changed bool, ctx configContext, preview map[string]any) (map[string]any, error) {
+	backup := backupPath(path)
+	result := map[string]any{
+		"client":  client,
+		"type":    "file",
+		"path":    path,
+		"backup":  backup,
+		"changed": false,
+		"dry_run": ctx.dryRun,
+		"preview": preview,
+	}
+	if !changed {
+		result["status"] = "not_configured"
+		return result, nil
+	}
+	if ctx.dryRun {
+		result["status"] = "dry_run"
+		return result, nil
+	}
+	hadExisting := pathExists(path)
+	if hadExisting {
+		if err := os.WriteFile(backup, []byte(readText(path)), 0644); err != nil {
+			return nil, configInputError{Message: "write config backup failed", Details: map[string]any{"path": backup, "error": err.Error()}}
+		}
+	}
+	if err := os.WriteFile(path, []byte(text), 0644); err != nil {
+		return nil, configInputError{Message: "write config failed", Details: map[string]any{"path": path, "error": err.Error()}}
+	}
+	result["status"] = "removed"
 	result["changed"] = true
 	result["backup_created"] = hadExisting
 	return result, nil

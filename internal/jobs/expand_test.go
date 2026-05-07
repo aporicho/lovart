@@ -143,9 +143,13 @@ var _ = config.OutputCapability
 
 func setupRuntimeSchema(t *testing.T) {
 	t.Helper()
+	t.Cleanup(paths.Reset)
 	dir := t.TempDir()
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
+	if err := os.MkdirAll(paths.MetadataDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	schema := []byte(`{
   "paths": {

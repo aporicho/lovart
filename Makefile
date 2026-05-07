@@ -25,25 +25,6 @@ release:
 	chmod +x dist/install.sh
 	cd dist && (sha256sum lovart-macos-arm64 lovart-linux-x64 lovart-windows-x64.exe lovart-connector-extension.zip install.sh install.ps1 2>/dev/null || shasum -a 256 lovart-macos-arm64 lovart-linux-x64 lovart-windows-x64.exe lovart-connector-extension.zip install.sh install.ps1) > SHA256SUMS
 
-# ===== Python reverse =====
-PY_DIR := reverse
-py-setup:
-	cd $(PY_DIR) && uv sync --extra reverse
-
-py-test:
-	cd $(PY_DIR) && uv run --extra dev pytest
-
-# One-command browser capture session.
-# Starts mitmproxy + Chrome, captures Lovart traffic to captures/.
-# Press Ctrl-C when done. Then run: make extract FILE=captures/<latest>.json
-capture:
-	cd $(PY_DIR) && uv run python -m lovart_reverse.cli.main start
-
-# Extract credentials (cookie, token, project_id) from a capture file.
-# Usage: make extract FILE=captures/lovart-request.json
-extract:
-	cd $(PY_DIR) && uv run python -m lovart_reverse.cli.main extract $(FILE)
-
 # ===== Extension =====
 EXT_DIR := extension
 ext-install:

@@ -12,9 +12,9 @@ import (
 
 func TestSaveAndLoad(t *testing.T) {
 	dir := t.TempDir()
-	credsPath := filepath.Join(dir, ".lovart", "creds.json")
+	credsPath := filepath.Join(dir, "creds.json")
 	os.MkdirAll(filepath.Dir(credsPath), 0700)
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
 
 	c := &Credentials{
@@ -42,9 +42,9 @@ func TestSaveAndLoad(t *testing.T) {
 
 func TestSetProject(t *testing.T) {
 	dir := t.TempDir()
-	credsPath := filepath.Join(dir, ".lovart", "creds.json")
+	credsPath := filepath.Join(dir, "creds.json")
 	os.MkdirAll(filepath.Dir(credsPath), 0700)
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
 
 	if err := SetProjectContext("proj-123", "cid-456"); err != nil {
@@ -77,9 +77,9 @@ func TestSetProject(t *testing.T) {
 
 func TestGetStatus(t *testing.T) {
 	dir := t.TempDir()
-	credsPath := filepath.Join(dir, ".lovart", "creds.json")
+	credsPath := filepath.Join(dir, "creds.json")
 	os.MkdirAll(filepath.Dir(credsPath), 0700)
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
 
 	// Before save: not available.
@@ -98,9 +98,9 @@ func TestGetStatus(t *testing.T) {
 
 func TestSaveSessionPreservesProjectMetadataAndStatusIsSafe(t *testing.T) {
 	dir := t.TempDir()
-	credsPath := filepath.Join(dir, ".lovart", "creds.json")
+	credsPath := filepath.Join(dir, "creds.json")
 	os.MkdirAll(filepath.Dir(credsPath), 0700)
-	t.Setenv("LOVART_REVERSE_ROOT", dir)
+	t.Setenv("LOVART_HOME", dir)
 	paths.Reset()
 
 	session := Session{

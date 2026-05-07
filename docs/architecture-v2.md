@@ -2,27 +2,25 @@
 
 ## Overview
 
-v2 is a full redesign of the Lovart reverse-engineering toolkit into independent runtimes. The Go runtime owns local generation execution and keeps Lovart metadata plus signer WASM in an explicit runtime cache.
+v2 is a single Lovart user runtime. The Go binary owns local generation execution, MCP integration, browser-session auth handoff, and the runtime cache for Lovart metadata plus signer WASM.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │ go.mod (root)                                                │
 │                                                              │
-│  ┌─────────────────┐  ┌──────────────┐  ┌───────────────┐  │
-│  │ Go              │  │ Python       │  │ TypeScript    │  │
-│  │ CLI + MCP +     │  │ Reverse      │  │ Extension     │  │
-│  │ Protocol Core   │  │ (independent)│  │ (standalone)  │  │
-│  │                 │  │              │  │               │  │
-│  │ lovart binary   │  │ lovart-reverse│  │ Chrome MV3    │  │
-│  └────────┬────────┘  └──────────────┘  └───────┬───────┘  │
-│           │                                      │           │
-│           │    ┌───────────────────┐                         │
-│           └───→│ .lovart/          │                         │
-│                │ signing + metadata│                         │
-│                └──────[runtime self-update]────────────────┘ │
+│  ┌──────────────────────────┐     ┌───────────────────────┐  │
+│  │ Go                       │     │ TypeScript            │  │
+│  │ CLI + MCP +              │     │ Chrome MV3 Extension  │  │
+│  │ Protocol Core            │     │ auth handoff          │  │
+│  │                          │     │                       │  │
+│  │ lovart binary            │     │ Lovart Connector      │  │
+│  └────────────┬─────────────┘     └───────────┬───────────┘  │
+│               │                               │              │
+│               │    ┌──────────────────────────▼────┐         │
+│               └───→│ ~/.lovart/                    │         │
+│                    │ auth + metadata + runs + tmp  │         │
+│                    └──────[runtime self-update]────┘         │
 └──────────────────────────────────────────────────────────────┘
-
-v1/  — legacy Python project (preserved as-is)
 ```
 
 Architecture changes must follow `docs/architecture/file-architecture-philosophy.md`.
@@ -38,11 +36,6 @@ implementation details.
 - **Core** (`internal/`): protocol library — signing, HTTP, pricing, generation, jobs, projects
 - **Build**: `go build` → single static binary (no Python, no Node.js, no CGO)
 
-### Python (`reverse/`)
-- **Scope**: reverse engineering only — capture sessions, credential extraction, metadata drift detection
-- **Independent**: `pip install lovart-reverse`, separate CLI, zero Go dependency
-- **Legacy**: v1 codebase preserved at `v1/` for reference
-
 ### Chrome Extension (`extension/`)
 - **Scope**: Lovart Connector MV3 extension, browser-session auth handoff, optional page UI
 - **Self-contained**: static extension assets, no Go core logic
@@ -51,12 +44,14 @@ implementation details.
 
 ## Runtime Metadata
 
-### Signer WASM (`.lovart/signing/`)
+The runtime root defaults to `~/.lovart` and can be overridden with `LOVART_HOME` for isolated test or automation runs. User-owned data is kept there until the user explicitly runs `lovart clean`. Runtime intermediate files are placed under `~/.lovart/tmp` or written as hidden atomic `.*.tmp` files under the root, and stale intermediate files are removed automatically on CLI startup.
+
+### Signer WASM (`~/.lovart/signing/`)
 - `current.wasm` is the only production signer source for Go.
 - `manifest.json` records source URL, SHA256, frontend hashes, and sync time.
 - `lovart update sync --signer` bootstraps from public Lovart frontend assets without an existing signer.
 
-### Generator Metadata (`.lovart/metadata/`)
+### Generator Metadata (`~/.lovart/metadata/`)
 - `generator_list.json` and `generator_schema.json` are runtime cache files.
 - `manifest.json` records stable hashes and the signer SHA used for sync.
 - `lovart update sync --all` refreshes signer first, then signed generator metadata.
@@ -64,7 +59,7 @@ implementation details.
 ## Directory Layout
 
 ```
-lovart-reverse/
+lovart/
 ├── cmd/lovart/main.go
 ├── internal/
 │   ├── envelope/          # JSON envelope types
@@ -88,12 +83,10 @@ lovart-reverse/
 ├── cli/                   # Cobra command definitions
 ├── mcp/                   # MCP stdio server
 ├── internal/signing/testdata/ # Non-production WASM fixture for signer tests
-├── reverse/               # Python reverse tooling
 ├── extension/             # Chrome extension
 ├── packaging/             # release installers + extension build
 ├── docs/architecture/     # Architecture principles and module rules
 ├── docs/                  # Documentation
-├── v1/                    # Legacy Python project (preserved)
 ├── go.mod
 ├── go.sum
 ├── Makefile
@@ -108,7 +101,7 @@ type Signer interface {
     Sign(ctx context.Context, payload SigningPayload) (*SigningResult, error)
     Health() error
 }
-func NewSigner() (Signer, error)  // wazero + .lovart/signing/current.wasm
+func NewSigner() (Signer, error)  // wazero + ~/.lovart/signing/current.wasm
 ```
 
 ### Auth
@@ -210,11 +203,14 @@ network access.
 
 ```
 lovart --version
-lovart version
+lovart -v
+lovart upgrade [--check] [--dry-run] [--yes] [--force] [--version latest|vX.Y.Z] [--repo OWNER/REPO] [--install-path <path>] [--extension-dir <path>] [--no-extension]
+lovart uninstall [--dry-run] [--yes] [--data] [--install-path <path>] [--extension-dir <path>] [--clients auto|all|none|codex,claude,opencode,openclaw] [--keep-mcp] [--keep-extension] [--force]
 lovart auth status
 lovart auth login
 lovart auth import [--file <file>|--stdin|--curl-file <file>|--cookie <value> --token <value>]
 lovart auth logout --yes
+lovart clean [--dry-run] [--runs|--downloads|--cache|--auth|--extension|--all] [--yes]
 lovart setup
 lovart self-test
 lovart doctor
@@ -245,6 +241,8 @@ lovart mcp install --clients auto --yes [--dry-run] [--force]
 lovart dev sign
 ```
 
+`lovart update sync` refreshes runtime signer and generator metadata. `lovart upgrade` updates the installed CLI binary and, by default, the Lovart Connector extension files.
+
 ## MCP Tools (13)
 
 ```
@@ -268,7 +266,7 @@ User runs `lovart auth login`
   → User clicks Connect on the Lovart page
   → Service worker reads Lovart cookies and recent auth headers
   → Service worker posts the approved session to the local callback
-  → CLI stores `.lovart/creds.json` and prints safe next steps
+  → CLI stores `~/.lovart/creds.json` and prints safe next steps
 ```
 
 ## API Endpoints
@@ -292,4 +290,3 @@ User runs `lovart auth login`
 | P3 | Jobs batch generation + resume | Partial |
 | P4 | MCP server | MVP implemented |
 | P5 | Extension (auth connector content script + SW + popup) | Implemented |
-| P6 | Reverse tooling (Python, mitmproxy) | Partial |

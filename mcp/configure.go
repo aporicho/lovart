@@ -15,7 +15,7 @@ import (
 	"github.com/aporicho/lovart/internal/errors"
 )
 
-const managedMarker = "# Managed by lovart-reverse"
+const managedMarker = "# Managed by lovart"
 
 var supportedMCPClients = []string{"codex", "claude", "opencode", "openclaw"}
 
@@ -85,6 +85,44 @@ func Install(opts ConfigOptions) envelope.Envelope {
 		"supported_mcp_clients":  supportedMCPClients,
 		"results":                results,
 		"recommended_next_steps": []string{"run `lovart mcp status`", "restart your MCP client"},
+	}, true)
+}
+
+// Uninstall removes Lovart MCP config from selected local clients.
+func Uninstall(opts ConfigOptions) envelope.Envelope {
+	if !opts.DryRun && !opts.Yes {
+		return envelope.Err(errors.CodeInputError, "--yes is required for mcp uninstall", map[string]any{
+			"recommended_actions": []string{"rerun with --yes", "rerun with --dry-run to preview changes"},
+		})
+	}
+	ctx, err := newConfigContext(opts)
+	if err != nil {
+		return envelope.Err(errors.CodeInputError, "mcp uninstall setup failed", map[string]any{"error": err.Error()})
+	}
+	selected, err := selectMCPClientsForUninstall(clientSpec(opts.Clients), ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInputError, "unknown MCP client", map[string]any{
+			"error":             err.Error(),
+			"supported_clients": supportedMCPClients,
+		})
+	}
+	results := make([]map[string]any, 0, len(selected))
+	for _, client := range selected {
+		result, err := uninstallClient(client, ctx)
+		if err != nil {
+			return configErrorEnvelope(err)
+		}
+		results = append(results, result)
+	}
+	return okLocal(map[string]any{
+		"lovart_path":            ctx.lovartPath,
+		"dry_run":                ctx.dryRun,
+		"force":                  ctx.force,
+		"mcp_clients_requested":  clientSpec(opts.Clients),
+		"mcp_clients_selected":   selected,
+		"supported_mcp_clients":  supportedMCPClients,
+		"results":                results,
+		"recommended_next_steps": []string{"restart your MCP client"},
 	}, true)
 }
 
@@ -210,6 +248,19 @@ func selectMCPClients(spec string, ctx configContext, includeMissing bool) ([]st
 	}
 }
 
+func selectMCPClientsForUninstall(spec string, ctx configContext) ([]string, error) {
+	if spec != "auto" {
+		return selectMCPClients(spec, ctx, false)
+	}
+	var selected []string
+	for _, client := range supportedMCPClients {
+		if clientDetected(client, ctx) {
+			selected = append(selected, client)
+		}
+	}
+	return selected, nil
+}
+
 func isSupportedClient(client string) bool {
 	for _, supported := range supportedMCPClients {
 		if client == supported {
@@ -264,6 +315,28 @@ func installClient(client string, ctx configContext) (map[string]any, error) {
 	}
 }
 
+func uninstallClient(client string, ctx configContext) (map[string]any, error) {
+	switch client {
+	case "codex":
+		return uninstallCodex(ctx)
+	case "claude":
+		return uninstallCommandClient("claude", claudeRemoveCommand(), ctx)
+	case "opencode":
+		return uninstallOpenCode(ctx)
+	case "openclaw":
+		return map[string]any{
+			"client":             "openclaw",
+			"type":               "command",
+			"available":          commandAvailable("openclaw"),
+			"status":             "manual_required",
+			"changed":            false,
+			"recommended_action": "remove the Lovart MCP server from OpenClaw manually",
+		}, nil
+	default:
+		return nil, configInputError{Message: "unknown MCP client", Details: map[string]any{"client": client}}
+	}
+}
+
 func commandStatus(client string, command []string) map[string]any {
 	return map[string]any{
 		"client":         client,
@@ -304,8 +377,41 @@ func installCommandClient(client string, command []string, ctx configContext) (m
 	return result, nil
 }
 
+func uninstallCommandClient(client string, command []string, ctx configContext) (map[string]any, error) {
+	result := commandStatus(client, command)
+	result["changed"] = false
+	if ctx.dryRun {
+		result["status"] = "dry_run"
+		return result, nil
+	}
+	if !commandAvailable(command[0]) {
+		result["status"] = "manual_required"
+		return result, nil
+	}
+	completed, err := runCommand(command)
+	if err != nil {
+		result["status"] = "failed"
+		result["error"] = err.Error()
+		return nil, configCommandError{Message: client + " MCP removal failed", Details: result}
+	}
+	result["returncode"] = completed.ReturnCode
+	result["stdout"] = tail(completed.Stdout, 2000)
+	result["stderr"] = tail(completed.Stderr, 2000)
+	if completed.ReturnCode != 0 {
+		result["status"] = "failed"
+		return nil, configCommandError{Message: client + " MCP removal failed", Details: result}
+	}
+	result["status"] = "removed"
+	result["changed"] = true
+	return result, nil
+}
+
 func claudeCommand(ctx configContext) []string {
 	return []string{"claude", "mcp", "add", "--transport", "stdio", "lovart", "--scope", "user", "--", ctx.lovartPath, "mcp"}
+}
+
+func claudeRemoveCommand() []string {
+	return []string{"claude", "mcp", "remove", "--scope", "user", "lovart"}
 }
 
 func openclawCommand(ctx configContext) []string {

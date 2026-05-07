@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="aporicho/lovart-reverse"
+REPO="aporicho/lovart"
 VERSION="latest"
 INSTALL_DIR="${HOME}/.local/bin"
-EXTENSION_DIR="${HOME}/.lovart-reverse/extension/lovart-connector"
+EXTENSION_DIR="${HOME}/.lovart/extension/lovart-connector"
 MCP_CLIENTS="auto"
 YES=0
 FORCE=0

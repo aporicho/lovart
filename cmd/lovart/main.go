@@ -9,6 +9,7 @@ import (
 	"github.com/aporicho/lovart/cli"
 	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/errors"
+	"github.com/aporicho/lovart/internal/paths"
 )
 
 func main() {
@@ -23,9 +24,16 @@ func run() int {
 		}
 	}()
 
+	if err := paths.PrepareRuntime(); err != nil {
+		e := envelope.Err(errors.CodeInternal, "prepare runtime", map[string]any{"error": err.Error()})
+		printAndExit(e, 1)
+	}
+
 	// Dispatch to cobra CLI command tree.
 	root := cli.NewRootCommand()
 	root.AddCommand(newMCPCommand())
+	root.AddCommand(newUpgradeCommand())
+	root.AddCommand(newUninstallCommand())
 	if err := root.Execute(); err != nil {
 		e := envelope.Err(errors.CodeInternal, err.Error(), nil)
 		printAndExit(e, 1)
