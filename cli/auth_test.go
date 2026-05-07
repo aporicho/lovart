@@ -9,29 +9,17 @@ import (
 	"github.com/aporicho/lovart/internal/paths"
 )
 
-func TestAuthImportAndStatusDoNotLeakSecrets(t *testing.T) {
+func TestAuthStatusDoesNotLeakSecrets(t *testing.T) {
 	resetCLIRuntimeRoot(t)
+	if err := auth.SaveSession(auth.Session{
+		Cookie:    "secret-cookie",
+		Token:     "secret-token",
+		ProjectID: "project-123",
+	}); err != nil {
+		t.Fatalf("SaveSession: %v", err)
+	}
 
 	output := captureStdout(t, func() {
-		cmd := newAuthCmd()
-		cmd.SetArgs([]string{"import", "--cookie", "secret-cookie", "--token", "secret-token", "--project-id", "project-123"})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute import: %v", err)
-		}
-	})
-	if !strings.Contains(output, `"imported":true`) {
-		t.Fatalf("import output = %s", output)
-	}
-
-	creds, err := auth.Load()
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-	if creds.Cookie != "secret-cookie" || creds.Token != "secret-token" {
-		t.Fatalf("creds = %#v", creds)
-	}
-
-	output = captureStdout(t, func() {
 		cmd := newAuthCmd()
 		cmd.SetArgs([]string{"status"})
 		if err := cmd.Execute(); err != nil {
@@ -53,8 +41,16 @@ func TestAuthImportAndStatusDoNotLeakSecrets(t *testing.T) {
 			t.Fatalf("status exposed %s: %s", forbidden, output)
 		}
 	}
-	if cmd := newAuthImportCmd(); cmd.Flags().Lookup("cid") != nil {
-		t.Fatalf("auth import exposes --cid")
+}
+
+func TestAuthCommandDoesNotExposeImport(t *testing.T) {
+	cmd := newAuthCmd()
+	if found, _, err := cmd.Find([]string{"import"}); err == nil && found != cmd {
+		t.Fatalf("auth command still exposes import: %s", found.CommandPath())
+	}
+	cmd.SetArgs([]string{"import"})
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("auth import should be rejected")
 	}
 }
 

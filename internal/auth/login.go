@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	LoginSourceBrowserExtension = "browser_extension"
-	defaultLoginTimeout         = 5 * time.Minute
+	LoginSourceBrowserExtension  = "browser_extension"
+	LoginSourceDevBrowserCapture = "dev_browser_capture"
+	defaultLoginTimeout          = 5 * time.Minute
 )
 
 // LoginServerOptions configures the local auth callback server.

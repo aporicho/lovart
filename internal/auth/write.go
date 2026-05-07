@@ -114,6 +114,32 @@ func SetProjectContext(projectID, cid string) error {
 	return writeCredentialMap(existing)
 }
 
+// ClearProjectContext removes the selected project while preserving credentials and CID.
+func ClearProjectContext() error {
+	existing := make(map[string]any)
+	data, err := os.ReadFile(paths.CredsFile)
+	if err != nil {
+		return fmt.Errorf("auth: read creds file: %w", err)
+	}
+	if err := json.Unmarshal(data, &existing); err != nil {
+		return fmt.Errorf("auth: parse creds file: %w", err)
+	}
+
+	delete(existing, "project_id")
+	delete(existing, "projectId")
+	if ids, ok := existing["ids"].(map[string]any); ok {
+		delete(ids, "project_id")
+		delete(ids, "projectId")
+		if len(ids) == 0 {
+			delete(existing, "ids")
+		}
+	}
+	if _, ok := existing["updated_at"]; !ok {
+		existing["updated_at"] = time.Now().UTC().Format(time.RFC3339)
+	}
+	return writeCredentialMap(existing)
+}
+
 func writeCredentialMap(value map[string]any) error {
 	data, err := json.Marshal(value)
 	if err != nil {

@@ -117,7 +117,7 @@ func checkAuth(snapshot credsSnapshot) Check {
 			Status:             CheckMissing,
 			Source:             snapshot.source,
 			Error:              "credentials file not found",
-			RecommendedActions: []string{"run `lovart auth login`", "run `lovart auth import --help`"},
+			RecommendedActions: []string{"run `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 		}
 	}
 	if snapshot.readErr != nil {
@@ -135,7 +135,7 @@ func checkAuth(snapshot credsSnapshot) Check {
 			Status:             StatusBroken,
 			Source:             snapshot.source,
 			Error:              snapshot.parseErr.Error(),
-			RecommendedActions: []string{"run `lovart auth login`", "run `lovart auth import --help`"},
+			RecommendedActions: []string{"run `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 		}
 	}
 	if snapshot.credsErr != nil {
@@ -144,7 +144,7 @@ func checkAuth(snapshot credsSnapshot) Check {
 			Status:             CheckIncomplete,
 			Source:             snapshot.source,
 			Error:              snapshot.credsErr.Error(),
-			RecommendedActions: []string{"run `lovart auth login`", "run `lovart auth import --help`"},
+			RecommendedActions: []string{"run `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 		}
 	}
 	fields := credentialFields(snapshot.creds)
@@ -168,7 +168,7 @@ func checkProject(snapshot credsSnapshot) Check {
 			Source:             snapshot.source,
 			Error:              "credentials file not found",
 			Details:            details,
-			RecommendedActions: []string{"run `lovart auth login`", "run `lovart auth import --help`"},
+			RecommendedActions: []string{"run `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 		}
 	}
 	if snapshot.readErr != nil || snapshot.parseErr != nil {
@@ -182,7 +182,7 @@ func checkProject(snapshot credsSnapshot) Check {
 			Source:             snapshot.source,
 			Error:              err.Error(),
 			Details:            details,
-			RecommendedActions: []string{"run `lovart auth login`", "run `lovart auth import --help`"},
+			RecommendedActions: []string{"run `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 		}
 	}
 	if snapshot.projectErr != nil {

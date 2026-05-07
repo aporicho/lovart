@@ -12,11 +12,17 @@ import (
 )
 
 type fakeExecutor struct {
-	projectSelect ProjectSelectArgs
-	generate      GenerateArgs
-	jobsRun       JobsRunArgs
-	jobsStatus    JobsStatusArgs
-	jobsResume    JobsResumeArgs
+	projectCreate       ProjectCreateArgs
+	projectSelect       ProjectSelectArgs
+	projectShow         ProjectShowArgs
+	projectOpen         ProjectOpenArgs
+	projectRename       ProjectRenameArgs
+	projectDelete       ProjectDeleteArgs
+	projectRepairCanvas ProjectRepairCanvasArgs
+	generate            GenerateArgs
+	jobsRun             JobsRunArgs
+	jobsStatus          JobsStatusArgs
+	jobsResume          JobsResumeArgs
 }
 
 func (f *fakeExecutor) AuthStatus(ctx context.Context) envelope.Envelope {
@@ -47,9 +53,39 @@ func (f *fakeExecutor) ProjectList(ctx context.Context) envelope.Envelope {
 	return okPreflight(map[string]any{"operation": "project_list"})
 }
 
+func (f *fakeExecutor) ProjectCreate(ctx context.Context, args ProjectCreateArgs) envelope.Envelope {
+	f.projectCreate = args
+	return okSubmit(map[string]any{"operation": "project_create", "project_name": args.Name, "selected": args.Select}, true)
+}
+
 func (f *fakeExecutor) ProjectSelect(ctx context.Context, args ProjectSelectArgs) envelope.Envelope {
 	f.projectSelect = args
 	return okPreflight(map[string]any{"operation": "project_select", "project_id": args.ProjectID, "project_context_ready": true})
+}
+
+func (f *fakeExecutor) ProjectShow(ctx context.Context, args ProjectShowArgs) envelope.Envelope {
+	f.projectShow = args
+	return okPreflight(map[string]any{"operation": "project_show", "project_id": args.ProjectID})
+}
+
+func (f *fakeExecutor) ProjectOpen(ctx context.Context, args ProjectOpenArgs) envelope.Envelope {
+	f.projectOpen = args
+	return okLocal(map[string]any{"operation": "project_open", "project_id": args.ProjectID})
+}
+
+func (f *fakeExecutor) ProjectRename(ctx context.Context, args ProjectRenameArgs) envelope.Envelope {
+	f.projectRename = args
+	return okSubmit(map[string]any{"operation": "project_rename", "project_id": args.ProjectID, "project_name": args.NewName}, true)
+}
+
+func (f *fakeExecutor) ProjectDelete(ctx context.Context, args ProjectDeleteArgs) envelope.Envelope {
+	f.projectDelete = args
+	return okSubmit(map[string]any{"operation": "project_delete", "project_id": args.ProjectID}, true)
+}
+
+func (f *fakeExecutor) ProjectRepairCanvas(ctx context.Context, args ProjectRepairCanvasArgs) envelope.Envelope {
+	f.projectRepairCanvas = args
+	return okSubmit(map[string]any{"operation": "project_repair_canvas", "project_id": args.ProjectID}, true)
 }
 
 func (f *fakeExecutor) Quote(ctx context.Context, args QuoteArgs) envelope.Envelope {
@@ -100,12 +136,16 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 		t.Fatalf("tools/list failed: %#v", listResp)
 	}
 	tools := listResp.Result.(map[string]any)["tools"].([]Tool)
-	if len(tools) != 13 {
-		t.Fatalf("expected 13 tools, got %d", len(tools))
+	if len(tools) != 19 {
+		t.Fatalf("expected 19 tools, got %d", len(tools))
 	}
 	for _, tool := range tools {
 		if tool.Name == "lovart_update_sync" || tool.Name == "lovart_auth_extract" || tool.Name == "lovart_auth_login" || tool.Name == "lovart_auth_import" || tool.Name == "lovart_generate_dry_run" || tool.Name == "lovart_jobs_quote" || tool.Name == "lovart_jobs_dry_run" {
 			t.Fatalf("unsafe tool exposed: %s", tool.Name)
+		}
+		if strings.HasPrefix(tool.Name, "lovart_project_") {
+			properties := tool.InputSchema["properties"].(map[string]any)
+			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "cookie", "token", "csrf"})
 		}
 		if tool.Name == "lovart_generate" {
 			properties := tool.InputSchema["properties"].(map[string]any)
@@ -178,6 +218,30 @@ func TestUnknownToolReturnsEnvelopeError(t *testing.T) {
 	}
 }
 
+func TestProjectCreateDefaultsToSelect(t *testing.T) {
+	executor := &fakeExecutor{}
+	server := NewServerWithExecutor(executor)
+	env := server.CallTool(context.Background(), "lovart_project_create", map[string]any{
+		"name": "Campaign draft",
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.projectCreate.Name != "Campaign draft" || !executor.projectCreate.Select {
+		t.Fatalf("project create args = %#v", executor.projectCreate)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_project_create", map[string]any{
+		"select": false,
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.projectCreate.Select {
+		t.Fatalf("project create select override failed: %#v", executor.projectCreate)
+	}
+}
+
 func TestProjectSelectRequiresProjectID(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
@@ -192,6 +256,74 @@ func TestProjectSelectRequiresProjectID(t *testing.T) {
 	}
 	if executor.projectSelect.ProjectID != "proj_123" {
 		t.Fatalf("project select args = %#v", executor.projectSelect)
+	}
+}
+
+func TestProjectShowOpenRepairAcceptOptionalProjectID(t *testing.T) {
+	executor := &fakeExecutor{}
+	server := NewServerWithExecutor(executor)
+
+	env := server.CallTool(context.Background(), "lovart_project_show", map[string]any{})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.projectShow.ProjectID != "" {
+		t.Fatalf("project show args = %#v", executor.projectShow)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_project_open", map[string]any{"project_id": "proj_123"})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.projectOpen.ProjectID != "proj_123" {
+		t.Fatalf("project open args = %#v", executor.projectOpen)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_project_repair_canvas", map[string]any{"project_id": "proj_456"})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.projectRepairCanvas.ProjectID != "proj_456" {
+		t.Fatalf("project repair args = %#v", executor.projectRepairCanvas)
+	}
+}
+
+func TestProjectRenameRequiresInputs(t *testing.T) {
+	executor := &fakeExecutor{}
+	server := NewServerWithExecutor(executor)
+	env := server.CallTool(context.Background(), "lovart_project_rename", map[string]any{"project_id": "proj_123"})
+	if env.OK {
+		t.Fatalf("expected missing new_name error")
+	}
+
+	env = server.CallTool(context.Background(), "lovart_project_rename", map[string]any{"project_id": "proj_123", "new_name": "New name"})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.projectRename.ProjectID != "proj_123" || executor.projectRename.NewName != "New name" {
+		t.Fatalf("project rename args = %#v", executor.projectRename)
+	}
+}
+
+func TestProjectDeleteRequiresMatchingConfirmProjectID(t *testing.T) {
+	executor := &fakeExecutor{}
+	server := NewServerWithExecutor(executor)
+	env := server.CallTool(context.Background(), "lovart_project_delete", map[string]any{"project_id": "proj_123"})
+	if env.OK {
+		t.Fatalf("expected missing confirm_project_id error")
+	}
+
+	env = server.CallTool(context.Background(), "lovart_project_delete", map[string]any{"project_id": "proj_123", "confirm_project_id": "proj_other"})
+	if env.OK {
+		t.Fatalf("expected mismatched confirm_project_id error")
+	}
+
+	env = server.CallTool(context.Background(), "lovart_project_delete", map[string]any{"project_id": "proj_123", "confirm_project_id": "proj_123"})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.projectDelete.ProjectID != "proj_123" || executor.projectDelete.ConfirmProjectID != "proj_123" {
+		t.Fatalf("project delete args = %#v", executor.projectDelete)
 	}
 }
 
@@ -219,6 +351,43 @@ func TestProductionProjectCurrentDoesNotExposeCID(t *testing.T) {
 	for _, forbidden := range []string{"cid-123", "cid_present", `"cid"`} {
 		if strings.Contains(string(data), forbidden) {
 			t.Fatalf("project current exposed %s: %s", forbidden, data)
+		}
+	}
+}
+
+func TestProductionProjectOpenDoesNotExposeCID(t *testing.T) {
+	t.Cleanup(paths.Reset)
+	t.Setenv("LOVART_HOME", t.TempDir())
+	paths.Reset()
+	if err := auth.SaveSession(auth.Session{Cookie: "cookie", ProjectID: "project-123", CID: "cid-123"}); err != nil {
+		t.Fatal(err)
+	}
+
+	openedURL := ""
+	originalOpenProjectURL := openProjectURL
+	openProjectURL = func(url string) error {
+		openedURL = url
+		return nil
+	}
+	t.Cleanup(func() { openProjectURL = originalOpenProjectURL })
+
+	env := ProductionExecutor{}.ProjectOpen(context.Background(), ProjectOpenArgs{})
+	data, err := json.Marshal(env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if !strings.Contains(string(data), "https://www.lovart.ai/canvas?projectId=project-123") {
+		t.Fatalf("project open missing url: %s", data)
+	}
+	if openedURL != "https://www.lovart.ai/canvas?projectId=project-123" {
+		t.Fatalf("opened url = %q", openedURL)
+	}
+	for _, forbidden := range []string{"cid-123", "cid_present", `"cid"`} {
+		if strings.Contains(string(data), forbidden) {
+			t.Fatalf("project open exposed %s: %s", forbidden, data)
 		}
 	}
 }

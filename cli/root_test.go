@@ -24,3 +24,14 @@ func TestRootCommandMovesSignUnderDev(t *testing.T) {
 		t.Fatalf("sign command path = %q, want %q", got, want)
 	}
 }
+
+func TestRootCommandExposesDevAuthLogin(t *testing.T) {
+	cmd := NewRootCommand()
+	found, _, err := cmd.Find([]string{"dev", "auth-login"})
+	if err != nil {
+		t.Fatalf("dev command missing auth-login: %v", err)
+	}
+	if got, want := found.CommandPath(), "lovart dev auth-login"; got != want {
+		t.Fatalf("auth-login command path = %q, want %q", got, want)
+	}
+}

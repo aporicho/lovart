@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"runtime"
@@ -20,13 +19,13 @@ func newAuthCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auth",
 		Short: "Manage Lovart browser login",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},
 	}
 	cmd.AddCommand(newAuthStatusCmd())
 	cmd.AddCommand(newAuthLoginCmd())
-	cmd.AddCommand(newAuthImportCmd())
 	cmd.AddCommand(newAuthLogoutCmd())
 	return cmd
 }
@@ -45,7 +44,6 @@ func newAuthStatusCmd() *cobra.Command {
 
 func newAuthLoginCmd() *cobra.Command {
 	var timeoutSeconds float64
-	var noOpen bool
 	cmd := &cobra.Command{
 		Use:   "login",
 		Short: "Connect Lovart browser login through the Lovart Connector extension",
@@ -73,10 +71,8 @@ func newAuthLoginCmd() *cobra.Command {
 			loginURL := "https://www.lovart.ai/?lovart_cli_auth=1&port=" + strconv.Itoa(server.Port())
 			fmt.Fprintf(os.Stderr, "Lovart auth login waiting on http://127.0.0.1:%d\n", server.Port())
 			fmt.Fprintln(os.Stderr, "Open Lovart, stay signed in, then click Connect in the Lovart Connector page prompt.")
-			if !noOpen {
-				if err := openBrowser(loginURL); err != nil {
-					fmt.Fprintf(os.Stderr, "Could not open browser automatically: %v\nOpen manually: %s\n", err, loginURL)
-				}
+			if err := openBrowser(loginURL); err != nil {
+				fmt.Fprintf(os.Stderr, "Could not open browser automatically: %v\nOpen manually: %s\n", err, loginURL)
 			}
 
 			select {
@@ -101,58 +97,13 @@ func newAuthLoginCmd() *cobra.Command {
 				return nil
 			case <-ctx.Done():
 				printEnvelope(envelope.Err(errors.CodeTimeout, "auth login timed out", map[string]any{
-					"recommended_actions": []string{"rerun `lovart auth login`", "run `lovart auth import --help`"},
+					"recommended_actions": []string{"rerun `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 				}))
 				return nil
 			}
 		},
 	}
 	cmd.Flags().Float64Var(&timeoutSeconds, "timeout-seconds", 300, "seconds to wait for browser connection")
-	cmd.Flags().BoolVar(&noOpen, "no-open", false, "do not open Lovart in a browser")
-	return cmd
-}
-
-func newAuthImportCmd() *cobra.Command {
-	var filePath, curlPath, cookie, token, csrf, projectID string
-	var stdin bool
-	cmd := &cobra.Command{
-		Use:   "import",
-		Short: "Import Lovart browser credentials from JSON, headers, cURL, or explicit fields",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			session, err := authImportSession(filePath, curlPath, stdin)
-			if err != nil {
-				printEnvelope(envelope.Err(errors.CodeInputError, "read auth import input", map[string]any{"error": err.Error()}))
-				return nil
-			}
-			session = auth.MergeSession(session, auth.Session{
-				Cookie:    cookie,
-				Token:     token,
-				CSRF:      csrf,
-				ProjectID: projectID,
-				Source:    "manual_import",
-			})
-			if session.Source == "" {
-				session.Source = "manual_import"
-			}
-			if err := auth.SaveSession(session); err != nil {
-				printEnvelope(envelope.Err(errors.CodeInputError, "save auth import", map[string]any{"error": err.Error()}))
-				return nil
-			}
-			printEnvelope(okLocal(map[string]any{
-				"imported": true,
-				"status":   auth.GetStatus(),
-			}))
-			return nil
-		},
-	}
-	cmd.Flags().StringVar(&filePath, "file", "", "path to JSON credentials, copied cURL, or raw headers")
-	cmd.Flags().BoolVar(&stdin, "stdin", false, "read JSON credentials, copied cURL, or raw headers from stdin")
-	cmd.Flags().StringVar(&curlPath, "curl-file", "", "path to copied cURL command")
-	cmd.Flags().StringVar(&cookie, "cookie", "", "Lovart cookie header")
-	cmd.Flags().StringVar(&token, "token", "", "Lovart token header")
-	cmd.Flags().StringVar(&csrf, "csrf", "", "Lovart CSRF token")
-	cmd.Flags().StringVar(&projectID, "project-id", "", "Lovart project id")
 	return cmd
 }
 
@@ -179,40 +130,6 @@ func newAuthLogoutCmd() *cobra.Command {
 	}
 	cmd.Flags().BoolVar(&yes, "yes", false, "confirm deleting stored Lovart credentials")
 	return cmd
-}
-
-func authImportSession(filePath, curlPath string, stdin bool) (auth.Session, error) {
-	sourceCount := 0
-	for _, value := range []bool{filePath != "", curlPath != "", stdin} {
-		if value {
-			sourceCount++
-		}
-	}
-	if sourceCount > 1 {
-		return auth.Session{}, fmt.Errorf("use only one of --file, --curl-file, or --stdin")
-	}
-	if curlPath != "" {
-		data, err := os.ReadFile(curlPath)
-		if err != nil {
-			return auth.Session{}, err
-		}
-		return auth.ParseCurl(data)
-	}
-	if filePath != "" {
-		data, err := os.ReadFile(filePath)
-		if err != nil {
-			return auth.Session{}, err
-		}
-		return auth.ParseImport(data)
-	}
-	if stdin {
-		data, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			return auth.Session{}, err
-		}
-		return auth.ParseImport(data)
-	}
-	return auth.Session{}, nil
 }
 
 func openBrowser(url string) error {

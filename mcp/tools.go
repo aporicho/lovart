@@ -70,9 +70,30 @@ func Tools() []Tool {
 		tool("lovart_balance", "Return the current Lovart credit balance.", map[string]any{}),
 		tool("lovart_project_current", "Return the selected Lovart project context without exposing secrets.", map[string]any{}),
 		tool("lovart_project_list", "List Lovart projects available to the current account.", map[string]any{}),
+		tool("lovart_project_create", "Create a new Lovart project and optionally select it for future generation.", map[string]any{
+			"name":   stringSchema("optional project name"),
+			"select": boolSchema("select the new project after creation; defaults to true"),
+		}),
 		tool("lovart_project_select", "Select the Lovart project used by generation tools.", map[string]any{
 			"project_id": stringSchema("Lovart project id"),
 		}, "project_id"),
+		tool("lovart_project_show", "Show Lovart project details; defaults to the selected project.", map[string]any{
+			"project_id": stringSchema("optional Lovart project id"),
+		}),
+		tool("lovart_project_open", "Open a Lovart project in the local browser; defaults to the selected project.", map[string]any{
+			"project_id": stringSchema("optional Lovart project id"),
+		}),
+		tool("lovart_project_rename", "Rename a Lovart project.", map[string]any{
+			"project_id": stringSchema("Lovart project id"),
+			"new_name":   stringSchema("new project name"),
+		}, "project_id", "new_name"),
+		tool("lovart_project_delete", "Delete a Lovart project; project_id and confirm_project_id must match.", map[string]any{
+			"project_id":         stringSchema("Lovart project id"),
+			"confirm_project_id": stringSchema("must exactly match project_id"),
+		}, "project_id", "confirm_project_id"),
+		tool("lovart_project_repair_canvas", "Normalize and repair a Lovart project canvas; defaults to the selected project.", map[string]any{
+			"project_id": stringSchema("optional Lovart project id"),
+		}),
 		tool("lovart_quote", "Fetch an exact Lovart credit quote for a model request.", map[string]any{
 			"model": stringSchema("Lovart generator model name"),
 			"body":  map[string]any{"type": "object"},

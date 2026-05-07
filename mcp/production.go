@@ -3,6 +3,8 @@ package mcp
 import (
 	"context"
 	stderrors "errors"
+	"fmt"
+	"os/exec"
 
 	"github.com/aporicho/lovart/internal/auth"
 	"github.com/aporicho/lovart/internal/config"
@@ -24,6 +26,10 @@ import (
 
 // ProductionExecutor executes MCP tools against the Lovart runtime.
 type ProductionExecutor struct{}
+
+var openProjectURL = func(url string) error {
+	return exec.Command("open", url).Start()
+}
 
 // AuthStatus reports credential presence without exposing secret values.
 func (ProductionExecutor) AuthStatus(ctx context.Context) envelope.Envelope {
@@ -132,6 +138,36 @@ func (ProductionExecutor) ProjectList(ctx context.Context) envelope.Envelope {
 	return okPreflight(map[string]any{"count": len(projects), "projects": projects})
 }
 
+// ProjectCreate creates a new Lovart project and selects it by default.
+func (ProductionExecutor) ProjectCreate(ctx context.Context, args ProjectCreateArgs) envelope.Envelope {
+	pc, _ := auth.LoadProjectContext()
+	cid := ""
+	if pc != nil {
+		cid = pc.CID
+	}
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	createdProject, err := project.Create(ctx, client, cid, args.Name)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "create project", map[string]any{"error": err.Error()})
+	}
+	if args.Select {
+		if err := auth.SetProjectContext(createdProject.ID, cid); err != nil {
+			return envelope.Err(errors.CodeInternal, "set project", map[string]any{"error": err.Error()})
+		}
+	}
+	return okSubmit(map[string]any{
+		"created":               true,
+		"selected":              args.Select,
+		"project_id":            createdProject.ID,
+		"project_name":          createdProject.Name,
+		"project_context_ready": args.Select && cid != "",
+		"canvas_url":            canvasURL(createdProject.ID),
+	}, true)
+}
+
 // ProjectSelect stores the selected project for future generation calls.
 func (ProductionExecutor) ProjectSelect(ctx context.Context, args ProjectSelectArgs) envelope.Envelope {
 	pc, _ := auth.LoadProjectContext()
@@ -166,6 +202,113 @@ func (ProductionExecutor) ProjectSelect(ctx context.Context, args ProjectSelectA
 		"project_name":          selectedProject.Name,
 		"project_context_ready": cid != "",
 	})
+}
+
+// ProjectShow returns project details without exposing auth values.
+func (ProductionExecutor) ProjectShow(ctx context.Context, args ProjectShowArgs) envelope.Envelope {
+	projectID, cid, env := projectIDAndOptionalCID(args.ProjectID)
+	if env != nil {
+		return *env
+	}
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	p, err := project.Query(ctx, client, projectID, cid)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "query project", map[string]any{"error": err.Error()})
+	}
+	return okPreflight(map[string]any{
+		"project_id":   p.ID,
+		"project_name": p.Name,
+		"canvas_url":   canvasURL(p.ID),
+	})
+}
+
+// ProjectOpen opens the project in the local browser.
+func (ProductionExecutor) ProjectOpen(ctx context.Context, args ProjectOpenArgs) envelope.Envelope {
+	projectID, env := projectIDOrCurrent(args.ProjectID)
+	if env != nil {
+		return *env
+	}
+	url := canvasURL(projectID)
+	if err := openProjectURL(url); err != nil {
+		return envelope.Err(errors.CodeInternal, "open project", map[string]any{
+			"project_id": projectID,
+			"canvas_url": url,
+			"error":      err.Error(),
+		})
+	}
+	return okLocal(map[string]any{
+		"opened":     true,
+		"project_id": projectID,
+		"canvas_url": url,
+		"url":        url,
+	}, true)
+}
+
+// ProjectRename renames a Lovart project.
+func (ProductionExecutor) ProjectRename(ctx context.Context, args ProjectRenameArgs) envelope.Envelope {
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	if err := project.Rename(ctx, client, args.ProjectID, args.NewName); err != nil {
+		return envelope.Err(errors.CodeInternal, "rename project", map[string]any{"error": err.Error()})
+	}
+	return okSubmit(map[string]any{
+		"renamed":      true,
+		"project_id":   args.ProjectID,
+		"project_name": args.NewName,
+		"canvas_url":   canvasURL(args.ProjectID),
+	}, true)
+}
+
+// ProjectDelete deletes a Lovart project and clears local selection when needed.
+func (ProductionExecutor) ProjectDelete(ctx context.Context, args ProjectDeleteArgs) envelope.Envelope {
+	if args.ConfirmProjectID != args.ProjectID {
+		return envelope.Err(errors.CodeInputError, "confirm_project_id must match project_id", nil)
+	}
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	if err := project.Delete(ctx, client, args.ProjectID); err != nil {
+		return envelope.Err(errors.CodeInternal, "delete project", map[string]any{"error": err.Error()})
+	}
+
+	clearedCurrent := false
+	if pc, _ := auth.LoadProjectContext(); pc != nil && pc.ProjectID == args.ProjectID {
+		if err := auth.ClearProjectContext(); err != nil {
+			return envelope.Err(errors.CodeInternal, "clear selected project", map[string]any{"error": err.Error()})
+		}
+		clearedCurrent = true
+	}
+	return okSubmit(map[string]any{
+		"deleted":         true,
+		"project_id":      args.ProjectID,
+		"cleared_current": clearedCurrent,
+	}, true)
+}
+
+// ProjectRepairCanvas repairs the selected or provided project's canvas.
+func (ProductionExecutor) ProjectRepairCanvas(ctx context.Context, args ProjectRepairCanvasArgs) envelope.Envelope {
+	projectID, cid, env := projectIDAndOptionalCID(args.ProjectID)
+	if env != nil {
+		return *env
+	}
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	result, err := project.RepairCanvas(ctx, client, projectID, cid)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "repair canvas", map[string]any{"error": err.Error()})
+	}
+	return okSubmit(map[string]any{
+		"project_id": projectID,
+		"repair":     result,
+	}, result != nil && result.Changed)
 }
 
 // Quote fetches live pricing for a single request.
@@ -461,6 +604,54 @@ func applyProjectContext(opts *jobs.JobsOptions) {
 	if opts.CID == "" {
 		opts.CID = pc.CID
 	}
+}
+
+func projectIDOrCurrent(projectID string) (string, *envelope.Envelope) {
+	if projectID != "" {
+		return projectID, nil
+	}
+	pc, err := auth.LoadProjectContext()
+	if err != nil || pc == nil || pc.ProjectID == "" {
+		env := missingProjectContextEnvelope(projectID, err)
+		return "", &env
+	}
+	return pc.ProjectID, nil
+}
+
+func projectIDAndOptionalCID(projectID string) (string, string, *envelope.Envelope) {
+	pc, err := auth.LoadProjectContext()
+	cid := ""
+	if pc != nil {
+		cid = pc.CID
+		if projectID == "" {
+			projectID = pc.ProjectID
+		}
+	}
+	if projectID == "" {
+		env := missingProjectContextEnvelope(projectID, err)
+		return "", "", &env
+	}
+	return projectID, cid, nil
+}
+
+func missingProjectContextEnvelope(projectID string, err error) envelope.Envelope {
+	details := map[string]any{
+		"project_id":            projectID,
+		"project_context_ready": false,
+		"recommended_actions": []string{
+			"run `lovart auth login`",
+			"run `lovart project list`",
+			"run `lovart project select <project_id>`",
+		},
+	}
+	if err != nil {
+		details["error"] = err.Error()
+	}
+	return envelope.Err(errors.CodeInputError, "missing project context", details)
+}
+
+func canvasURL(projectID string) string {
+	return fmt.Sprintf("https://www.lovart.ai/canvas?projectId=%s", projectID)
 }
 
 func jobValidationEnvelope(validationErr *jobs.ValidationError) envelope.Envelope {

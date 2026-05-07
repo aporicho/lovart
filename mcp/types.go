@@ -44,6 +44,39 @@ type ProjectSelectArgs struct {
 	ProjectID string `json:"project_id"`
 }
 
+// ProjectCreateArgs configures lovart_project_create.
+type ProjectCreateArgs struct {
+	Name   string `json:"name"`
+	Select bool   `json:"select"`
+}
+
+// ProjectShowArgs configures lovart_project_show.
+type ProjectShowArgs struct {
+	ProjectID string `json:"project_id"`
+}
+
+// ProjectOpenArgs configures lovart_project_open.
+type ProjectOpenArgs struct {
+	ProjectID string `json:"project_id"`
+}
+
+// ProjectRenameArgs configures lovart_project_rename.
+type ProjectRenameArgs struct {
+	ProjectID string `json:"project_id"`
+	NewName   string `json:"new_name"`
+}
+
+// ProjectDeleteArgs configures lovart_project_delete.
+type ProjectDeleteArgs struct {
+	ProjectID        string `json:"project_id"`
+	ConfirmProjectID string `json:"confirm_project_id"`
+}
+
+// ProjectRepairCanvasArgs configures lovart_project_repair_canvas.
+type ProjectRepairCanvasArgs struct {
+	ProjectID string `json:"project_id"`
+}
+
 // GenerateArgs configures single generation tools.
 type GenerateArgs struct {
 	Model                string         `json:"model"`
@@ -94,7 +127,13 @@ type Executor interface {
 	Balance(ctx context.Context) envelope.Envelope
 	ProjectCurrent(ctx context.Context) envelope.Envelope
 	ProjectList(ctx context.Context) envelope.Envelope
+	ProjectCreate(ctx context.Context, args ProjectCreateArgs) envelope.Envelope
 	ProjectSelect(ctx context.Context, args ProjectSelectArgs) envelope.Envelope
+	ProjectShow(ctx context.Context, args ProjectShowArgs) envelope.Envelope
+	ProjectOpen(ctx context.Context, args ProjectOpenArgs) envelope.Envelope
+	ProjectRename(ctx context.Context, args ProjectRenameArgs) envelope.Envelope
+	ProjectDelete(ctx context.Context, args ProjectDeleteArgs) envelope.Envelope
+	ProjectRepairCanvas(ctx context.Context, args ProjectRepairCanvasArgs) envelope.Envelope
 	Quote(ctx context.Context, args QuoteArgs) envelope.Envelope
 	Generate(ctx context.Context, args GenerateArgs) envelope.Envelope
 	JobsRun(ctx context.Context, args JobsRunArgs) envelope.Envelope

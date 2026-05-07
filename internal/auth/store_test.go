@@ -75,6 +75,47 @@ func TestSetProject(t *testing.T) {
 	}
 }
 
+func TestClearProjectContextPreservesCIDAndCredentials(t *testing.T) {
+	dir := t.TempDir()
+	credsPath := filepath.Join(dir, "creds.json")
+	os.MkdirAll(filepath.Dir(credsPath), 0700)
+	t.Setenv("LOVART_HOME", dir)
+	paths.Reset()
+
+	if err := SaveSession(Session{
+		Cookie:    "secret-cookie",
+		Token:     "secret-token",
+		CSRF:      "secret-csrf",
+		ProjectID: "project-123",
+		CID:       "cid-123",
+		Source:    "test",
+	}); err != nil {
+		t.Fatalf("SaveSession: %v", err)
+	}
+	if err := ClearProjectContext(); err != nil {
+		t.Fatalf("ClearProjectContext: %v", err)
+	}
+
+	creds, err := Load()
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if creds.Cookie != "secret-cookie" || creds.Token != "secret-token" || creds.CSRF != "secret-csrf" {
+		t.Fatalf("credentials were not preserved: %#v", creds)
+	}
+	pc, err := LoadProjectContext()
+	if err != nil {
+		t.Fatalf("LoadProjectContext: %v", err)
+	}
+	if pc.ProjectID != "" || pc.CID != "cid-123" {
+		t.Fatalf("project context after clear = %#v", pc)
+	}
+	status := GetStatus()
+	if status.ProjectIDPresent || status.ProjectContextReady || containsString(status.Fields, "project_id") {
+		t.Fatalf("status after clear = %#v", status)
+	}
+}
+
 func TestGetStatus(t *testing.T) {
 	dir := t.TempDir()
 	credsPath := filepath.Join(dir, "creds.json")

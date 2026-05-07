@@ -47,7 +47,7 @@ func newModelsCmd() *cobra.Command {
 					"error": err.Error(),
 					"recommended_actions": []string{
 						"run `lovart auth login`",
-						"run `lovart auth import --help`",
+						"run `lovart dev auth-login` for developer browser capture",
 					},
 				}))
 				return nil

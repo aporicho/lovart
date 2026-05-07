@@ -208,7 +208,6 @@ lovart upgrade [--check] [--dry-run] [--yes] [--force] [--version latest|vX.Y.Z]
 lovart uninstall [--dry-run] [--yes] [--data] [--install-path <path>] [--extension-dir <path>] [--clients auto|all|none|codex,claude,opencode,openclaw] [--keep-mcp] [--keep-extension] [--force]
 lovart auth status
 lovart auth login
-lovart auth import [--file <file>|--stdin|--curl-file <file>|--cookie <value> --token <value>]
 lovart auth logout --yes
 lovart clean [--dry-run] [--runs|--downloads|--cache|--auth|--extension|--all] [--yes]
 lovart setup
@@ -239,17 +238,20 @@ lovart mcp
 lovart mcp status [--clients auto|all|none|codex,claude,opencode,openclaw]
 lovart mcp install --clients auto --yes [--dry-run] [--force]
 lovart dev sign
+lovart dev auth-login [--timeout-seconds N] [--debug-port N]
 ```
 
 `lovart update sync` refreshes runtime signer and generator metadata. `lovart upgrade` updates the installed CLI binary and, by default, the Lovart Connector extension files.
 
-## MCP Tools (13)
+## MCP Tools (19)
 
 ```
 lovart_auth_status,
 lovart_setup, lovart_models, lovart_config,
 lovart_balance,
-lovart_project_current, lovart_project_list, lovart_project_select,
+lovart_project_current, lovart_project_list, lovart_project_create,
+lovart_project_select, lovart_project_show, lovart_project_open,
+lovart_project_rename, lovart_project_delete, lovart_project_repair_canvas,
 lovart_quote,
 lovart_generate,
 lovart_jobs_run, lovart_jobs_status,
@@ -268,6 +270,8 @@ User runs `lovart auth login`
   → Service worker posts the approved session to the local callback
   → CLI stores `~/.lovart/creds.json` and prints safe next steps
 ```
+
+Developer auth uses `lovart dev auth-login`. It restarts the daily Google Chrome app with a local DevTools debugging port, opens Lovart, captures the signed-in browser session through Chrome DevTools Protocol, validates the captured session against Lovart project APIs, and only then writes `~/.lovart/creds.json`. It is intentionally under `dev` so normal users only see the extension-based login path.
 
 ## API Endpoints
 

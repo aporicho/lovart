@@ -135,12 +135,52 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 		return s.executor.ProjectCurrent(ctx)
 	case "lovart_project_list":
 		return s.executor.ProjectList(ctx)
+	case "lovart_project_create":
+		return s.executor.ProjectCreate(ctx, ProjectCreateArgs{
+			Name:   stringArg(args, "name", ""),
+			Select: boolArg(args, "select", true),
+		})
 	case "lovart_project_select":
 		projectID, err := requiredString(args, "project_id")
 		if err != nil {
 			return inputErr(err)
 		}
 		return s.executor.ProjectSelect(ctx, ProjectSelectArgs{ProjectID: projectID})
+	case "lovart_project_show":
+		return s.executor.ProjectShow(ctx, ProjectShowArgs{
+			ProjectID: stringArg(args, "project_id", ""),
+		})
+	case "lovart_project_open":
+		return s.executor.ProjectOpen(ctx, ProjectOpenArgs{
+			ProjectID: stringArg(args, "project_id", ""),
+		})
+	case "lovart_project_rename":
+		projectID, err := requiredString(args, "project_id")
+		if err != nil {
+			return inputErr(err)
+		}
+		newName, err := requiredString(args, "new_name")
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.ProjectRename(ctx, ProjectRenameArgs{ProjectID: projectID, NewName: newName})
+	case "lovart_project_delete":
+		projectID, err := requiredString(args, "project_id")
+		if err != nil {
+			return inputErr(err)
+		}
+		confirmProjectID, err := requiredString(args, "confirm_project_id")
+		if err != nil {
+			return inputErr(err)
+		}
+		if confirmProjectID != projectID {
+			return inputErr(fmt.Errorf("confirm_project_id must match project_id"))
+		}
+		return s.executor.ProjectDelete(ctx, ProjectDeleteArgs{ProjectID: projectID, ConfirmProjectID: confirmProjectID})
+	case "lovart_project_repair_canvas":
+		return s.executor.ProjectRepairCanvas(ctx, ProjectRepairCanvasArgs{
+			ProjectID: stringArg(args, "project_id", ""),
+		})
 	case "lovart_quote":
 		quoteArgs, err := parseQuoteArgs(args)
 		if err != nil {
