@@ -100,17 +100,14 @@ MCP tools return the same JSON envelope as the CLI:
 - `lovart_project_list`
 - `lovart_project_select`
 - `lovart_quote`
-- `lovart_generate_dry_run`
 - `lovart_generate`
-- `lovart_jobs_quote`
-- `lovart_jobs_dry_run`
 - `lovart_jobs_run`
 - `lovart_jobs_status`
 - `lovart_jobs_resume`
 
 The MCP server does not expose interactive login, credential import/logout, capture, credential extraction, reverse replay submission, metadata sync, or direct `ref/` mutation.
 
-Long batch waits are resumable. MCP clients commonly cap a tool call around two minutes, so `lovart_jobs_run` and `lovart_jobs_resume` use compact summary output by default and cap `wait` windows at 90 seconds. If a batch is still running, call `lovart_jobs_resume` again or inspect `lovart_jobs_status`; saved `task_id`s are reused and are not resubmitted. For local files, call jobs tools with `download=true` and optionally `download_dir="/path/to/images"`.
+Long batch waits are resumable. MCP clients commonly cap a tool call around two minutes, so `lovart_jobs_run` and `lovart_jobs_resume` use compact summary output by default and a short internal wait window. If a batch is still running, call `lovart_jobs_resume` again or inspect `lovart_jobs_status`; saved `task_id`s are reused and are not resubmitted. For local files, pass `download_dir="/path/to/images"` when the user expects files in a specific folder.
 
 ## CLI Fallback
 
@@ -123,18 +120,16 @@ lovart auth login
 lovart doctor
 lovart config <model>
 lovart quote <model> --body-file request.json
-lovart generate <model> --body-file request.json --mode auto --dry-run
-lovart generate <model> --prompt "prompt text" --mode auto --dry-run
 lovart generate <model> --body-file request.json --mode auto --wait --download
+lovart generate <model> --prompt "prompt text" --mode auto
 ```
 
 For batch generation:
 
 ```bash
-lovart jobs quote runs/<project>/jobs.jsonl
-lovart jobs dry-run runs/<project>/jobs.jsonl
-lovart jobs run runs/<project>/jobs.jsonl --wait --download
-lovart jobs resume runs/<project> --wait --download
+lovart jobs run runs/<project>/jobs.jsonl
+lovart jobs status runs/<project>
+lovart jobs resume runs/<project>
 ```
 
 Paid generation still requires explicit budget flags in both MCP and CLI calls.

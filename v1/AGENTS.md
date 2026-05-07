@@ -13,7 +13,7 @@ This file is only the hard-rule checklist for coding agents.
 - Run `lovart --version` and `lovart self-test` when entering a new environment.
 - If `lovart --version` does not match the expected package/commit or lacks current commands, replace the binary from the private GitHub release.
 - Do not guess model parameters. Use `lovart config <model>`.
-- Do not treat `quote` alone as permission to submit. Real generation needs `dry-run` and the generation gate.
+- Do not treat `quote` alone as permission to submit. Real single generation runs the generation gate internally before submission.
 - Do not bypass `auth_missing`, `metadata_stale`, `signer_stale`, `unknown_pricing`, or `credit_risk`.
 - Paid single generation requires explicit user budget and `--allow-paid --max-credits N`.
 - Paid batch generation requires explicit user budget and `--allow-paid --max-total-credits N`.

@@ -15,7 +15,7 @@ func TestAuthImportAndStatusDoNotLeakSecrets(t *testing.T) {
 
 	output := captureStdout(t, func() {
 		cmd := newAuthCmd()
-		cmd.SetArgs([]string{"import", "--cookie", "secret-cookie", "--token", "secret-token", "--project-id", "project-123", "--cid", "cid-123"})
+		cmd.SetArgs([]string{"import", "--cookie", "secret-cookie", "--token", "secret-token", "--project-id", "project-123"})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute import: %v", err)
 		}
@@ -44,10 +44,18 @@ func TestAuthImportAndStatusDoNotLeakSecrets(t *testing.T) {
 			t.Fatalf("status leaked %s: %s", secret, output)
 		}
 	}
-	for _, want := range []string{`"available":true`, `"project_id_present":true`, `"cid_present":true`} {
+	for _, want := range []string{`"available":true`, `"project_id_present":true`, `"project_context_ready":false`} {
 		if !strings.Contains(output, want) {
 			t.Fatalf("status missing %s: %s", want, output)
 		}
+	}
+	for _, forbidden := range []string{"cid_present", `"cid"`} {
+		if strings.Contains(output, forbidden) {
+			t.Fatalf("status exposed %s: %s", forbidden, output)
+		}
+	}
+	if cmd := newAuthImportCmd(); cmd.Flags().Lookup("cid") != nil {
+		t.Fatalf("auth import exposes --cid")
 	}
 }
 

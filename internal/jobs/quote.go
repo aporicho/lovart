@@ -43,7 +43,7 @@ type JobQuote struct {
 func QuoteJobs(ctx context.Context, client *http.Client, jobsFile string, noProgress bool) (*QuoteSummary, error) {
 	jobs, validation, err := PrepareJobsFile(jobsFile)
 	if err != nil {
-		return nil, fmt.Errorf("jobs quote: %w", err)
+		return nil, fmt.Errorf("jobs pricing: %w", err)
 	}
 	if validation != nil {
 		return nil, validation
@@ -102,7 +102,7 @@ func QuotePreparedJobs(ctx context.Context, client *http.Client, jobs []JobLine,
 
 			r, err := pricing.Quote(ctx, client, job.Model, repBody)
 			if err != nil {
-				return nil, fmt.Errorf("jobs quote: job %q: %w", job.JobID, err)
+				return nil, fmt.Errorf("jobs pricing: job %q: %w", job.JobID, err)
 			}
 			result = r
 			summary.QuotedRequests++

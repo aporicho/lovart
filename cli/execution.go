@@ -49,15 +49,6 @@ func okRemoteWrite(data any) envelope.Envelope {
 	})
 }
 
-func okPreflightSubmission(data any, submitted bool) envelope.Envelope {
-	return envelope.OKWithMetadata(data, envelope.ExecutionMetadata{
-		ExecutionClass:  executionPreflight,
-		NetworkRequired: true,
-		RemoteWrite:     false,
-		Submitted:       boolPtr(submitted),
-	})
-}
-
 func boolPtr(value bool) *bool {
 	return &value
 }

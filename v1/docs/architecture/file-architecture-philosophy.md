@@ -12,7 +12,7 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `lovart_reverse/registry/` owns model records, schema lookup, and request validation.
 - `lovart_reverse/pricing/` owns remote quote requests and raw pricing metadata fetches used only for update drift checks.
 - `lovart_reverse/entitlement/` owns fast zero-credit and relaxed unlimited checks.
-- `lovart_reverse/generation/` owns dry-run previews, paid gate evaluation, and submission.
+- `lovart_reverse/generation/` owns paid gate evaluation and submission.
 - `lovart_reverse/jobs/` owns local batch queue parsing, whole-batch quote/preflight, submission orchestration, state, resume, and batch downloads.
 - `lovart_reverse/commands/` owns the safe command facade shared by CLI and MCP wrappers.
 - `lovart_reverse/mcp/` owns the safe stdio MCP wrapper and must not expose capture, credential extraction, reverse replay submission, metadata sync, or direct `ref/` mutation.
@@ -35,7 +35,7 @@ This project is an agent-facing reverse-engineering toolkit. Its file structure 
 - `entitlement/checks.py` checks fast zero-credit and relaxed unlimited eligibility.
 - `setup/readiness.py` reports setup, auth, metadata, signer, and runtime readiness.
 - `update/drift.py` compares online Lovart state with local metadata snapshots.
-- `jobs/orchestrator.py` coordinates user-level batch quote, dry-run, run, status, and resume.
+- `jobs/orchestrator.py` coordinates user-level batch run, status, and resume.
 - `commands/facade.py` exposes safe command functions used by both CLI and MCP.
 - `mcp/server.py` maps safe MCP tools to command facade calls and returns CLI-compatible JSON envelopes.
 - `cli/application.py` owns argparse wiring and command dispatch; `cli/main.py` only delegates to it.

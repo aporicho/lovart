@@ -47,8 +47,8 @@ func TestSetProject(t *testing.T) {
 	t.Setenv("LOVART_REVERSE_ROOT", dir)
 	paths.Reset()
 
-	if err := SetProject("proj-123", "cid-456"); err != nil {
-		t.Fatalf("SetProject: %v", err)
+	if err := SetProjectContext("proj-123", "cid-456"); err != nil {
+		t.Fatalf("SetProjectContext: %v", err)
 	}
 
 	pc, err := LoadProjectContext()
@@ -61,6 +61,17 @@ func TestSetProject(t *testing.T) {
 	}
 	if pc.CID != "cid-456" {
 		t.Errorf("CID = %q, want %q", pc.CID, "cid-456")
+	}
+
+	if err := SetProject("proj-789"); err != nil {
+		t.Fatalf("SetProject: %v", err)
+	}
+	pc, err = LoadProjectContext()
+	if err != nil {
+		t.Fatalf("LoadProjectContext after SetProject: %v", err)
+	}
+	if pc.ProjectID != "proj-789" || pc.CID != "cid-456" {
+		t.Errorf("project context after SetProject = %#v", pc)
 	}
 }
 
@@ -116,14 +127,22 @@ func TestSaveSessionPreservesProjectMetadataAndStatusIsSafe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !status.ProjectIDPresent || !status.CIDPresent || status.UpdatedAt == "" {
+	if !status.ProjectIDPresent || !status.ProjectContextReady || status.UpdatedAt == "" {
 		t.Fatalf("status = %#v", status)
 	}
-	if !containsString(status.Fields, "project_id") || !containsString(status.Fields, "cid") {
+	if !containsString(status.Fields, "project_id") || containsString(status.Fields, "cid") {
 		t.Fatalf("status fields = %#v", status.Fields)
 	}
 	if status.Source != "test" || status.CredentialPath == "" {
 		t.Fatalf("status source/path = %#v", status)
+	}
+	for _, leaked := range []string{"secret-cookie", "secret-token", "secret-csrf", "cid-123", "cid_present"} {
+		if strings.Contains(string(data), leaked) {
+			t.Fatalf("status leaked %s: %s", leaked, data)
+		}
+	}
+	if !strings.Contains(string(data), "project_context_ready") {
+		t.Fatalf("status missing project_context_ready: %s", data)
 	}
 	if strings.Contains(string(data), "secret-cookie") || strings.Contains(string(data), "secret-token") || strings.Contains(string(data), "secret-csrf") {
 		t.Fatalf("status leaked secrets: %s", data)

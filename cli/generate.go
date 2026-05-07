@@ -19,8 +19,6 @@ func newGenerateCmd() *cobra.Command {
 		prompt               string
 		mode                 string
 		projectID            string
-		cid                  string
-		dryRun               bool
 		allowPaid            bool
 		maxCredits           float64
 		wait                 = true
@@ -57,20 +55,23 @@ func newGenerateCmd() *cobra.Command {
 
 			// Resolve project context. Explicit flags are per-command overrides and
 			// do not mutate the stored current project.
+			cid := ""
 			if pc, err := auth.LoadProjectContext(); err == nil && pc != nil {
 				if projectID == "" {
 					projectID = pc.ProjectID
 				}
-				if cid == "" {
-					cid = pc.CID
-				}
+				cid = pc.CID
 			}
 
-			if !dryRun && (projectID == "" || cid == "") {
+			if projectID == "" || cid == "" {
 				printEnvelope(envelope.Err(errors.CodeInputError, "missing project context", map[string]any{
-					"project_id":         projectID,
-					"cid_present":        cid != "",
-					"recommended_action": "pass --project-id and ensure cid is available from credentials, or run `lovart project select <project_id>`",
+					"project_id":            projectID,
+					"project_context_ready": false,
+					"recommended_actions": []string{
+						"run `lovart auth login`",
+						"run `lovart project list`",
+						"run `lovart project select <project_id>`",
+					},
 				}))
 				return nil
 			}
@@ -114,15 +115,6 @@ func newGenerateCmd() *cobra.Command {
 				return nil
 			}
 
-			if dryRun {
-				printEnvelope(okPreflightSubmission(map[string]any{
-					"submitted":  false,
-					"preflight":  preflight,
-					"project_id": projectID,
-				}, false))
-				return nil
-			}
-
 			if !preflight.CanSubmit {
 				printEnvelope(envelope.Err(errors.CodeCreditRisk, "cannot submit", map[string]any{
 					"preflight": preflight,
@@ -146,13 +138,22 @@ func newGenerateCmd() *cobra.Command {
 			}
 
 			// Wait for completion.
+			var warnings []string
 			if wait {
 				task, err := generation.Wait(ctx, client, result.TaskID)
 				if err != nil {
 					output["poll_error"] = err.Error()
+					warnings = append(warnings, "task was submitted but polling failed; rerun a status or resume-capable command when available")
 				} else {
 					output["task"] = task
 					output["status"] = task["status"]
+					if task["status"] == "failed" {
+						printEnvelope(envelope.Err(errors.CodeTaskFailed, "generation task failed", map[string]any{
+							"task_id": result.TaskID,
+							"task":    task,
+						}))
+						return nil
+					}
 
 					if task["status"] == "completed" && download {
 						downloadResult, err := downloads.DownloadArtifacts(ctx, downloads.ArtifactsFromTask(task), downloads.Options{
@@ -168,10 +169,12 @@ func newGenerateCmd() *cobra.Command {
 						})
 						if err != nil {
 							output["download_error"] = err.Error()
+							warnings = append(warnings, "artifacts were generated but download failed; rerun generation with downloads disabled or retry artifact download when available")
 						} else {
 							output["downloads"] = downloadResult.Files
 							if downloadResult.IndexError != "" {
 								output["download_index_error"] = downloadResult.IndexError
+								warnings = append(warnings, "artifacts were downloaded but the download index could not be fully written")
 							}
 						}
 					}
@@ -202,6 +205,7 @@ func newGenerateCmd() *cobra.Command {
 						if len(images) > 0 {
 							if err := project.AddToCanvas(ctx, client, projectID, cid, images); err != nil {
 								output["canvas_error"] = err.Error()
+								warnings = append(warnings, "artifacts were generated but project canvas writeback failed")
 							} else {
 								output["canvas_updated"] = true
 							}
@@ -210,7 +214,9 @@ func newGenerateCmd() *cobra.Command {
 				}
 			}
 
-			printEnvelope(okSubmit(output, true))
+			env := okSubmit(output, true)
+			env.Warnings = warnings
+			printEnvelope(env)
 			return nil
 		},
 	}
@@ -219,8 +225,6 @@ func newGenerateCmd() *cobra.Command {
 	cmd.Flags().StringVar(&prompt, "prompt", "", "prompt text for a minimal generation request")
 	cmd.Flags().StringVar(&mode, "mode", "auto", "generation mode: auto, fast, relax")
 	cmd.Flags().StringVar(&projectID, "project-id", "", "target project ID (defaults to current project context)")
-	cmd.Flags().StringVar(&cid, "cid", "", "client id for project-bound generation (defaults to stored cid)")
-	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "validate without submitting")
 	cmd.Flags().BoolVar(&allowPaid, "allow-paid", false, "allow paid generation")
 	cmd.Flags().Float64Var(&maxCredits, "max-credits", 0, "max credits to spend")
 	cmd.Flags().BoolVar(&wait, "wait", true, "wait for task completion")

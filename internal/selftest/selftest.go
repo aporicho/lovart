@@ -48,7 +48,7 @@ type Checks struct {
 }
 
 // Check is one diagnostic result. Details contains non-secret check-specific
-// facts such as project_id_present or model_count.
+// facts such as project_context_ready or model_count.
 type Check struct {
 	OK                 bool           `json:"ok"`
 	Status             string         `json:"status"`
@@ -159,8 +159,8 @@ func checkAuth(snapshot credsSnapshot) Check {
 
 func checkProject(snapshot credsSnapshot) Check {
 	details := map[string]any{
-		"project_id_present": false,
-		"cid_present":        false,
+		"project_id_present":    false,
+		"project_context_ready": false,
 	}
 	if snapshot.missing {
 		return Check{
@@ -200,13 +200,10 @@ func checkProject(snapshot credsSnapshot) Check {
 	projectIDPresent := snapshot.project != nil && snapshot.project.ProjectID != ""
 	cidPresent := snapshot.project != nil && snapshot.project.CID != ""
 	details["project_id_present"] = projectIDPresent
-	details["cid_present"] = cidPresent
+	details["project_context_ready"] = projectIDPresent && cidPresent
 	fields := make([]string, 0, 2)
 	if projectIDPresent {
 		fields = append(fields, "project_id")
-	}
-	if cidPresent {
-		fields = append(fields, "cid")
 	}
 	if projectIDPresent && cidPresent {
 		return Check{OK: true, Status: CheckOK, Source: snapshot.source, Fields: fields, Details: details}
@@ -221,7 +218,7 @@ func checkProject(snapshot credsSnapshot) Check {
 		Status:             CheckIncomplete,
 		Source:             snapshot.source,
 		Fields:             fields,
-		Error:              "project_id and cid are required for generation",
+		Error:              "project context is incomplete for generation",
 		Details:            details,
 		RecommendedActions: actions,
 	}

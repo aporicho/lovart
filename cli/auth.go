@@ -113,7 +113,7 @@ func newAuthLoginCmd() *cobra.Command {
 }
 
 func newAuthImportCmd() *cobra.Command {
-	var filePath, curlPath, cookie, token, csrf, projectID, cid string
+	var filePath, curlPath, cookie, token, csrf, projectID string
 	var stdin bool
 	cmd := &cobra.Command{
 		Use:   "import",
@@ -130,7 +130,6 @@ func newAuthImportCmd() *cobra.Command {
 				Token:     token,
 				CSRF:      csrf,
 				ProjectID: projectID,
-				CID:       cid,
 				Source:    "manual_import",
 			})
 			if session.Source == "" {
@@ -154,7 +153,6 @@ func newAuthImportCmd() *cobra.Command {
 	cmd.Flags().StringVar(&token, "token", "", "Lovart token header")
 	cmd.Flags().StringVar(&csrf, "csrf", "", "Lovart CSRF token")
 	cmd.Flags().StringVar(&projectID, "project-id", "", "Lovart project id")
-	cmd.Flags().StringVar(&cid, "cid", "", "Lovart client id")
 	return cmd
 }
 

@@ -147,12 +147,6 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 			return inputErr(err)
 		}
 		return s.executor.Quote(ctx, quoteArgs)
-	case "lovart_generate_dry_run":
-		genArgs, err := parseGenerateArgs(args)
-		if err != nil {
-			return inputErr(err)
-		}
-		return s.executor.GenerateDryRun(ctx, genArgs)
 	case "lovart_generate":
 		genArgs, err := parseGenerateArgs(args)
 		if err != nil {
@@ -160,25 +154,12 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 		}
 		normalizePostprocess(&genArgs.Wait, &genArgs.Download, &genArgs.Canvas)
 		return s.executor.Generate(ctx, genArgs)
-	case "lovart_jobs_quote":
-		jobsFile, err := requiredString(args, "jobs_file")
-		if err != nil {
-			return inputErr(err)
-		}
-		return s.executor.JobsQuote(ctx, JobsQuoteArgs{JobsFile: jobsFile})
-	case "lovart_jobs_dry_run":
-		runArgs, err := parseJobsDryRunArgs(args)
-		if err != nil {
-			return inputErr(err)
-		}
-		return s.executor.JobsDryRun(ctx, runArgs)
 	case "lovart_jobs_run":
 		runArgs, err := parseJobsRunArgs(args)
 		if err != nil {
 			return inputErr(err)
 		}
-		warnings := normalizeJobsPostprocess(&runArgs.Wait, &runArgs.Download, &runArgs.Canvas, &runArgs.TimeoutSeconds)
-		return mergeWarnings(s.executor.JobsRun(ctx, runArgs), warnings)
+		return s.executor.JobsRun(ctx, runArgs)
 	case "lovart_jobs_status":
 		statusArgs, err := parseJobsStatusArgs(args)
 		if err != nil {
@@ -190,8 +171,7 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 		if err != nil {
 			return inputErr(err)
 		}
-		warnings := normalizeJobsPostprocess(&resumeArgs.Wait, &resumeArgs.Download, &resumeArgs.Canvas, &resumeArgs.TimeoutSeconds)
-		return mergeWarnings(s.executor.JobsResume(ctx, resumeArgs), warnings)
+		return s.executor.JobsResume(ctx, resumeArgs)
 	default:
 		return envelope.Err(errors.CodeInputError, "unknown MCP tool", map[string]any{"tool": name})
 	}
@@ -222,6 +202,18 @@ func parseGenerateArgs(args map[string]any) (GenerateArgs, error) {
 	if err != nil {
 		return GenerateArgs{}, err
 	}
+	wait := boolArg(args, "wait", true)
+	download := boolArg(args, "download", true)
+	canvas := boolArg(args, "canvas", true)
+	if rawWait, ok := args["wait"].(bool); ok && !rawWait {
+		if _, ok := args["download"]; !ok {
+			download = false
+		}
+		if _, ok := args["canvas"]; !ok {
+			canvas = false
+		}
+		wait = false
+	}
 	return GenerateArgs{
 		Model:                model,
 		Body:                 body,
@@ -229,31 +221,12 @@ func parseGenerateArgs(args map[string]any) (GenerateArgs, error) {
 		AllowPaid:            boolArg(args, "allow_paid", false),
 		MaxCredits:           numberArg(args, "max_credits", 0),
 		ProjectID:            stringArg(args, "project_id", ""),
-		CID:                  stringArg(args, "cid", ""),
-		Wait:                 boolArg(args, "wait", false),
-		Download:             boolArg(args, "download", false),
-		Canvas:               boolArg(args, "canvas", false),
+		Wait:                 wait,
+		Download:             download,
+		Canvas:               canvas,
 		DownloadDir:          stringArg(args, "download_dir", ""),
 		DownloadDirTemplate:  stringArg(args, "download_dir_template", ""),
 		DownloadFileTemplate: stringArg(args, "download_file_template", ""),
-	}, nil
-}
-
-func parseJobsDryRunArgs(args map[string]any) (JobsDryRunArgs, error) {
-	jobsFile, err := requiredString(args, "jobs_file")
-	if err != nil {
-		return JobsDryRunArgs{}, err
-	}
-	detail, err := detailArg(args, "detail", "summary")
-	if err != nil {
-		return JobsDryRunArgs{}, err
-	}
-	return JobsDryRunArgs{
-		JobsFile:        jobsFile,
-		OutDir:          stringArg(args, "out_dir", ""),
-		AllowPaid:       boolArg(args, "allow_paid", false),
-		MaxTotalCredits: numberArg(args, "max_total_credits", 0),
-		Detail:          detail,
 	}, nil
 }
 
@@ -262,27 +235,12 @@ func parseJobsRunArgs(args map[string]any) (JobsRunArgs, error) {
 	if err != nil {
 		return JobsRunArgs{}, err
 	}
-	detail, err := detailArg(args, "detail", "summary")
-	if err != nil {
-		return JobsRunArgs{}, err
-	}
 	return JobsRunArgs{
-		JobsFile:             jobsFile,
-		OutDir:               stringArg(args, "out_dir", ""),
-		AllowPaid:            boolArg(args, "allow_paid", false),
-		MaxTotalCredits:      numberArg(args, "max_total_credits", 0),
-		Wait:                 boolArg(args, "wait", false),
-		Download:             boolArg(args, "download", false),
-		Canvas:               boolArg(args, "canvas", false),
-		CanvasLayout:         canvasLayoutArg(args, "canvas_layout"),
-		DownloadDir:          stringArg(args, "download_dir", ""),
-		DownloadDirTemplate:  stringArg(args, "download_dir_template", ""),
-		DownloadFileTemplate: stringArg(args, "download_file_template", ""),
-		TimeoutSeconds:       numberArg(args, "timeout_seconds", 3600),
-		PollInterval:         numberArg(args, "poll_interval", 5),
-		ProjectID:            stringArg(args, "project_id", ""),
-		CID:                  stringArg(args, "cid", ""),
-		Detail:               detail,
+		JobsFile:        jobsFile,
+		AllowPaid:       boolArg(args, "allow_paid", false),
+		MaxTotalCredits: numberArg(args, "max_total_credits", 0),
+		ProjectID:       stringArg(args, "project_id", ""),
+		DownloadDir:     stringArg(args, "download_dir", ""),
 	}, nil
 }
 
@@ -307,27 +265,12 @@ func parseJobsResumeArgs(args map[string]any) (JobsResumeArgs, error) {
 	if err != nil {
 		return JobsResumeArgs{}, err
 	}
-	detail, err := detailArg(args, "detail", "summary")
-	if err != nil {
-		return JobsResumeArgs{}, err
-	}
 	return JobsResumeArgs{
-		RunDir:               runDir,
-		AllowPaid:            boolArg(args, "allow_paid", false),
-		MaxTotalCredits:      numberArg(args, "max_total_credits", 0),
-		Wait:                 boolArg(args, "wait", false),
-		Download:             boolArg(args, "download", false),
-		Canvas:               boolArg(args, "canvas", false),
-		CanvasLayout:         canvasLayoutArg(args, "canvas_layout"),
-		DownloadDir:          stringArg(args, "download_dir", ""),
-		DownloadDirTemplate:  stringArg(args, "download_dir_template", ""),
-		DownloadFileTemplate: stringArg(args, "download_file_template", ""),
-		RetryFailed:          boolArg(args, "retry_failed", false),
-		TimeoutSeconds:       numberArg(args, "timeout_seconds", 3600),
-		PollInterval:         numberArg(args, "poll_interval", 5),
-		ProjectID:            stringArg(args, "project_id", ""),
-		CID:                  stringArg(args, "cid", ""),
-		Detail:               detail,
+		RunDir:          runDir,
+		AllowPaid:       boolArg(args, "allow_paid", false),
+		MaxTotalCredits: numberArg(args, "max_total_credits", 0),
+		DownloadDir:     stringArg(args, "download_dir", ""),
+		RetryFailed:     boolArg(args, "retry_failed", false),
 	}, nil
 }
 
@@ -412,16 +355,6 @@ func detailArg(args map[string]any, key string, fallback string) (string, error)
 	}
 }
 
-func canvasLayoutArg(args map[string]any, key string) string {
-	layout := stringArg(args, key, "")
-	switch layout {
-	case "plain", "frame":
-		return layout
-	default:
-		return "frame"
-	}
-}
-
 func normalizePostprocess(wait, download, canvas *bool) {
 	if *download || *canvas {
 		*wait = true
@@ -432,42 +365,8 @@ func normalizePostprocess(wait, download, canvas *bool) {
 	}
 }
 
-func normalizeJobsPostprocess(wait, download, canvas *bool, timeout *float64) []string {
-	normalizePostprocess(wait, download, canvas)
-	if !*wait {
-		return nil
-	}
-	if *timeout <= 0 || *timeout > MCPWaitTimeoutSeconds {
-		*timeout = MCPWaitTimeoutSeconds
-		return []string{"MCP wait was capped at 90 seconds; rerun lovart_jobs_resume or lovart_jobs_status to continue"}
-	}
-	return nil
-}
-
 func inputErr(err error) envelope.Envelope {
 	return envelope.Err(errors.CodeInputError, err.Error(), nil)
-}
-
-func mergeWarnings(env envelope.Envelope, warnings []string) envelope.Envelope {
-	if len(warnings) == 0 {
-		return env
-	}
-	seen := map[string]bool{}
-	merged := make([]string, 0, len(warnings)+len(env.Warnings))
-	for _, warning := range warnings {
-		if warning != "" && !seen[warning] {
-			seen[warning] = true
-			merged = append(merged, warning)
-		}
-	}
-	for _, warning := range env.Warnings {
-		if warning != "" && !seen[warning] {
-			seen[warning] = true
-			merged = append(merged, warning)
-		}
-	}
-	env.Warnings = merged
-	return env
 }
 
 func toolResult(env envelope.Envelope) map[string]any {

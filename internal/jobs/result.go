@@ -83,7 +83,7 @@ func failedRequests(requests []RequestSummary) []RequestSummary {
 func recommendedActions(state *RunState) []string {
 	var actions []string
 	if countActive(state) > 0 {
-		actions = append(actions, fmt.Sprintf("lovart jobs resume %s --wait", state.RunDir))
+		actions = append(actions, fmt.Sprintf("lovart jobs resume %s", state.RunDir))
 		actions = append(actions, fmt.Sprintf("lovart jobs status %s --refresh", state.RunDir))
 	}
 	pending := 0

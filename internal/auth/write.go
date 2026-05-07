@@ -70,9 +70,19 @@ func Delete() error {
 	return nil
 }
 
-// SetProject saves the project context alongside existing credentials.
+// SetProject saves the selected project alongside existing credentials.
+// It preserves the internal browser context already stored in the creds file.
+func SetProject(projectID string) error {
+	cid := ""
+	if pc, err := LoadProjectContext(); err == nil && pc != nil {
+		cid = pc.CID
+	}
+	return SetProjectContext(projectID, cid)
+}
+
+// SetProjectContext saves project context alongside existing credentials.
 // It preserves any existing non-project fields in the creds file.
-func SetProject(projectID, cid string) error {
+func SetProjectContext(projectID, cid string) error {
 	existing := make(map[string]any)
 	if data, err := os.ReadFile(paths.CredsFile); err == nil {
 		_ = json.Unmarshal(data, &existing)

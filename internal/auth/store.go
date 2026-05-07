@@ -36,13 +36,13 @@ type ProjectContext struct {
 
 // Status reports whether credentials are available without exposing values.
 type Status struct {
-	Available        bool     `json:"available"`
-	Source           string   `json:"source,omitempty"`
-	CredentialPath   string   `json:"credential_path,omitempty"`
-	Fields           []string `json:"fields"`
-	ProjectIDPresent bool     `json:"project_id_present"`
-	CIDPresent       bool     `json:"cid_present"`
-	UpdatedAt        string   `json:"updated_at,omitempty"`
+	Available           bool     `json:"available"`
+	Source              string   `json:"source,omitempty"`
+	CredentialPath      string   `json:"credential_path,omitempty"`
+	Fields              []string `json:"fields"`
+	ProjectIDPresent    bool     `json:"project_id_present"`
+	ProjectContextReady bool     `json:"project_context_ready"`
+	UpdatedAt           string   `json:"updated_at,omitempty"`
 }
 
 // Load reads credentials from the persisted creds file.
@@ -103,10 +103,7 @@ func GetStatus() Status {
 		status.Fields = append(status.Fields, "project_id")
 		status.ProjectIDPresent = true
 	}
-	if session.CID != "" {
-		status.Fields = append(status.Fields, "cid")
-		status.CIDPresent = true
-	}
+	status.ProjectContextReady = session.ProjectID != "" && session.CID != ""
 	return status
 }
 

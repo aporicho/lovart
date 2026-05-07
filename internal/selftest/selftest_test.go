@@ -74,8 +74,8 @@ func TestCredentialsWithoutProjectContextNeedSetup(t *testing.T) {
 	if got := result.Checks.Project.Details["project_id_present"]; got != false {
 		t.Fatalf("project_id_present = %#v, want false", got)
 	}
-	if got := result.Checks.Project.Details["cid_present"]; got != false {
-		t.Fatalf("cid_present = %#v, want false", got)
+	if got := result.Checks.Project.Details["project_context_ready"]; got != false {
+		t.Fatalf("project_context_ready = %#v, want false", got)
 	}
 
 	data, err := json.Marshal(result)
@@ -112,6 +112,9 @@ func TestReadyRuntimePasses(t *testing.T) {
 	}
 	if len(result.RecommendedActions) != 0 {
 		t.Fatalf("recommended_actions = %#v, want empty", result.RecommendedActions)
+	}
+	if got := result.Checks.Project.Details["project_context_ready"]; got != true {
+		t.Fatalf("project_context_ready = %#v, want true", got)
 	}
 }
 

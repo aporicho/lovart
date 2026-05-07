@@ -120,21 +120,19 @@ type Credentials struct {
 }
 type ProjectContext struct {
     ProjectID string `json:"project_id"`
-    CID       string `json:"cid"`
 }
 type Session struct {
     Cookie    string `json:"cookie,omitempty"`
     Token     string `json:"token,omitempty"`
     CSRF      string `json:"csrf,omitempty"`
     ProjectID string `json:"project_id,omitempty"`
-    CID       string `json:"cid,omitempty"`
     Source    string `json:"source,omitempty"`
 }
 func LoadCreds() (*Credentials, error)
 func LoadProjectContext() (*ProjectContext, error)
 func SaveSession(session Session) error
 func GetStatus() Status
-func SetProject(projectID, cid string) error
+func SetProject(projectID string) error
 ```
 
 ### HTTP Client
@@ -154,7 +152,6 @@ type PreflightResult struct {
     QuotedCredits     float64
 }
 func Preflight(model, body, mode string, allowPaid bool, maxCredits float64) (*PreflightResult, error)
-func DryRun(model string, body map[string]any) (*DryRunResult, error)
 func Submit(ctx context.Context, model, body, mode string) (*SubmitResult, error)
 func Wait(ctx context.Context, taskID string) (*TaskInfo, error)
 ```
@@ -179,8 +176,6 @@ type JobLine struct {
     Outputs int            `json:"outputs"`
     Body    map[string]any `json:"body"`
 }
-func QuoteJobs(jobsFile string, opts QuoteOptions) (*QuoteSummary, error)
-func DryRunJobs(jobsFile string, opts JobsOptions) (*DryRunSummary, error)
 func RunJobs(jobsFile string, opts JobsOptions) (*RunSummary, error)
 func ResumeJobs(jobsFile string, opts JobsOptions) (*RunSummary, error)
 func StatusJobs(runDir string, detail string) (*StatusSummary, error)
@@ -207,7 +202,7 @@ Execution classes are user-facing semantics, not a separate runtime mode:
 - `preflight`: contacts Lovart or validates against current remote state, but does not create generation tasks or mutate remote projects.
 - `submit`: performs a remote write, such as creating a generation task or mutating a project.
 
-Local registry, manifest, quote state, and job state are caches used for speed,
+Local registry, manifest, pricing quote data, and job state are caches used for speed,
 resumability, and validation. They do not make Lovart generation usable without
 network access.
 
@@ -233,14 +228,12 @@ lovart project show [id]
 lovart project open [id]
 lovart project admin rename <id> <name>
 lovart project admin delete <id>
-lovart project admin repair-canvas [id] [--cid <cid>]
+lovart project admin repair-canvas [id]
 lovart quote <model> --body-file <file>
-lovart generate <model> (--body-file <file>|--prompt <text>) [--project-id <id>] [--cid <cid>] [--mode] [--dry-run] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]
-lovart jobs quote <jobs.jsonl> [--detail]
-lovart jobs dry-run <jobs.jsonl>
-lovart jobs run <jobs.jsonl> [--no-wait] [--no-download] [--no-canvas] [--canvas-layout frame|plain]
-lovart jobs resume <run_dir> [--no-wait] [--no-download] [--no-canvas] [--canvas-layout frame|plain] [--retry-failed]
-lovart jobs status <run_dir> [--detail]
+lovart generate <model> (--body-file <file>|--prompt <text>) [--project-id <id>] [--mode] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]
+lovart jobs run <jobs.jsonl> [--project-id <id>] [--allow-paid --max-total-credits N] [--download-dir <dir>]
+lovart jobs resume <run_dir> [--allow-paid --max-total-credits N] [--download-dir <dir>] [--retry-failed]
+lovart jobs status <run_dir> [--refresh] [--detail summary|requests|full]
 lovart update check
 lovart update diff
 lovart update sync --all
@@ -252,7 +245,7 @@ lovart mcp install --clients auto --yes [--dry-run] [--force]
 lovart dev sign
 ```
 
-## MCP Tools (16)
+## MCP Tools (13)
 
 ```
 lovart_auth_status,
@@ -260,9 +253,8 @@ lovart_setup, lovart_models, lovart_config,
 lovart_balance,
 lovart_project_current, lovart_project_list, lovart_project_select,
 lovart_quote,
-lovart_generate_dry_run, lovart_generate,
-lovart_jobs_quote,
-lovart_jobs_dry_run, lovart_jobs_run, lovart_jobs_status,
+lovart_generate,
+lovart_jobs_run, lovart_jobs_status,
 lovart_jobs_resume
 ```
 

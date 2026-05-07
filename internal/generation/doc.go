@@ -1,2 +1,2 @@
-// Package generation handles single image generation: preflight, dry-run, submit, and poll.
+// Package generation handles single image generation: preflight, submit, and poll.
 package generation

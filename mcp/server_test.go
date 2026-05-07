@@ -3,13 +3,17 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 
+	"github.com/aporicho/lovart/internal/auth"
 	"github.com/aporicho/lovart/internal/envelope"
+	"github.com/aporicho/lovart/internal/paths"
 )
 
 type fakeExecutor struct {
 	projectSelect ProjectSelectArgs
+	generate      GenerateArgs
 	jobsRun       JobsRunArgs
 	jobsStatus    JobsStatusArgs
 	jobsResume    JobsResumeArgs
@@ -45,27 +49,16 @@ func (f *fakeExecutor) ProjectList(ctx context.Context) envelope.Envelope {
 
 func (f *fakeExecutor) ProjectSelect(ctx context.Context, args ProjectSelectArgs) envelope.Envelope {
 	f.projectSelect = args
-	return okLocal(map[string]any{"operation": "project_select", "project_id": args.ProjectID})
+	return okPreflight(map[string]any{"operation": "project_select", "project_id": args.ProjectID, "project_context_ready": true})
 }
 
 func (f *fakeExecutor) Quote(ctx context.Context, args QuoteArgs) envelope.Envelope {
 	return okPreflight(map[string]any{"operation": "quote"})
 }
 
-func (f *fakeExecutor) GenerateDryRun(ctx context.Context, args GenerateArgs) envelope.Envelope {
-	return okPreflightSubmission(map[string]any{"operation": "generate_dry_run"}, false)
-}
-
 func (f *fakeExecutor) Generate(ctx context.Context, args GenerateArgs) envelope.Envelope {
+	f.generate = args
 	return okSubmit(map[string]any{"operation": "generate"}, true)
-}
-
-func (f *fakeExecutor) JobsQuote(ctx context.Context, args JobsQuoteArgs) envelope.Envelope {
-	return okPreflight(map[string]any{"operation": "jobs_quote"})
-}
-
-func (f *fakeExecutor) JobsDryRun(ctx context.Context, args JobsDryRunArgs) envelope.Envelope {
-	return okPreflightSubmission(map[string]any{"operation": "jobs_dry_run"}, false)
 }
 
 func (f *fakeExecutor) JobsRun(ctx context.Context, args JobsRunArgs) envelope.Envelope {
@@ -107,12 +100,26 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 		t.Fatalf("tools/list failed: %#v", listResp)
 	}
 	tools := listResp.Result.(map[string]any)["tools"].([]Tool)
-	if len(tools) != 16 {
-		t.Fatalf("expected 16 tools, got %d", len(tools))
+	if len(tools) != 13 {
+		t.Fatalf("expected 13 tools, got %d", len(tools))
 	}
 	for _, tool := range tools {
-		if tool.Name == "lovart_update_sync" || tool.Name == "lovart_auth_extract" || tool.Name == "lovart_auth_login" || tool.Name == "lovart_auth_import" {
+		if tool.Name == "lovart_update_sync" || tool.Name == "lovart_auth_extract" || tool.Name == "lovart_auth_login" || tool.Name == "lovart_auth_import" || tool.Name == "lovart_generate_dry_run" || tool.Name == "lovart_jobs_quote" || tool.Name == "lovart_jobs_dry_run" {
 			t.Fatalf("unsafe tool exposed: %s", tool.Name)
+		}
+		if tool.Name == "lovart_generate" {
+			properties := tool.InputSchema["properties"].(map[string]any)
+			if _, ok := properties["cid"]; ok {
+				t.Fatalf("lovart_generate exposes cid: %#v", properties)
+			}
+		}
+		if tool.Name == "lovart_jobs_run" {
+			properties := tool.InputSchema["properties"].(map[string]any)
+			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "out_dir", "detail", "wait", "download", "canvas", "canvas_layout", "download_dir_template", "download_file_template", "timeout_seconds", "poll_interval", "retry_failed"})
+		}
+		if tool.Name == "lovart_jobs_resume" {
+			properties := tool.InputSchema["properties"].(map[string]any)
+			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "out_dir", "detail", "wait", "download", "canvas", "canvas_layout", "download_dir_template", "download_file_template", "timeout_seconds", "poll_interval", "project_id"})
 		}
 	}
 }
@@ -188,37 +195,78 @@ func TestProjectSelectRequiresProjectID(t *testing.T) {
 	}
 }
 
-func TestJobsRunDefaultsAndWaitCap(t *testing.T) {
+func TestProductionProjectCurrentDoesNotExposeCID(t *testing.T) {
+	t.Cleanup(paths.Reset)
+	t.Setenv("LOVART_REVERSE_ROOT", t.TempDir())
+	paths.Reset()
+	if err := auth.SaveSession(auth.Session{Cookie: "cookie", ProjectID: "project-123", CID: "cid-123"}); err != nil {
+		t.Fatal(err)
+	}
+
+	env := ProductionExecutor{}.ProjectCurrent(context.Background())
+	data, err := json.Marshal(env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	for _, want := range []string{`"project_id":"project-123"`, `"project_context_ready":true`} {
+		if !strings.Contains(string(data), want) {
+			t.Fatalf("project current missing %s: %s", want, data)
+		}
+	}
+	for _, forbidden := range []string{"cid-123", "cid_present", `"cid"`} {
+		if strings.Contains(string(data), forbidden) {
+			t.Fatalf("project current exposed %s: %s", forbidden, data)
+		}
+	}
+}
+
+func TestGenerateDefaultsToCompletePostprocess(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
-	env := server.CallTool(context.Background(), "lovart_jobs_run", map[string]any{
-		"jobs_file":       "runs/x/jobs.jsonl",
-		"wait":            true,
-		"timeout_seconds": 999.0,
+	env := server.CallTool(context.Background(), "lovart_generate", map[string]any{
+		"model": "openai/gpt-image-2",
+		"body":  map[string]any{"prompt": "test"},
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.jobsRun.TimeoutSeconds != MCPWaitTimeoutSeconds {
-		t.Fatalf("timeout not capped: %v", executor.jobsRun.TimeoutSeconds)
-	}
-	if executor.jobsRun.Detail != "summary" {
-		t.Fatalf("detail default mismatch: %q", executor.jobsRun.Detail)
-	}
-	if len(env.Warnings) == 0 {
-		t.Fatalf("expected cap warning")
+	if !executor.generate.Wait || !executor.generate.Download || !executor.generate.Canvas {
+		t.Fatalf("generate postprocess defaults = %#v", executor.generate)
 	}
 
 	executor = &fakeExecutor{}
 	server = NewServerWithExecutor(executor)
-	env = server.CallTool(context.Background(), "lovart_jobs_run", map[string]any{
-		"jobs_file": "runs/x/jobs.jsonl",
+	env = server.CallTool(context.Background(), "lovart_generate", map[string]any{
+		"model": "openai/gpt-image-2",
+		"body":  map[string]any{"prompt": "test"},
+		"wait":  false,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.jobsRun.Wait || executor.jobsRun.Download || executor.jobsRun.Canvas {
-		t.Fatalf("unexpected postprocess defaults: %#v", executor.jobsRun)
+	if executor.generate.Wait || executor.generate.Download || executor.generate.Canvas {
+		t.Fatalf("no-wait normalization failed: %#v", executor.generate)
+	}
+}
+
+func TestJobsRunArgsExposeUserSurface(t *testing.T) {
+	executor := &fakeExecutor{}
+	server := NewServerWithExecutor(executor)
+	env := server.CallTool(context.Background(), "lovart_jobs_run", map[string]any{
+		"jobs_file":         "runs/x/jobs.jsonl",
+		"allow_paid":        true,
+		"max_total_credits": 12.0,
+		"project_id":        "proj_123",
+		"download_dir":      "runs/x/images",
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.jobsRun.JobsFile != "runs/x/jobs.jsonl" || !executor.jobsRun.AllowPaid || executor.jobsRun.MaxTotalCredits != 12 || executor.jobsRun.ProjectID != "proj_123" || executor.jobsRun.DownloadDir != "runs/x/images" {
+		t.Fatalf("jobs run args = %#v", executor.jobsRun)
 	}
 }
 
@@ -236,21 +284,40 @@ func TestJobsStatusDefaultsToSummary(t *testing.T) {
 	}
 }
 
-func TestJobsResumeWaitCap(t *testing.T) {
+func TestDefaultMCPBatchOptionsCompleteAndShortWait(t *testing.T) {
+	opts := defaultMCPBatchOptions()
+	if !opts.Wait || !opts.Download || !opts.Canvas {
+		t.Fatalf("batch postprocess defaults = %#v", opts)
+	}
+	if opts.CanvasLayout != "frame" || opts.TimeoutSeconds != MCPWaitTimeoutSeconds || opts.PollInterval != 5 || opts.Detail != "summary" {
+		t.Fatalf("batch execution defaults = %#v", opts)
+	}
+}
+
+func TestJobsResumeArgsExposeUserSurface(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_jobs_resume", map[string]any{
-		"run_dir": "runs/x",
-		"wait":    true,
+		"run_dir":           "runs/x",
+		"allow_paid":        true,
+		"max_total_credits": 24.0,
+		"download_dir":      "runs/x/images",
+		"retry_failed":      true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.jobsResume.TimeoutSeconds != MCPWaitTimeoutSeconds {
-		t.Fatalf("timeout not capped: %v", executor.jobsResume.TimeoutSeconds)
+	if executor.jobsResume.RunDir != "runs/x" || !executor.jobsResume.AllowPaid || executor.jobsResume.MaxTotalCredits != 24 || executor.jobsResume.DownloadDir != "runs/x/images" || !executor.jobsResume.RetryFailed {
+		t.Fatalf("jobs resume args = %#v", executor.jobsResume)
 	}
-	if executor.jobsResume.Detail != "summary" {
-		t.Fatalf("detail default mismatch: %q", executor.jobsResume.Detail)
+}
+
+func assertSchemaExcludes(t *testing.T, toolName string, properties map[string]any, names []string) {
+	t.Helper()
+	for _, name := range names {
+		if _, ok := properties[name]; ok {
+			t.Fatalf("%s exposes internal property %q: %#v", toolName, name, properties)
+		}
 	}
 }
 

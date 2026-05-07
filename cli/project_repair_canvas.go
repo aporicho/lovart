@@ -11,8 +11,7 @@ import (
 )
 
 func newProjectRepairCanvasCmd() *cobra.Command {
-	var cid string
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "repair-canvas [project_id]",
 		Short: "Normalize and repair a Lovart project canvas",
 		Args:  cobra.MaximumNArgs(1),
@@ -26,9 +25,10 @@ func newProjectRepairCanvasCmd() *cobra.Command {
 				if projectID == "" {
 					projectID = pc.ProjectID
 				}
-				if cid == "" {
-					cid = pc.CID
-				}
+			}
+			cid := ""
+			if pc != nil {
+				cid = pc.CID
 			}
 			if projectID == "" {
 				printEnvelope(envelope.Err(errors.CodeInputError, "no project specified", nil))
@@ -52,6 +52,4 @@ func newProjectRepairCanvasCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&cid, "cid", "", "client id for project-bound repair")
-	return cmd
 }

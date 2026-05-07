@@ -13,9 +13,14 @@ import (
 func TestGenerateCommandExposesProjectOverrides(t *testing.T) {
 	cmd := newGenerateCmd()
 
-	for _, name := range []string{"project-id", "cid", "body-file", "prompt", "no-wait", "no-download", "no-canvas", "canvas"} {
+	for _, name := range []string{"project-id", "body-file", "prompt", "no-wait", "no-download", "no-canvas", "canvas"} {
 		if cmd.Flags().Lookup(name) == nil {
 			t.Fatalf("generate command missing --%s flag", name)
+		}
+	}
+	for _, name := range []string{"cid", "dry-run"} {
+		if cmd.Flags().Lookup(name) != nil {
+			t.Fatalf("generate command should not expose --%s", name)
 		}
 	}
 	for _, name := range []string{"wait", "download", "canvas"} {
@@ -57,7 +62,7 @@ func TestGenerateValidatesSchemaBeforeSignedClient(t *testing.T) {
 
 	output := captureStdout(t, func() {
 		cmd := newGenerateCmd()
-		cmd.SetArgs([]string{"openai/gpt-image-2", "--body-file", bodyPath, "--dry-run"})
+		cmd.SetArgs([]string{"openai/gpt-image-2", "--body-file", bodyPath})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute: %v", err)
 		}

@@ -9,26 +9,47 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func TestJobsRunAndResumeDefaultPostprocessFlags(t *testing.T) {
-	for _, cmd := range []*cobra.Command{newJobsRunCmd(), newJobsResumeCmd()} {
-		for _, name := range []string{"wait", "download", "canvas"} {
-			flag := cmd.Flags().Lookup(name)
-			if flag == nil {
-				t.Fatalf("%s command missing --%s flag", cmd.Name(), name)
-			}
-			if flag.DefValue != "true" {
-				t.Fatalf("%s --%s default = %q, want true", cmd.Name(), name, flag.DefValue)
+func TestJobsRunAndResumeExposeUserCapabilityFlags(t *testing.T) {
+	cases := []struct {
+		cmd       *cobra.Command
+		allowed   []string
+		forbidden []string
+	}{
+		{
+			cmd:       newJobsRunCmd(),
+			allowed:   []string{"allow-paid", "max-total-credits", "download-dir", "project-id"},
+			forbidden: []string{"out-dir", "detail", "wait", "download", "canvas", "no-wait", "no-download", "no-canvas", "canvas-layout", "download-dir-template", "download-file-template", "timeout-seconds", "poll-interval", "cid", "retry-failed"},
+		},
+		{
+			cmd:       newJobsResumeCmd(),
+			allowed:   []string{"allow-paid", "max-total-credits", "download-dir", "retry-failed"},
+			forbidden: []string{"out-dir", "detail", "wait", "download", "canvas", "no-wait", "no-download", "no-canvas", "canvas-layout", "download-dir-template", "download-file-template", "timeout-seconds", "poll-interval", "project-id", "cid"},
+		},
+	}
+	for _, tc := range cases {
+		for _, name := range tc.allowed {
+			if tc.cmd.Flags().Lookup(name) == nil {
+				t.Fatalf("%s command missing --%s flag", tc.cmd.Name(), name)
 			}
 		}
-		for _, name := range []string{"no-wait", "no-download", "no-canvas", "canvas-layout"} {
-			if cmd.Flags().Lookup(name) == nil {
-				t.Fatalf("%s command missing --%s flag", cmd.Name(), name)
+		for _, name := range tc.forbidden {
+			if tc.cmd.Flags().Lookup(name) != nil {
+				t.Fatalf("%s command exposes internal --%s flag", tc.cmd.Name(), name)
 			}
 		}
 	}
 }
 
-func TestJobsQuoteValidatesSchemaBeforeSignedClient(t *testing.T) {
+func TestJobsCommandDoesNotExposeAtomicQuoteOrDryRun(t *testing.T) {
+	cmd := newJobsCmd()
+	for _, subcommand := range cmd.Commands() {
+		if subcommand.Name() == "quote" || subcommand.Name() == "dry-run" {
+			t.Fatalf("jobs exposes internal atomic command %q", subcommand.Name())
+		}
+	}
+}
+
+func TestJobsRunValidatesSchemaBeforeSignedClient(t *testing.T) {
 	setupCLIRuntimeMetadata(t)
 	dir := t.TempDir()
 	jobsPath := filepath.Join(dir, "jobs.jsonl")
@@ -38,28 +59,7 @@ func TestJobsQuoteValidatesSchemaBeforeSignedClient(t *testing.T) {
 	}
 
 	output := captureStdout(t, func() {
-		cmd := newJobsQuoteCmd()
-		cmd.SetArgs([]string{jobsPath})
-		if err := cmd.Execute(); err != nil {
-			t.Fatalf("Execute: %v", err)
-		}
-	})
-	if !strings.Contains(output, `"code":"schema_invalid"`) {
-		t.Fatalf("expected schema_invalid before auth/signing, got %s", output)
-	}
-}
-
-func TestJobsDryRunValidatesSchemaBeforeSignedClient(t *testing.T) {
-	setupCLIRuntimeMetadata(t)
-	dir := t.TempDir()
-	jobsPath := filepath.Join(dir, "jobs.jsonl")
-	data := `{"job_id":"bad","model":"openai/gpt-image-2","body":{"prompt":"test","n":20}}`
-	if err := os.WriteFile(jobsPath, []byte(data), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	output := captureStdout(t, func() {
-		cmd := newJobsDryRunCmd()
+		cmd := newJobsRunCmd()
 		cmd.SetArgs([]string{jobsPath})
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute: %v", err)

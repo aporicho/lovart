@@ -105,6 +105,9 @@ func TestRunPreparedJobsBlocksPaidWithoutAllowance(t *testing.T) {
 	if gateErr.Code != "credit_risk" || remote.submits != 0 {
 		t.Fatalf("gate=%#v submits=%d", gateErr, remote.submits)
 	}
+	if gateErr.RunDir != state.RunDir || gateErr.StateFile != state.StateFile {
+		t.Fatalf("gate state paths = %#v, want run_dir=%q state_file=%q", gateErr, state.RunDir, state.StateFile)
+	}
 }
 
 func TestStatusJobsRefreshesActiveTasks(t *testing.T) {

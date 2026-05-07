@@ -52,7 +52,6 @@ type GenerateArgs struct {
 	AllowPaid            bool           `json:"allow_paid"`
 	MaxCredits           float64        `json:"max_credits"`
 	ProjectID            string         `json:"project_id"`
-	CID                  string         `json:"cid"`
 	Wait                 bool           `json:"wait"`
 	Download             bool           `json:"download"`
 	Canvas               bool           `json:"canvas"`
@@ -61,38 +60,13 @@ type GenerateArgs struct {
 	DownloadFileTemplate string         `json:"download_file_template"`
 }
 
-// JobsQuoteArgs configures lovart_jobs_quote.
-type JobsQuoteArgs struct {
-	JobsFile string `json:"jobs_file"`
-}
-
-// JobsDryRunArgs configures lovart_jobs_dry_run.
-type JobsDryRunArgs struct {
-	JobsFile        string  `json:"jobs_file"`
-	OutDir          string  `json:"out_dir"`
-	AllowPaid       bool    `json:"allow_paid"`
-	MaxTotalCredits float64 `json:"max_total_credits"`
-	Detail          string  `json:"detail"`
-}
-
 // JobsRunArgs configures lovart_jobs_run.
 type JobsRunArgs struct {
-	JobsFile             string  `json:"jobs_file"`
-	OutDir               string  `json:"out_dir"`
-	AllowPaid            bool    `json:"allow_paid"`
-	MaxTotalCredits      float64 `json:"max_total_credits"`
-	Wait                 bool    `json:"wait"`
-	Download             bool    `json:"download"`
-	Canvas               bool    `json:"canvas"`
-	CanvasLayout         string  `json:"canvas_layout"`
-	DownloadDir          string  `json:"download_dir"`
-	DownloadDirTemplate  string  `json:"download_dir_template"`
-	DownloadFileTemplate string  `json:"download_file_template"`
-	TimeoutSeconds       float64 `json:"timeout_seconds"`
-	PollInterval         float64 `json:"poll_interval"`
-	ProjectID            string  `json:"project_id"`
-	CID                  string  `json:"cid"`
-	Detail               string  `json:"detail"`
+	JobsFile        string  `json:"jobs_file"`
+	AllowPaid       bool    `json:"allow_paid"`
+	MaxTotalCredits float64 `json:"max_total_credits"`
+	ProjectID       string  `json:"project_id"`
+	DownloadDir     string  `json:"download_dir"`
 }
 
 // JobsStatusArgs configures lovart_jobs_status.
@@ -104,22 +78,11 @@ type JobsStatusArgs struct {
 
 // JobsResumeArgs configures lovart_jobs_resume.
 type JobsResumeArgs struct {
-	RunDir               string  `json:"run_dir"`
-	AllowPaid            bool    `json:"allow_paid"`
-	MaxTotalCredits      float64 `json:"max_total_credits"`
-	Wait                 bool    `json:"wait"`
-	Download             bool    `json:"download"`
-	Canvas               bool    `json:"canvas"`
-	CanvasLayout         string  `json:"canvas_layout"`
-	DownloadDir          string  `json:"download_dir"`
-	DownloadDirTemplate  string  `json:"download_dir_template"`
-	DownloadFileTemplate string  `json:"download_file_template"`
-	RetryFailed          bool    `json:"retry_failed"`
-	TimeoutSeconds       float64 `json:"timeout_seconds"`
-	PollInterval         float64 `json:"poll_interval"`
-	ProjectID            string  `json:"project_id"`
-	CID                  string  `json:"cid"`
-	Detail               string  `json:"detail"`
+	RunDir          string  `json:"run_dir"`
+	AllowPaid       bool    `json:"allow_paid"`
+	MaxTotalCredits float64 `json:"max_total_credits"`
+	DownloadDir     string  `json:"download_dir"`
+	RetryFailed     bool    `json:"retry_failed"`
 }
 
 // Executor runs validated MCP tool calls.
@@ -133,10 +96,7 @@ type Executor interface {
 	ProjectList(ctx context.Context) envelope.Envelope
 	ProjectSelect(ctx context.Context, args ProjectSelectArgs) envelope.Envelope
 	Quote(ctx context.Context, args QuoteArgs) envelope.Envelope
-	GenerateDryRun(ctx context.Context, args GenerateArgs) envelope.Envelope
 	Generate(ctx context.Context, args GenerateArgs) envelope.Envelope
-	JobsQuote(ctx context.Context, args JobsQuoteArgs) envelope.Envelope
-	JobsDryRun(ctx context.Context, args JobsDryRunArgs) envelope.Envelope
 	JobsRun(ctx context.Context, args JobsRunArgs) envelope.Envelope
 	JobsStatus(ctx context.Context, args JobsStatusArgs) envelope.Envelope
 	JobsResume(ctx context.Context, args JobsResumeArgs) envelope.Envelope
@@ -171,15 +131,6 @@ func okSubmit(data any, submitted bool) envelope.Envelope {
 		ExecutionClass:  executionSubmit,
 		NetworkRequired: true,
 		RemoteWrite:     submitted,
-		Submitted:       boolPtr(submitted),
-	})
-}
-
-func okPreflightSubmission(data any, submitted bool) envelope.Envelope {
-	return envelope.OKWithMetadata(data, envelope.ExecutionMetadata{
-		ExecutionClass:  executionPreflight,
-		NetworkRequired: true,
-		RemoteWrite:     false,
 		Submitted:       boolPtr(submitted),
 	})
 }

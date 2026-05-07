@@ -20,8 +20,8 @@ func newProjectCurrentCmd() *cobra.Command {
 				return nil
 			}
 			printEnvelope(okLocal(map[string]any{
-				"project_id": pc.ProjectID,
-				"cid":        pc.CID,
+				"project_id":            pc.ProjectID,
+				"project_context_ready": pc.ProjectID != "" && pc.CID != "",
 			}))
 			return nil
 		},

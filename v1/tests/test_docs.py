@@ -14,9 +14,6 @@ class DocsTest(unittest.TestCase):
             "lovart setup",
             "lovart config",
             "lovart quote",
-            "lovart jobs quote",
-            "lovart jobs quote-status",
-            "lovart jobs dry-run",
             "lovart jobs run",
             "lovart jobs status",
             "lovart jobs resume",
@@ -24,7 +21,7 @@ class DocsTest(unittest.TestCase):
             "lovart mcp status",
             "lovart mcp install",
             "lovart update sync --metadata-only",
-            "lovart reverse capture",
+            "lovart-reverse capture",
         ):
             self.assertIn(command, text)
 

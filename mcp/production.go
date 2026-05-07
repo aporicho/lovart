@@ -114,8 +114,8 @@ func (ProductionExecutor) ProjectCurrent(ctx context.Context) envelope.Envelope 
 		})
 	}
 	return okLocal(map[string]any{
-		"project_id":  pc.ProjectID,
-		"cid_present": pc.CID != "",
+		"project_id":            pc.ProjectID,
+		"project_context_ready": pc.ProjectID != "" && pc.CID != "",
 	}, true)
 }
 
@@ -139,13 +139,32 @@ func (ProductionExecutor) ProjectSelect(ctx context.Context, args ProjectSelectA
 	if pc != nil {
 		cid = pc.CID
 	}
-	if err := auth.SetProject(args.ProjectID, cid); err != nil {
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	projects, err := project.List(ctx, client)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "list projects", map[string]any{"error": err.Error()})
+	}
+	selectedProject, ok := project.FindByID(projects, args.ProjectID)
+	if !ok {
+		return envelope.Err(errors.CodeInputError, "project not found", map[string]any{
+			"project_id": args.ProjectID,
+			"recommended_actions": []string{
+				"run `lovart project list`",
+				"select a project_id from the returned projects",
+			},
+		})
+	}
+	if err := auth.SetProjectContext(args.ProjectID, cid); err != nil {
 		return envelope.Err(errors.CodeInternal, "set project", map[string]any{"error": err.Error()})
 	}
-	return okLocal(map[string]any{
-		"selected":    true,
-		"project_id":  args.ProjectID,
-		"cid_present": cid != "",
+	return okPreflight(map[string]any{
+		"selected":              true,
+		"project_id":            selectedProject.ID,
+		"project_name":          selectedProject.Name,
+		"project_context_ready": cid != "",
 	})
 }
 
@@ -172,80 +191,18 @@ func (ProductionExecutor) Quote(ctx context.Context, args QuoteArgs) envelope.En
 	})
 }
 
-// GenerateDryRun preflights a request without submitting.
-func (ProductionExecutor) GenerateDryRun(ctx context.Context, args GenerateArgs) envelope.Envelope {
-	return generate(ctx, args, true)
-}
-
 // Generate submits a single generation request.
 func (ProductionExecutor) Generate(ctx context.Context, args GenerateArgs) envelope.Envelope {
-	return generate(ctx, args, false)
+	return generate(ctx, args)
 }
 
-// JobsQuote quotes a jobs file.
-func (ProductionExecutor) JobsQuote(ctx context.Context, args JobsQuoteArgs) envelope.Envelope {
-	preparedJobs, validationErr, err := jobs.PrepareJobsFile(args.JobsFile)
-	if err != nil {
-		return envelope.Err(errors.CodeInputError, "read jobs file", map[string]any{"error": err.Error()})
-	}
-	if validationErr != nil {
-		return jobValidationEnvelope(validationErr)
-	}
-	client, err := newSignedClient(ctx)
-	if err != nil {
-		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
-	}
-	result, err := jobs.QuotePreparedJobs(ctx, client, preparedJobs, true)
-	if err != nil {
-		return envelope.Err(errors.CodeInternal, "quote jobs", map[string]any{"error": err.Error()})
-	}
-	return okPreflight(result)
-}
-
-// JobsDryRun validates, quotes, and gates a batch without submitting.
-func (ProductionExecutor) JobsDryRun(ctx context.Context, args JobsDryRunArgs) envelope.Envelope {
-	opts := jobs.JobsOptions{
-		OutDir:          args.OutDir,
-		AllowPaid:       args.AllowPaid,
-		MaxTotalCredits: args.MaxTotalCredits,
-		Detail:          args.Detail,
-	}
-	state, validationErr, err := jobs.PrepareRun(args.JobsFile, opts)
-	if err != nil {
-		return envelope.Err(errors.CodeInputError, "read jobs file", map[string]any{"error": err.Error()})
-	}
-	if validationErr != nil {
-		return jobValidationEnvelope(validationErr)
-	}
-	remote, env := newJobsRemote(ctx)
-	if env != nil {
-		return *env
-	}
-	result, err := jobs.DryRunPreparedJobs(ctx, remote, state, opts)
-	return jobsResultEnvelope(result, err, "dry-run jobs", func(data any, _ bool) envelope.Envelope {
-		return okPreflightSubmission(data, false)
-	})
-}
-
-// JobsRun submits a batch.
+// JobsRun runs a complete batch.
 func (ProductionExecutor) JobsRun(ctx context.Context, args JobsRunArgs) envelope.Envelope {
-	opts := jobs.JobsOptions{
-		OutDir:               args.OutDir,
-		AllowPaid:            args.AllowPaid,
-		MaxTotalCredits:      args.MaxTotalCredits,
-		Wait:                 args.Wait,
-		Download:             args.Download,
-		Canvas:               args.Canvas,
-		CanvasLayout:         args.CanvasLayout,
-		DownloadDir:          args.DownloadDir,
-		DownloadDirTemplate:  args.DownloadDirTemplate,
-		DownloadFileTemplate: args.DownloadFileTemplate,
-		TimeoutSeconds:       args.TimeoutSeconds,
-		PollInterval:         args.PollInterval,
-		ProjectID:            args.ProjectID,
-		CID:                  args.CID,
-		Detail:               args.Detail,
-	}
+	opts := defaultMCPBatchOptions()
+	opts.AllowPaid = args.AllowPaid
+	opts.MaxTotalCredits = args.MaxTotalCredits
+	opts.ProjectID = args.ProjectID
+	opts.DownloadDir = args.DownloadDir
 	applyProjectContext(&opts)
 	state, validationErr, err := jobs.PrepareRun(args.JobsFile, opts)
 	if err != nil {
@@ -258,9 +215,13 @@ func (ProductionExecutor) JobsRun(ctx context.Context, args JobsRunArgs) envelop
 	state.CID = opts.CID
 	if opts.ProjectID == "" || opts.CID == "" {
 		return envelope.Err(errors.CodeInputError, "missing project context", map[string]any{
-			"project_id":         opts.ProjectID,
-			"cid_present":        opts.CID != "",
-			"recommended_action": "pass project_id and cid, or run `lovart project select <project_id>`",
+			"project_id":            opts.ProjectID,
+			"project_context_ready": false,
+			"recommended_actions": []string{
+				"run `lovart auth login`",
+				"run `lovart project list`",
+				"run `lovart project select <project_id>`",
+			},
 		})
 	}
 	remote, env := newJobsRemote(ctx)
@@ -295,23 +256,11 @@ func (ProductionExecutor) JobsStatus(ctx context.Context, args JobsStatusArgs) e
 
 // JobsResume resumes a saved batch state.
 func (ProductionExecutor) JobsResume(ctx context.Context, args JobsResumeArgs) envelope.Envelope {
-	opts := jobs.JobsOptions{
-		AllowPaid:            args.AllowPaid,
-		MaxTotalCredits:      args.MaxTotalCredits,
-		Wait:                 args.Wait,
-		Download:             args.Download,
-		Canvas:               args.Canvas,
-		CanvasLayout:         args.CanvasLayout,
-		DownloadDir:          args.DownloadDir,
-		DownloadDirTemplate:  args.DownloadDirTemplate,
-		DownloadFileTemplate: args.DownloadFileTemplate,
-		RetryFailed:          args.RetryFailed,
-		TimeoutSeconds:       args.TimeoutSeconds,
-		PollInterval:         args.PollInterval,
-		ProjectID:            args.ProjectID,
-		CID:                  args.CID,
-		Detail:               args.Detail,
-	}
+	opts := defaultMCPBatchOptions()
+	opts.AllowPaid = args.AllowPaid
+	opts.MaxTotalCredits = args.MaxTotalCredits
+	opts.DownloadDir = args.DownloadDir
+	opts.RetryFailed = args.RetryFailed
 	applyProjectContext(&opts)
 	remote, env := newJobsRemote(ctx)
 	if env != nil {
@@ -321,26 +270,41 @@ func (ProductionExecutor) JobsResume(ctx context.Context, args JobsResumeArgs) e
 	return jobsResultEnvelope(result, err, "resume jobs", okSubmit)
 }
 
-func generate(ctx context.Context, args GenerateArgs, dryRun bool) envelope.Envelope {
+func defaultMCPBatchOptions() jobs.JobsOptions {
+	return jobs.JobsOptions{
+		Wait:           true,
+		Download:       true,
+		Canvas:         true,
+		CanvasLayout:   jobs.CanvasLayoutFrame,
+		TimeoutSeconds: MCPWaitTimeoutSeconds,
+		PollInterval:   5,
+		Detail:         "summary",
+	}
+}
+
+func generate(ctx context.Context, args GenerateArgs) envelope.Envelope {
 	if validation := registry.ValidateRequest(args.Model, args.Body); !validation.OK {
 		return envelope.Err(sharedvalidation.RequestErrorCode(validation), "request body failed schema validation", map[string]any{
 			"validation":          validation,
 			"recommended_actions": sharedvalidation.RequestRecommendedActions(validation),
 		})
 	}
+	cid := ""
 	if pc, err := auth.LoadProjectContext(); err == nil && pc != nil {
 		if args.ProjectID == "" {
 			args.ProjectID = pc.ProjectID
 		}
-		if args.CID == "" {
-			args.CID = pc.CID
-		}
+		cid = pc.CID
 	}
-	if !dryRun && (args.ProjectID == "" || args.CID == "") {
+	if args.ProjectID == "" || cid == "" {
 		return envelope.Err(errors.CodeInputError, "missing project context", map[string]any{
-			"project_id":         args.ProjectID,
-			"cid_present":        args.CID != "",
-			"recommended_action": "pass project_id and cid, or run `lovart project select <project_id>`",
+			"project_id":            args.ProjectID,
+			"project_context_ready": false,
+			"recommended_actions": []string{
+				"run `lovart auth login`",
+				"run `lovart project list`",
+				"run `lovart project select <project_id>`",
+			},
 		})
 	}
 	client, err := newSignedClient(ctx)
@@ -352,20 +316,13 @@ func generate(ctx context.Context, args GenerateArgs, dryRun bool) envelope.Enve
 		AllowPaid:  args.AllowPaid,
 		MaxCredits: args.MaxCredits,
 		ProjectID:  args.ProjectID,
-		CID:        args.CID,
+		CID:        cid,
 		Wait:       args.Wait,
 		Download:   args.Download,
 	}
 	preflight, err := generation.Preflight(ctx, client, args.Model, args.Body, opts)
 	if err != nil {
 		return envelope.Err(errors.CodeInternal, "preflight error", map[string]any{"error": err.Error()})
-	}
-	if dryRun {
-		return okPreflightSubmission(map[string]any{
-			"submitted":  false,
-			"preflight":  preflight,
-			"project_id": args.ProjectID,
-		}, false)
 	}
 	if !preflight.CanSubmit {
 		return envelope.Err(errors.CodeCreditRisk, "cannot submit", map[string]any{"preflight": preflight})
@@ -381,22 +338,38 @@ func generate(ctx context.Context, args GenerateArgs, dryRun bool) envelope.Enve
 		"preflight":  preflight,
 		"project_id": args.ProjectID,
 	}
+	var warnings []string
 	if args.Wait {
-		addCompletedGenerationArtifacts(ctx, client, output, result.TaskID, args)
+		var failure *envelope.Envelope
+		warnings, failure = addCompletedGenerationArtifacts(ctx, client, output, result.TaskID, args, cid)
+		if failure != nil {
+			return *failure
+		}
 	}
-	return okSubmit(output, true)
+	env := okSubmit(output, true)
+	env.Warnings = warnings
+	return env
 }
 
-func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, output map[string]any, taskID string, args GenerateArgs) {
+func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, output map[string]any, taskID string, args GenerateArgs, cid string) ([]string, *envelope.Envelope) {
+	var warnings []string
 	task, err := generation.Wait(ctx, client, taskID)
 	if err != nil {
 		output["poll_error"] = err.Error()
-		return
+		warnings = append(warnings, "task was submitted but polling failed; rerun a status or resume-capable command when available")
+		return warnings, nil
 	}
 	output["task"] = task
 	output["status"] = task["status"]
+	if task["status"] == "failed" {
+		env := envelope.Err(errors.CodeTaskFailed, "generation task failed", map[string]any{
+			"task_id": taskID,
+			"task":    task,
+		})
+		return nil, &env
+	}
 	if task["status"] != "completed" {
-		return
+		return warnings, nil
 	}
 	if args.Download {
 		downloadResult, err := downloads.DownloadArtifacts(ctx, downloads.ArtifactsFromTask(task), downloads.Options{
@@ -412,14 +385,16 @@ func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, o
 		})
 		if err != nil {
 			output["download_error"] = err.Error()
+			warnings = append(warnings, "artifacts were generated but download failed; retry artifact download when available")
 		} else {
 			output["downloads"] = downloadResult.Files
 			if downloadResult.IndexError != "" {
 				output["download_index_error"] = downloadResult.IndexError
+				warnings = append(warnings, "artifacts were downloaded but the download index could not be fully written")
 			}
 		}
 	}
-	if args.Canvas && args.ProjectID != "" && args.CID != "" {
+	if args.Canvas && args.ProjectID != "" && cid != "" {
 		details, _ := task["artifact_details"].([]map[string]any)
 		images := make([]project.CanvasImage, 0, len(details))
 		for _, detail := range details {
@@ -438,14 +413,16 @@ func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, o
 			images = append(images, project.CanvasImage{TaskID: taskID, URL: url, Width: int(width), Height: int(height)})
 		}
 		if len(images) == 0 {
-			return
+			return warnings, nil
 		}
-		if err := project.AddToCanvas(ctx, client, args.ProjectID, args.CID, images); err != nil {
+		if err := project.AddToCanvas(ctx, client, args.ProjectID, cid, images); err != nil {
 			output["canvas_error"] = err.Error()
+			warnings = append(warnings, "artifacts were generated but project canvas writeback failed")
 		} else {
 			output["canvas_updated"] = true
 		}
 	}
+	return warnings, nil
 }
 
 func newSignedClient(ctx context.Context) (*http.Client, error) {
@@ -503,7 +480,11 @@ func jobsResultEnvelope(result *jobs.BatchResult, err error, message string, okF
 	}
 	var gateErr *jobs.GateError
 	if stderrors.As(err, &gateErr) {
-		return envelope.Err(gateErr.Code, "batch gate blocked", map[string]any{"batch_gate": gateErr.Gate})
+		return envelope.Err(gateErr.Code, "batch gate blocked", map[string]any{
+			"batch_gate": gateErr.Gate,
+			"run_dir":    gateErr.RunDir,
+			"state_file": gateErr.StateFile,
+		})
 	}
 	return envelope.Err(errors.CodeInternal, message, map[string]any{"error": err.Error()})
 }

@@ -48,13 +48,13 @@ This rewrites generator list/schema, pricing table, and manifest in `ref/`, then
 
 ## 4. Validate Generation Safely
 
-Use dry-run before real submission:
+Quote the request before real submission:
 
 ```bash
-lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
+lovart quote openai/gpt-image-2 --body-file request.json
 ```
 
-Real submission is allowed only if preflight passes. Paid testing must include `--allow-paid --max-credits N`.
+Real single generation runs the generation gate internally before submission. Paid testing must include `--allow-paid --max-credits N`.
 
 ## 5. Replay Evidence
 

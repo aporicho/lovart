@@ -18,8 +18,10 @@ type BatchGate struct {
 
 // GateError reports a batch gate failure.
 type GateError struct {
-	Code string
-	Gate *BatchGate
+	Code      string
+	Gate      *BatchGate
+	RunDir    string
+	StateFile string
 }
 
 func (e *GateError) Error() string {
@@ -56,7 +58,7 @@ func evaluateGate(state *RunState, opts JobsOptions, statuses map[string]bool) *
 	}
 	if len(gate.UnknownPricingRequestIDs) > 0 {
 		gate.Allowed = false
-		gate.RecommendedActions = append(gate.RecommendedActions, "run `lovart jobs dry-run <jobs.jsonl>` again after network/pricing is available")
+		gate.RecommendedActions = append(gate.RecommendedActions, "rerun `lovart jobs run <jobs.jsonl>` or `lovart jobs resume <run_dir>` after network/pricing is available")
 	}
 	if len(gate.FailedRequestIDs) > 0 || len(gate.BlockingRequestIDs) > 0 {
 		gate.Allowed = false
@@ -93,5 +95,5 @@ func ensureGateAllowed(state *RunState, opts JobsOptions, statuses map[string]bo
 	if gate.Allowed {
 		return nil
 	}
-	return &GateError{Code: gateErrorCode(gate), Gate: gate}
+	return &GateError{Code: gateErrorCode(gate), Gate: gate, RunDir: state.RunDir, StateFile: state.StateFile}
 }

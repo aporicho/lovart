@@ -10,7 +10,7 @@ This README is the main manual. Other docs are references or role methods; they 
 - Prefer the `lovart mcp` stdio server when the agent supports MCP; otherwise call the `lovart` CLI directly.
 - Do not read `.lovart/`, `scripts/creds.json`, `captures/`, browser profiles, or `ref/` directly.
 - Legal model parameters come from `lovart config <model>`. Do not guess sizes, quality values, aspect ratios, modes, or counts.
-- `quote` tells the credit cost. `dry-run` and the generation gate decide whether submission is allowed.
+- `quote` tells the credit cost. Real single generation always runs the generation gate before submission.
 - Default real generation is zero-credit only.
 - Paid single generation requires `--allow-paid --max-credits N`.
 - Paid batch generation requires `--allow-paid --max-total-credits N`.
@@ -62,7 +62,11 @@ lovart auth login
 lovart doctor
 lovart project list
 lovart project select <project_id>
+lovart project current
 ```
+
+The user-visible project context is the Lovart `project_id`. Internal browser
+context is captured from login/import and reported only as `project_context_ready`.
 
 Direct binary download is the fallback path.
 
@@ -159,14 +163,13 @@ lovart auth status
 lovart setup
 lovart config openai/gpt-image-2
 lovart quote openai/gpt-image-2 --body-file request.json
-lovart generate openai/gpt-image-2 --body-file request.json --mode auto --dry-run
 lovart generate openai/gpt-image-2 --body-file request.json --mode auto --wait --download
 ```
 
 For quick single-prompt submissions, `generate` also accepts a minimal prompt body:
 
 ```bash
-lovart generate openai/gpt-image-2 --prompt "a clean product render of a red cube" --mode auto --dry-run
+lovart generate openai/gpt-image-2 --prompt "a clean product render of a red cube" --mode auto
 ```
 
 Example `request.json`:
@@ -200,17 +203,15 @@ Batch flow:
 ```bash
 lovart setup
 lovart config seedream/seedream-5-0
-lovart jobs quote runs/fanren/jobs.jsonl
-lovart jobs dry-run runs/fanren/jobs.jsonl
-lovart jobs run runs/fanren/jobs.jsonl --wait --download --download-dir runs/fanren/images --detail summary
+lovart jobs run runs/fanren/jobs.jsonl --download-dir runs/fanren/images
 lovart jobs status runs/fanren
-lovart jobs resume runs/fanren --wait --download --download-dir runs/fanren/images --timeout-seconds 90 --detail summary
+lovart jobs resume runs/fanren --download-dir runs/fanren/images
 ```
 
 Paid batch generation must include a total budget:
 
 ```bash
-lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300 --wait --download
+lovart jobs run runs/fanren/jobs.jsonl --allow-paid --max-total-credits 300
 ```
 
 ## Config
@@ -233,23 +234,21 @@ Run `lovart quote` on the final request before stating exact cost.
 - If a model supports only 4 outputs per request, `outputs:10` becomes `4 + 4 + 2`.
 - If a model has no quantity field, `outputs:10` becomes 10 single-output remote requests.
 
-Generation state is stored in `runs/<project>/jobs_state.json`. Quote progress is isolated per jobs file at `runs/<project>/.lovart_quote/<jobs-stem>-<jobs-hash>/jobs_quote_state.json`. The default quote report in that directory is lightweight; full quote detail is stored beside it as `jobs_quote_full.json`.
-
-`lovart jobs quote` defaults to a lightweight summary and does not echo prompts or full request bodies to stdout. Use `--detail requests` for compact per-request status, and `--detail full` only when you really need the complete expanded jobs and quote raw data.
+Generation state is stored in `runs/<project>/jobs_state.json`. `lovart jobs run` internally validates, expands, quotes, gates, submits, waits, downloads, writes canvas state, and returns a lightweight summary by default.
 
 `lovart jobs status` also defaults to a lightweight summary. It returns counts, up to 20 compact task samples, warnings, and safe `recommended_actions`; it does not echo prompts, full request bodies, or raw task payloads unless `--detail full` is explicitly requested. Use `--detail requests` when an agent needs every compact remote request.
 
-For long-running models, especially MCP calls, use short resumable polling windows instead of one very long tool call: `lovart jobs resume <run_dir> --wait --download --download-dir <images-dir> --timeout-seconds 90 --detail summary`. If the local wait times out, submitted `task_id`s are already saved in `jobs_state.json`; rerun `resume` or `status` to continue without resubmitting.
+For long-running models, especially MCP calls, use resumable polling instead of assuming one tool call will finish: `lovart jobs resume <run_dir> --download-dir <images-dir>`. If the local wait times out, submitted `task_id`s are already saved in `jobs_state.json`; rerun `resume` or `status` to continue without resubmitting.
 
-`--download` writes artifact files locally. Without `--download-dir`, files go under the runtime downloads directory, normally `downloads/<task_id>/`. With `--download-dir`, files go under `<download-dir>/<task_id>/`. Download failures keep the remote task marked `completed` and are resumable with `jobs resume --download`.
+Artifact files are downloaded by default. Without `--download-dir`, files go under the runtime downloads directory, normally `downloads/<task_id>/`. With `--download-dir`, files go under `<download-dir>/<task_id>/`. Download failures keep the remote task marked `completed` and are resumable with `jobs resume`.
 
-Batch quote reuses one web-style pricing client for each command run: Lovart time is synced once, signed pricing requests reuse that offset, and internal `original_unit_data` may be added only to the pricing payload. Users and agents should not put `original_unit_data` in request JSON.
+The internal batch quote step reuses one web-style pricing client for each command run: Lovart time is synced once, signed pricing requests reuse that offset, and internal `original_unit_data` may be added only to the pricing payload. Users and agents should not put `original_unit_data` in request JSON.
 
-The quote command computes a strict `cost_signature` from model, mode, price-affecting parameters, output count, and media input counts. Requests with the same signature share one remote quote; prompt/title changes alone do not trigger another quote. A 0-credit result is reusable only within the same signature, never across other parameter combinations.
+The internal quote step computes a strict `cost_signature` from model, mode, price-affecting parameters, output count, and media input counts. Requests with the same signature share one remote quote; prompt/title changes alone do not trigger another quote. A 0-credit result is reusable only within the same signature, never across other parameter combinations.
 
-If DNS or network access to `www.lovart.ai` fails, quote stops early with `network_unavailable` and leaves the remaining retryable requests pending. Fix network/DNS, then rerun the same `lovart jobs quote ...` command.
+If DNS or network access to `www.lovart.ai` fails during internal quoting, the run stops early with `network_unavailable` and leaves the remaining retryable requests pending. Fix network/DNS, then rerun `lovart jobs run ...` or `lovart jobs resume <run_dir>`.
 
-Batch quote credit fields:
+Batch credit fields:
 
 - `summary.total_credits` equals `summary.total_payable_credits`.
 - `payable_credits` comes from Lovart `data.price` and is the actual current-account spend used by gates.
@@ -262,7 +261,7 @@ Batch quote credit fields:
 - `signer_stale`: do not submit real generation until signing is revalidated.
 - `schema_invalid`: fix request JSON according to schema errors.
 - `unknown_pricing`: do not submit unless the user provides explicit budget.
-- `network_unavailable` / `timestamp_network_unavailable` / `pricing_network_unavailable`: fix DNS/network access to `www.lovart.ai`, then rerun quote.
+- `network_unavailable` / `timestamp_network_unavailable` / `pricing_network_unavailable`: fix DNS/network access to `www.lovart.ai`, then rerun `jobs run` or `jobs resume`.
 - `credit_risk`: retry only with the correct paid budget flags.
 - `task_failed` / `timeout`: inspect status, keep state, and use resume when appropriate.
 
@@ -283,15 +282,15 @@ lovart mcp status
 lovart balance
 lovart models
 lovart config <model>
+lovart project current
+lovart project list
+lovart project select <project_id>
 lovart quote <model> --body-file request.json
-lovart generate <model> --body-file request.json --mode auto --dry-run
-lovart generate <model> --prompt "prompt text" --mode auto --dry-run
 lovart generate <model> --body-file request.json --mode auto --wait --download
-lovart jobs quote runs/<project>/jobs.jsonl
-lovart jobs dry-run runs/<project>/jobs.jsonl
-lovart jobs run runs/<project>/jobs.jsonl --wait --download
+lovart generate <model> --prompt "prompt text" --mode auto
+lovart jobs run runs/<project>/jobs.jsonl
 lovart jobs status runs/<project>
-lovart jobs resume runs/<project> --wait --download
+lovart jobs resume runs/<project>
 lovart update check
 lovart update sync --metadata-only
 lovart project admin repair-canvas [project_id]
@@ -306,7 +305,7 @@ Every JSON success envelope identifies what the command actually did:
 - `execution_class=preflight`: contacts Lovart or checks current remote state without creating generation tasks or mutating remote projects.
 - `execution_class=submit`: performs a remote write, such as creating a generation task.
 
-Local registry, manifest, quote state, and job state are caches for speed,
+Local registry, manifest, pricing quote data, and job state are caches for speed,
 validation, and resumability. They are not a standalone operating mode;
 generation and remote validation require network access to Lovart.
 
@@ -335,7 +334,7 @@ An agent understands this project if it can answer:
 2. How do you know legal model parameters?
    Use `lovart config <model>`; never guess.
 3. How do you confirm credit cost and submit safety?
-   Use `quote` for cost, then `dry-run`/gate before real generation.
+   Use `quote` for cost; real generation runs its gate before submission.
 4. For 100 concepts with 10 images each, how many JSONL rows?
    100 rows, each with `outputs:10`.
 5. Why use `jobs resume` after interruption?
