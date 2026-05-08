@@ -3,6 +3,7 @@ package paths
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -10,7 +11,13 @@ import (
 func TestDefaultRootUsesLovartHomeDirectory(t *testing.T) {
 	t.Cleanup(Reset)
 	home := t.TempDir()
-	t.Setenv("HOME", home)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", home)
+		t.Setenv("HOMEDRIVE", "")
+		t.Setenv("HOMEPATH", "")
+	} else {
+		t.Setenv("HOME", home)
+	}
 	t.Setenv("LOVART_HOME", "")
 
 	Reset()

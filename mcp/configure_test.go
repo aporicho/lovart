@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -51,18 +52,19 @@ func TestInstallCodexWritesAndBacksUp(t *testing.T) {
 	restoreClock(t)
 	home := t.TempDir()
 	path := filepath.Join(home, ".codex", "config.toml")
+	lovartPath := testLovartPath(t)
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(path, []byte("[other]\nvalue = true\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	env := Install(ConfigOptions{Clients: "codex", LovartPath: "/tmp/lovart", Home: home, Yes: true})
+	env := Install(ConfigOptions{Clients: "codex", LovartPath: lovartPath, Home: home, Yes: true})
 	if !env.OK {
 		t.Fatalf("unexpected install envelope: %#v", env)
 	}
 	text := readText(path)
-	if !strings.Contains(text, managedMarker) || !strings.Contains(text, "command = \"/tmp/lovart\"") {
+	if !strings.Contains(text, managedMarker) || !strings.Contains(text, "command = \""+tomlString(lovartPath)+"\"") {
 		t.Fatalf("config not written correctly:\n%s", text)
 	}
 	backup := path + ".20260102T030405Z.bak"
@@ -74,28 +76,30 @@ func TestInstallCodexWritesAndBacksUp(t *testing.T) {
 func TestInstallCodexConflictAndForce(t *testing.T) {
 	home := t.TempDir()
 	path := filepath.Join(home, ".codex", "config.toml")
+	lovartPath := testLovartPath(t)
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(path, []byte("[mcp_servers.lovart]\ncommand = \"/other/lovart\"\nargs = [\"mcp\"]\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	env := Install(ConfigOptions{Clients: "codex", LovartPath: "/tmp/lovart", Home: home, Yes: true})
+	env := Install(ConfigOptions{Clients: "codex", LovartPath: lovartPath, Home: home, Yes: true})
 	if env.OK || env.Error == nil || env.Error.Code != "config_conflict" {
 		t.Fatalf("expected config conflict, got %#v", env)
 	}
-	env = Install(ConfigOptions{Clients: "codex", LovartPath: "/tmp/lovart", Home: home, Yes: true, Force: true})
+	env = Install(ConfigOptions{Clients: "codex", LovartPath: lovartPath, Home: home, Yes: true, Force: true})
 	if !env.OK {
 		t.Fatalf("force install failed: %#v", env)
 	}
-	if !strings.Contains(readText(path), "command = \"/tmp/lovart\"") {
+	if !strings.Contains(readText(path), "command = \""+tomlString(lovartPath)+"\"") {
 		t.Fatalf("force did not replace config:\n%s", readText(path))
 	}
 }
 
 func TestInstallOpenCodeDryRunPreview(t *testing.T) {
 	home := t.TempDir()
-	env := Install(ConfigOptions{Clients: "opencode", LovartPath: "/tmp/lovart", Home: home, DryRun: true, Yes: true})
+	lovartPath := testLovartPath(t)
+	env := Install(ConfigOptions{Clients: "opencode", LovartPath: lovartPath, Home: home, DryRun: true, Yes: true})
 	if !env.OK {
 		t.Fatalf("unexpected install envelope: %#v", env)
 	}
@@ -103,7 +107,7 @@ func TestInstallOpenCodeDryRunPreview(t *testing.T) {
 	preview := results[0]["preview"].(map[string]any)
 	jsonPreview := preview["json"].(map[string]any)
 	command := jsonPreview["command"].([]string)
-	if len(command) != 2 || command[0] != "/tmp/lovart" || command[1] != "mcp" {
+	if len(command) != 2 || command[0] != lovartPath || command[1] != "mcp" {
 		t.Fatalf("unexpected opencode command: %#v", command)
 	}
 }
@@ -227,20 +231,37 @@ func TestCommandClientRunsExpectedCommand(t *testing.T) {
 	restoreCommandHooks(t)
 	lookPath = func(name string) (string, error) { return "/bin/" + name, nil }
 	var got []string
+	lovartPath := testLovartPath(t)
 	runCommand = func(command []string) (commandResult, error) {
 		got = append([]string(nil), command...)
 		return commandResult{ReturnCode: 0, Stdout: "ok"}, nil
 	}
-	env := Install(ConfigOptions{Clients: "openclaw", LovartPath: "/tmp/lovart", Home: t.TempDir(), Yes: true})
+	env := Install(ConfigOptions{Clients: "openclaw", LovartPath: lovartPath, Home: t.TempDir(), Yes: true})
 	if !env.OK {
 		t.Fatalf("unexpected install envelope: %#v", env)
 	}
 	if len(got) < 5 || got[0] != "openclaw" || got[1] != "mcp" || got[2] != "set" || got[3] != "lovart" {
 		t.Fatalf("unexpected command: %#v", got)
 	}
-	if !strings.Contains(got[4], `"command":"/tmp/lovart"`) {
-		t.Fatalf("unexpected payload: %s", got[4])
+	var payload struct {
+		Command string   `json:"command"`
+		Args    []string `json:"args"`
 	}
+	if err := json.Unmarshal([]byte(got[4]), &payload); err != nil {
+		t.Fatalf("invalid payload: %s", got[4])
+	}
+	if payload.Command != lovartPath || len(payload.Args) != 1 || payload.Args[0] != "mcp" {
+		t.Fatalf("unexpected payload: %#v", payload)
+	}
+}
+
+func testLovartPath(t *testing.T) string {
+	t.Helper()
+	path, err := filepath.Abs(filepath.Join(t.TempDir(), "lovart"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return path
 }
 
 func installResults(t *testing.T, env envelope.Envelope) []map[string]any {

@@ -23,7 +23,7 @@ func TestUninstallDeletesBinaryAndExtensionButKeepsDataByDefault(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := Uninstall(UninstallOptions{InstallPath: binary, ExtensionDir: extensionDir, Yes: true})
+	result, err := Uninstall(UninstallOptions{InstallPath: binary, ExtensionDir: extensionDir, Yes: true, RuntimeGOOS: "linux"})
 	if err != nil {
 		t.Fatalf("Uninstall: %v", err)
 	}
@@ -50,7 +50,7 @@ func TestUninstallDataDeletesRuntimeRoot(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(paths.Root, "creds.json"), []byte("{}"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Uninstall(UninstallOptions{InstallPath: binary, KeepExtension: true, Data: true, Yes: true}); err != nil {
+	if _, err := Uninstall(UninstallOptions{InstallPath: binary, KeepExtension: true, Data: true, Yes: true, RuntimeGOOS: "linux"}); err != nil {
 		t.Fatalf("Uninstall data: %v", err)
 	}
 	if _, err := os.Stat(paths.Root); !os.IsNotExist(err) {
