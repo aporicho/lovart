@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/aporicho/lovart/internal/auth"
 	"github.com/aporicho/lovart/internal/envelope"
@@ -31,7 +30,7 @@ func newProjectOpenCmd() *cobra.Command {
 			}
 
 			url := fmt.Sprintf("https://www.lovart.ai/canvas?projectId=%s", projectID)
-			err := exec.Command("open", url).Start()
+			err := openBrowser(url)
 			printEnvelope(okLocal(map[string]any{
 				"opened":     err == nil,
 				"project_id": projectID,

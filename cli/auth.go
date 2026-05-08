@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
-	"runtime"
 	"strconv"
 	"time"
 
@@ -70,7 +68,7 @@ func newAuthLoginCmd() *cobra.Command {
 
 			loginURL := "https://www.lovart.ai/?lovart_cli_auth=1&port=" + strconv.Itoa(server.Port())
 			fmt.Fprintf(os.Stderr, "Lovart auth login waiting on http://127.0.0.1:%d\n", server.Port())
-			fmt.Fprintln(os.Stderr, "Open Lovart, stay signed in, then click Connect in the Lovart Connector page prompt.")
+			fmt.Fprintln(os.Stderr, "Opening Lovart in Google Chrome. Stay signed in, then click Connect in the Lovart Connector page prompt.")
 			if err := openBrowser(loginURL); err != nil {
 				fmt.Fprintf(os.Stderr, "Could not open browser automatically: %v\nOpen manually: %s\n", err, loginURL)
 			}
@@ -130,15 +128,4 @@ func newAuthLogoutCmd() *cobra.Command {
 	}
 	cmd.Flags().BoolVar(&yes, "yes", false, "confirm deleting stored Lovart credentials")
 	return cmd
-}
-
-func openBrowser(url string) error {
-	switch runtime.GOOS {
-	case "darwin":
-		return exec.Command("open", url).Start()
-	case "windows":
-		return exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	default:
-		return exec.Command("xdg-open", url).Start()
-	}
 }
