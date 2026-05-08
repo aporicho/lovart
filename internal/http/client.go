@@ -107,6 +107,9 @@ func (c *Client) setAuthHeaders(req *nethttp.Request) {
 	if c.creds.Token != "" {
 		req.Header.Set("token", c.creds.Token)
 	}
+	if c.creds.WebID != "" {
+		req.Header.Set("webid", c.creds.WebID)
+	}
 	if c.creds.CSRF != "" {
 		req.Header.Set("X-CSRF-Token", c.creds.CSRF)
 	}

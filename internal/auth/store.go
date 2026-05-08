@@ -14,6 +14,7 @@ type Credentials struct {
 	Cookie string `json:"cookie"`
 	Token  string `json:"token"`
 	CSRF   string `json:"csrf"`
+	WebID  string `json:"webid"`
 }
 
 // Session is the persisted browser login state used by the CLI.
@@ -55,7 +56,7 @@ func Load() (*Credentials, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Credentials{Cookie: session.Cookie, Token: session.Token, CSRF: session.CSRF}, nil
+	return &Credentials{Cookie: session.Cookie, Token: session.Token, CSRF: session.CSRF, WebID: session.CID}, nil
 }
 
 // LoadProjectContext reads project context from the creds file.
@@ -138,7 +139,8 @@ func sessionFromMap(raw map[string]any) Session {
 		Source:    firstString(raw, "source", "source_capture"),
 		UpdatedAt: firstString(raw, "updated_at"),
 	}
-	return session.mergeHeaders(headers)
+	session = session.mergeHeaders(headers)
+	return session.mergeCookieHints()
 }
 
 func (s Session) mergeHeaders(headers map[string]any) Session {
@@ -152,6 +154,59 @@ func (s Session) mergeHeaders(headers map[string]any) Session {
 		s.CSRF = firstString(headers, "csrf", "x-csrf-token", "x-xsrf-token", "csrf-token")
 	}
 	return s
+}
+
+func (s Session) mergeCookieHints() Session {
+	if s.Token == "" {
+		s.Token = cookieValue(s.Cookie, "usertoken")
+	}
+	if s.CID == "" {
+		s.CID = cookieValue(s.Cookie, "webid")
+	}
+	return s
+}
+
+func cookieValue(header, name string) string {
+	start := 0
+	for start <= len(header) {
+		end := len(header)
+		for i := start; i < len(header); i++ {
+			if header[i] == ';' {
+				end = i
+				break
+			}
+		}
+		part := trimCookiePart(header[start:end])
+		if key, value, ok := cutCookiePart(part); ok && stringsEqualFold(key, name) {
+			return value
+		}
+		if end == len(header) {
+			break
+		}
+		start = end + 1
+	}
+	return ""
+}
+
+func cutCookiePart(part string) (string, string, bool) {
+	for i := 0; i < len(part); i++ {
+		if part[i] == '=' {
+			return part[:i], part[i+1:], true
+		}
+	}
+	return "", "", false
+}
+
+func trimCookiePart(part string) string {
+	start := 0
+	for start < len(part) && (part[start] == ' ' || part[start] == '\t') {
+		start++
+	}
+	end := len(part)
+	for end > start && (part[end-1] == ' ' || part[end-1] == '\t') {
+		end--
+	}
+	return part[start:end]
 }
 
 func anyMap(raw map[string]any, key string) map[string]any {

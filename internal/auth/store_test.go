@@ -40,6 +40,45 @@ func TestSaveAndLoad(t *testing.T) {
 	}
 }
 
+func TestLoadDerivesTokenAndWebIDFromCookie(t *testing.T) {
+	dir := t.TempDir()
+	credsPath := filepath.Join(dir, "creds.json")
+	os.MkdirAll(filepath.Dir(credsPath), 0700)
+	t.Setenv("LOVART_HOME", dir)
+	paths.Reset()
+
+	if err := SaveSession(Session{
+		Cookie: "foo=bar; usertoken=secret-token; webid=web-123",
+		Source: "browser_extension",
+	}); err != nil {
+		t.Fatalf("SaveSession: %v", err)
+	}
+
+	loaded, err := Load()
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if loaded.Token != "secret-token" {
+		t.Fatalf("Token = %q, want derived token", loaded.Token)
+	}
+	if loaded.WebID != "web-123" {
+		t.Fatalf("WebID = %q, want derived webid", loaded.WebID)
+	}
+
+	pc, err := LoadProjectContext()
+	if err != nil {
+		t.Fatalf("LoadProjectContext: %v", err)
+	}
+	if pc.CID != "web-123" {
+		t.Fatalf("CID = %q, want derived webid", pc.CID)
+	}
+
+	status := GetStatus()
+	if !containsString(status.Fields, "token") {
+		t.Fatalf("status fields = %#v, want derived token field", status.Fields)
+	}
+}
+
 func TestSetProject(t *testing.T) {
 	dir := t.TempDir()
 	credsPath := filepath.Join(dir, "creds.json")

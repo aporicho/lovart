@@ -15,7 +15,7 @@ func Save(c *Credentials) error {
 	if c == nil {
 		return fmt.Errorf("auth: cannot save nil credentials")
 	}
-	return SaveSession(Session{Cookie: c.Cookie, Token: c.Token, CSRF: c.CSRF})
+	return SaveSession(Session{Cookie: c.Cookie, Token: c.Token, CSRF: c.CSRF, CID: c.WebID})
 }
 
 // SaveSession persists credentials and project context to the creds file.
