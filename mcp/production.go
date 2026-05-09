@@ -323,14 +323,15 @@ func (ProductionExecutor) Quote(ctx context.Context, args QuoteArgs) envelope.En
 	if err != nil {
 		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
 	}
-	result, err := pricing.Quote(ctx, client, args.Model, args.Body)
+	result, err := pricing.QuoteWithOptions(ctx, client, args.Model, args.Body, pricing.QuoteOptions{Mode: args.Mode})
 	if err != nil {
 		return envelope.Err(errors.CodeInternal, "quote failed", map[string]any{"error": err.Error()})
 	}
 	return okPreflight(map[string]any{
-		"price":        result.Price,
-		"balance":      result.Balance,
-		"price_detail": result.PriceDetail,
+		"price":           result.Price,
+		"balance":         result.Balance,
+		"price_detail":    result.PriceDetail,
+		"pricing_context": result.PricingContext,
 	})
 }
 

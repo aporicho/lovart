@@ -97,6 +97,7 @@ func Tools() []Tool {
 		tool("lovart_quote", "Fetch an exact Lovart credit quote for a model request.", map[string]any{
 			"model": stringSchema("Lovart generator model name"),
 			"body":  map[string]any{"type": "object"},
+			"mode":  modeSchema(),
 		}, "model", "body"),
 		tool("lovart_generate", "Submit a single generation request after the normal paid/zero-credit gate.", map[string]any{
 			"model":                  stringSchema("Lovart generator model name"),

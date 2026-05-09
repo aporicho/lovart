@@ -27,15 +27,16 @@ type QuoteSummary struct {
 
 // JobQuote is the pricing result for a single job.
 type JobQuote struct {
-	JobID         string               `json:"job_id"`
-	Title         string               `json:"title,omitempty"`
-	Model         string               `json:"model"`
-	Outputs       int                  `json:"outputs"`
-	ActualOutputs int                  `json:"actual_outputs,omitempty"`
-	APICalls      int                  `json:"api_calls"`
-	Price         float64              `json:"price"`
-	Cached        bool                 `json:"cached"`
-	PriceDetail   *pricing.PriceDetail `json:"price_detail,omitempty"`
+	JobID          string                  `json:"job_id"`
+	Title          string                  `json:"title,omitempty"`
+	Model          string                  `json:"model"`
+	Outputs        int                     `json:"outputs"`
+	ActualOutputs  int                     `json:"actual_outputs,omitempty"`
+	APICalls       int                     `json:"api_calls"`
+	Price          float64                 `json:"price"`
+	Cached         bool                    `json:"cached"`
+	PriceDetail    *pricing.PriceDetail    `json:"price_detail,omitempty"`
+	PricingContext *pricing.PricingContext `json:"pricing_context,omitempty"`
 }
 
 // QuoteJobs runs batch pricing for all jobs in a JSONL file.
@@ -100,7 +101,7 @@ func QuotePreparedJobs(ctx context.Context, client *http.Client, jobs []JobLine,
 				repBody = subs[0].Body
 			}
 
-			r, err := pricing.Quote(ctx, client, job.Model, repBody)
+			r, err := pricing.QuoteWithOptions(ctx, client, job.Model, repBody, pricing.QuoteOptions{Mode: job.Mode})
 			if err != nil {
 				return nil, fmt.Errorf("jobs pricing: job %q: %w", job.JobID, err)
 			}
@@ -112,10 +113,12 @@ func QuotePreparedJobs(ctx context.Context, client *http.Client, jobs []JobLine,
 			}
 
 			jobPrice := computeJobPrice(result, apiCalls, job.Model, job.Outputs)
+			priceContext := scalePricingContext(result.PricingContext, result.Price, jobPrice)
 			result = &pricing.QuoteResult{
-				Price:       jobPrice,
-				Balance:     result.Balance,
-				PriceDetail: result.PriceDetail,
+				Price:          jobPrice,
+				Balance:        result.Balance,
+				PriceDetail:    result.PriceDetail,
+				PricingContext: priceContext,
 			}
 
 			cache.Set(sig, result)
@@ -126,15 +129,16 @@ func QuotePreparedJobs(ctx context.Context, client *http.Client, jobs []JobLine,
 		actualOutputs := computeActualOutputs(job.Model, job.Outputs, subs)
 
 		summary.Jobs = append(summary.Jobs, JobQuote{
-			JobID:         job.JobID,
-			Title:         job.Title,
-			Model:         job.Model,
-			Outputs:       job.Outputs,
-			ActualOutputs: actualOutputs,
-			APICalls:      apiCalls,
-			Price:         result.Price,
-			Cached:        cached,
-			PriceDetail:   &result.PriceDetail,
+			JobID:          job.JobID,
+			Title:          job.Title,
+			Model:          job.Model,
+			Outputs:        job.Outputs,
+			ActualOutputs:  actualOutputs,
+			APICalls:       apiCalls,
+			Price:          result.Price,
+			Cached:         cached,
+			PriceDetail:    &result.PriceDetail,
+			PricingContext: result.PricingContext,
 		})
 		summary.TotalPrice += result.Price
 
@@ -169,7 +173,7 @@ func computeJobPrice(quote *pricing.QuoteResult, apiCalls int, model string, out
 
 	if cap.IsFixedBatch {
 		batchCount := int(math.Ceil(float64(outputs) / float64(cap.BatchSize)))
-		return float64(batchCount) * quote.PriceDetail.UnitPrice
+		return float64(batchCount) * quote.Price
 	}
 
 	if cap.MultiField != "" {
@@ -179,7 +183,21 @@ func computeJobPrice(quote *pricing.QuoteResult, apiCalls int, model string, out
 		return quote.Price
 	}
 
-	return float64(outputs) * quote.PriceDetail.UnitPrice
+	return float64(outputs) * quote.Price
+}
+
+func scalePricingContext(pc *pricing.PricingContext, basePrice, totalPrice float64) *pricing.PricingContext {
+	if pc == nil {
+		return nil
+	}
+	scaled := *pc
+	if basePrice > 0 {
+		factor := totalPrice / basePrice
+		scaled.ServerPrice *= factor
+		scaled.NominalPrice *= factor
+	}
+	scaled.EffectivePrice = totalPrice
+	return &scaled
 }
 
 // computeActualOutputs returns the actual number of images that will be produced.

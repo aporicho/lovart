@@ -11,11 +11,12 @@ import (
 
 // PreflightResult is the gate check outcome before submission.
 type PreflightResult struct {
-	CanSubmit          bool     `json:"can_submit"`
-	Credits            float64  `json:"credits"`
-	CreditRisk         bool     `json:"credit_risk"`
-	PaidRequired       bool     `json:"paid_required"`
-	RecommendedActions []string `json:"recommended_actions,omitempty"`
+	CanSubmit          bool                    `json:"can_submit"`
+	Credits            float64                 `json:"credits"`
+	CreditRisk         bool                    `json:"credit_risk"`
+	PaidRequired       bool                    `json:"paid_required"`
+	PricingContext     *pricing.PricingContext `json:"pricing_context,omitempty"`
+	RecommendedActions []string                `json:"recommended_actions,omitempty"`
 }
 
 // SubmitResult is the response after a successful generation submission.
@@ -38,7 +39,7 @@ type Options struct {
 // Preflight checks all gates: auth, quote, slot, mode.
 func Preflight(ctx context.Context, client *http.Client, model string, body map[string]any, opts Options) (*PreflightResult, error) {
 	// 1. Quote the request.
-	quote, err := pricing.Quote(ctx, client, model, body)
+	quote, err := pricing.QuoteWithOptions(ctx, client, model, body, pricing.QuoteOptions{Mode: opts.Mode})
 	if err != nil {
 		return &PreflightResult{
 			CanSubmit:          false,
@@ -69,6 +70,7 @@ func Preflight(ctx context.Context, client *http.Client, model string, body map[
 		Credits:            credits,
 		CreditRisk:         paidRequired && !opts.AllowPaid,
 		PaidRequired:       paidRequired,
+		PricingContext:     quote.PricingContext,
 		RecommendedActions: actions,
 	}, nil
 }

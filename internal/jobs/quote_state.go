@@ -31,7 +31,7 @@ func quoteState(ctx context.Context, remote RemoteClient, state *RunState) error
 				request.Status = StatusQuoted
 				continue
 			}
-			quote, err := remote.Quote(ctx, request.Model, request.Body)
+			quote, err := remote.Quote(ctx, request.Model, request.Body, request.Mode)
 			if err != nil {
 				addRequestError(request, "unknown_pricing", "live quote failed", map[string]any{"error": err.Error()})
 				request.Status = StatusFailed

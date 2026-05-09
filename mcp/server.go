@@ -226,7 +226,11 @@ func parseQuoteArgs(args map[string]any) (QuoteArgs, error) {
 	if err != nil {
 		return QuoteArgs{}, err
 	}
-	return QuoteArgs{Model: model, Body: body}, nil
+	mode, err := modeArg(args, "mode", "auto")
+	if err != nil {
+		return QuoteArgs{}, err
+	}
+	return QuoteArgs{Model: model, Body: body, Mode: mode}, nil
 }
 
 func parseGenerateArgs(args map[string]any) (GenerateArgs, error) {

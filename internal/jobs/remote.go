@@ -11,7 +11,7 @@ import (
 
 // RemoteClient is the jobs package boundary for Lovart network operations.
 type RemoteClient interface {
-	Quote(ctx context.Context, model string, body map[string]any) (*pricing.QuoteResult, error)
+	Quote(ctx context.Context, model string, body map[string]any, mode string) (*pricing.QuoteResult, error)
 	Submit(ctx context.Context, model string, body map[string]any, opts generation.Options) (*generation.SubmitResult, error)
 	FetchTask(ctx context.Context, taskID string) (map[string]any, error)
 	AddToCanvas(ctx context.Context, projectID, cid string, images []project.CanvasImage) error
@@ -27,8 +27,8 @@ func NewHTTPRemoteClient(client *http.Client) RemoteClient {
 	return &httpRemoteClient{client: client}
 }
 
-func (c *httpRemoteClient) Quote(ctx context.Context, model string, body map[string]any) (*pricing.QuoteResult, error) {
-	return pricing.Quote(ctx, c.client, model, body)
+func (c *httpRemoteClient) Quote(ctx context.Context, model string, body map[string]any, mode string) (*pricing.QuoteResult, error) {
+	return pricing.QuoteWithOptions(ctx, c.client, model, body, pricing.QuoteOptions{Mode: mode})
 }
 
 func (c *httpRemoteClient) Submit(ctx context.Context, model string, body map[string]any, opts generation.Options) (*generation.SubmitResult, error) {

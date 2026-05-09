@@ -8,6 +8,7 @@ import (
 	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/errors"
 	"github.com/aporicho/lovart/internal/generation"
+	"github.com/aporicho/lovart/internal/pricing"
 	"github.com/aporicho/lovart/internal/project"
 	"github.com/aporicho/lovart/internal/registry"
 	"github.com/spf13/cobra"
@@ -50,6 +51,10 @@ func newGenerateCmd() *cobra.Command {
 					"validation":          validation,
 					"recommended_actions": validationRecommendedActions(validation),
 				}))
+				return nil
+			}
+			if _, err := pricing.NormalizeMode(mode); err != nil {
+				printEnvelope(envelope.Err(errors.CodeInputError, "invalid mode", map[string]any{"error": err.Error()}))
 				return nil
 			}
 

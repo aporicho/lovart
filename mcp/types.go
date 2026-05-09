@@ -37,6 +37,7 @@ type ConfigArgs struct {
 type QuoteArgs struct {
 	Model string         `json:"model"`
 	Body  map[string]any `json:"body"`
+	Mode  string         `json:"mode"`
 }
 
 // ProjectSelectArgs configures lovart_project_select.

@@ -224,8 +224,8 @@ lovart project open [id]
 lovart project admin rename <id> <name>
 lovart project admin delete <id>
 lovart project admin repair-canvas [id]
-lovart quote <model> --body-file <file>
-lovart generate <model> (--body-file <file>|--prompt <text>) [--project-id <id>] [--mode] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]
+lovart quote <model> --body-file <file> [--mode auto|fast|relax]
+lovart generate <model> (--body-file <file>|--prompt <text>) [--project-id <id>] [--mode auto|fast|relax] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]
 lovart jobs run <jobs.jsonl> [--project-id <id>] [--allow-paid --max-total-credits N] [--download-dir <dir>]
 lovart jobs resume <run_dir> [--allow-paid --max-total-credits N] [--download-dir <dir>] [--retry-failed]
 lovart jobs status <run_dir> [--refresh] [--detail summary|requests|full]

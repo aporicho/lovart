@@ -9,27 +9,28 @@ import (
 
 // QuoteResult contains the pricing response from the Lovart pricing API.
 type QuoteResult struct {
-	Price       float64     `json:"price"`
-	Balance     float64     `json:"balance"`
-	PriceDetail PriceDetail `json:"price_detail"`
+	Price          float64         `json:"price"`
+	Balance        float64         `json:"balance"`
+	PriceDetail    PriceDetail     `json:"price_detail"`
+	PricingContext *PricingContext `json:"pricing_context,omitempty"`
 }
 
 // PriceDetail breaks down how the price is calculated.
 type PriceDetail struct {
-	UnitPrice   float64 `json:"unit_price"`
-	UnitCount   int     `json:"unit_count"`
-	UnitName    string  `json:"unit_name"`
-	TotalPrice  float64 `json:"total_price"`
-	SearchKey   string  `json:"search_key"`
-	GeneratorName string `json:"generator_name"`
+	UnitPrice     float64 `json:"unit_price"`
+	UnitCount     int     `json:"unit_count"`
+	UnitName      string  `json:"unit_name"`
+	TotalPrice    float64 `json:"total_price"`
+	SearchKey     string  `json:"search_key"`
+	GeneratorName string  `json:"generator_name"`
 
-	InputImageCount               int            `json:"input_image_count"`
-	InputImageCountField          string         `json:"input_image_count_field"`
-	InputImageCountUnitPrice      float64        `json:"input_image_count_unit_price"`
-	InputImageCountSurchargeEnabled bool          `json:"input_image_count_surcharge_enabled"`
-	ImageCountSurcharge           float64        `json:"image_count_surcharge"`
-	PriceBeforeSurcharge          float64        `json:"price_before_surcharge"`
-	InputArgs                     map[string]any `json:"input_args,omitempty"`
+	InputImageCount                 int            `json:"input_image_count"`
+	InputImageCountField            string         `json:"input_image_count_field"`
+	InputImageCountUnitPrice        float64        `json:"input_image_count_unit_price"`
+	InputImageCountSurchargeEnabled bool           `json:"input_image_count_surcharge_enabled"`
+	ImageCountSurcharge             float64        `json:"image_count_surcharge"`
+	PriceBeforeSurcharge            float64        `json:"price_before_surcharge"`
+	InputArgs                       map[string]any `json:"input_args,omitempty"`
 }
 
 // quoteResponse mirrors the Lovart LGW pricing API response envelope.
@@ -45,6 +46,10 @@ type quoteResponse struct {
 // Quote fetches a live credit quote from the Lovart pricing API.
 // The body should contain the generation parameters (prompt, size, quality, n, etc.).
 func Quote(ctx context.Context, client *http.Client, model string, body map[string]any) (*QuoteResult, error) {
+	return QuoteWithOptions(ctx, client, model, body, QuoteOptions{Mode: ModeAuto})
+}
+
+func baseQuote(ctx context.Context, client *http.Client, model string, body map[string]any) (*QuoteResult, error) {
 	path := "/v1/generator/pricing"
 
 	reqBody := map[string]any{

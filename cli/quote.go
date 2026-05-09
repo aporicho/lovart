@@ -15,9 +15,10 @@ import (
 
 func newQuoteCmd() *cobra.Command {
 	var bodyFile string
+	var mode string
 
 	cmd := &cobra.Command{
-		Use:   "quote <model> --body-file <file>",
+		Use:   "quote <model> --body-file <file> [--mode auto|fast|relax]",
 		Short: "Fetch Lovart credit quote for a model request",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -36,6 +37,10 @@ func newQuoteCmd() *cobra.Command {
 				}))
 				return nil
 			}
+			if _, err := pricing.NormalizeMode(mode); err != nil {
+				printEnvelope(envelope.Err(errors.CodeInputError, "invalid mode", map[string]any{"error": err.Error()}))
+				return nil
+			}
 
 			client, err := newSignedClient()
 			if err != nil {
@@ -43,22 +48,24 @@ func newQuoteCmd() *cobra.Command {
 				return nil
 			}
 
-			result, err := pricing.Quote(ctx, client, model, body)
+			result, err := pricing.QuoteWithOptions(ctx, client, model, body, pricing.QuoteOptions{Mode: mode})
 			if err != nil {
 				printEnvelope(envelope.Err(errors.CodeInternal, "quote failed", map[string]any{"error": err.Error()}))
 				return nil
 			}
 
 			printEnvelope(okPreflight(map[string]any{
-				"price":        result.Price,
-				"balance":      result.Balance,
-				"price_detail": result.PriceDetail,
+				"price":           result.Price,
+				"balance":         result.Balance,
+				"price_detail":    result.PriceDetail,
+				"pricing_context": result.PricingContext,
 			}))
 			return nil
 		},
 	}
 
 	cmd.Flags().StringVar(&bodyFile, "body-file", "", "path to request JSON file")
+	cmd.Flags().StringVar(&mode, "mode", pricing.ModeAuto, "generation mode for pricing: auto, fast, relax")
 	return cmd
 }
 

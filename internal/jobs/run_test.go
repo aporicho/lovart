@@ -355,7 +355,7 @@ type fakeRemote struct {
 	submittedOutputs    map[string]int
 }
 
-func (f *fakeRemote) Quote(ctx context.Context, model string, body map[string]any) (*pricing.QuoteResult, error) {
+func (f *fakeRemote) Quote(ctx context.Context, model string, body map[string]any, mode string) (*pricing.QuoteResult, error) {
 	f.quotes++
 	return &pricing.QuoteResult{Price: f.price, Balance: 100, PriceDetail: pricing.PriceDetail{UnitPrice: f.price}}, nil
 }
