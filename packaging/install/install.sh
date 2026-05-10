@@ -133,8 +133,16 @@ if [ "$YES" -ne 1 ]; then
 fi
 
 TMP_DIR="$(mktemp -d)"
+INSTALL_TMP=""
+BACKUP_TMP=""
 cleanup() {
   rm -rf "$TMP_DIR"
+  if [ -n "$INSTALL_TMP" ]; then
+    rm -f "$INSTALL_TMP"
+  fi
+  if [ -n "$BACKUP_TMP" ]; then
+    rm -f "$BACKUP_TMP"
+  fi
 }
 trap cleanup EXIT
 
@@ -182,11 +190,21 @@ if [ -e "$INSTALL_PATH" ]; then
   if [ "$FORCE" -ne 1 ]; then
     fail "${INSTALL_PATH} already exists; rerun with --force"
   fi
-  cp "$INSTALL_PATH" "${INSTALL_PATH}.bak"
+  BACKUP_TMP="${INSTALL_PATH}.bak.tmp.$$"
+  cp "$INSTALL_PATH" "$BACKUP_TMP"
+  mv -f "$BACKUP_TMP" "${INSTALL_PATH}.bak"
+  BACKUP_TMP=""
 fi
-cp "$BIN_TMP" "$INSTALL_PATH"
-chmod +x "$INSTALL_PATH"
 
+INSTALL_TMP="${INSTALL_PATH}.tmp.$$"
+cp "$BIN_TMP" "$INSTALL_TMP"
+chmod +x "$INSTALL_TMP"
+
+"$INSTALL_TMP" --version >/dev/null
+"$INSTALL_TMP" self-test >/dev/null
+
+mv -f "$INSTALL_TMP" "$INSTALL_PATH"
+INSTALL_TMP=""
 "$INSTALL_PATH" --version >/dev/null
 "$INSTALL_PATH" self-test >/dev/null
 
