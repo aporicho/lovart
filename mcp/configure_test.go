@@ -179,6 +179,94 @@ func TestUninstallClaudeRunsRemoveCommand(t *testing.T) {
 	}
 }
 
+func TestInstallClaudeAlreadyExistsWithoutForceIsOK(t *testing.T) {
+	restoreCommandHooks(t)
+	lookPath = func(name string) (string, error) { return "/bin/" + name, nil }
+	var calls [][]string
+	runCommand = func(command []string) (commandResult, error) {
+		calls = append(calls, append([]string(nil), command...))
+		return commandResult{ReturnCode: 1, Stderr: "MCP server lovart already exists\n"}, nil
+	}
+
+	env := Install(ConfigOptions{Clients: "claude", LovartPath: "/tmp/lovart", Home: t.TempDir(), Yes: true})
+	if !env.OK {
+		t.Fatalf("already exists should not fail: %#v", env)
+	}
+	results := installResults(t, env)
+	if results[0]["status"] != "already_exists" {
+		t.Fatalf("unexpected result: %#v", results[0])
+	}
+	if results[0]["changed"] != false || results[0]["configured"] != true {
+		t.Fatalf("unexpected already_exists flags: %#v", results[0])
+	}
+	if len(calls) != 1 || calls[0][2] != "add" {
+		t.Fatalf("unexpected commands: %#v", calls)
+	}
+}
+
+func TestInstallClaudeForceReplacesExisting(t *testing.T) {
+	restoreCommandHooks(t)
+	lookPath = func(name string) (string, error) { return "/bin/" + name, nil }
+	var calls [][]string
+	adds := 0
+	runCommand = func(command []string) (commandResult, error) {
+		calls = append(calls, append([]string(nil), command...))
+		switch command[2] {
+		case "add":
+			adds++
+			if adds == 1 {
+				return commandResult{ReturnCode: 1, Stderr: "MCP server lovart already exists\n"}, nil
+			}
+			return commandResult{ReturnCode: 0, Stdout: "added\n"}, nil
+		case "remove":
+			return commandResult{ReturnCode: 0, Stdout: "removed\n"}, nil
+		default:
+			t.Fatalf("unexpected command: %#v", command)
+			return commandResult{}, nil
+		}
+	}
+
+	env := Install(ConfigOptions{Clients: "claude", LovartPath: "/tmp/lovart", Home: t.TempDir(), Yes: true, Force: true})
+	if !env.OK {
+		t.Fatalf("force replace failed: %#v", env)
+	}
+	results := installResults(t, env)
+	if results[0]["status"] != "configured" || results[0]["changed"] != true || results[0]["replaced"] != true {
+		t.Fatalf("unexpected result: %#v", results[0])
+	}
+	got := []string{calls[0][2], calls[1][2], calls[2][2]}
+	want := []string{"add", "remove", "add"}
+	if strings.Join(got, " ") != strings.Join(want, " ") {
+		t.Fatalf("commands = %#v, want %#v", got, want)
+	}
+}
+
+func TestInstallClaudeForceReportsRetryFailure(t *testing.T) {
+	restoreCommandHooks(t)
+	lookPath = func(name string) (string, error) { return "/bin/" + name, nil }
+	adds := 0
+	runCommand = func(command []string) (commandResult, error) {
+		switch command[2] {
+		case "add":
+			adds++
+			if adds == 1 {
+				return commandResult{ReturnCode: 1, Stderr: "MCP server lovart already exists\n"}, nil
+			}
+			return commandResult{ReturnCode: 1, Stderr: "retry failed\n"}, nil
+		case "remove":
+			return commandResult{ReturnCode: 0, Stdout: "removed\n"}, nil
+		default:
+			t.Fatalf("unexpected command: %#v", command)
+			return commandResult{}, nil
+		}
+	}
+
+	env := Install(ConfigOptions{Clients: "claude", LovartPath: "/tmp/lovart", Home: t.TempDir(), Yes: true, Force: true})
+	if env.OK || env.Error == nil || env.Error.Code != "mcp_config_failed" {
+		t.Fatalf("expected mcp_config_failed, got %#v", env)
+	}
+}
+
 func TestInstallRequiresYesUnlessDryRun(t *testing.T) {
 	env := Install(ConfigOptions{Clients: "codex", LovartPath: "/tmp/lovart", Home: t.TempDir()})
 	if env.OK || env.Error == nil || env.Error.Code != "input_error" {

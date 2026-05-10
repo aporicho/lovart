@@ -305,7 +305,7 @@ func installClient(client string, ctx configContext) (map[string]any, error) {
 	case "codex":
 		return installCodex(ctx)
 	case "claude":
-		return installCommandClient("claude", claudeCommand(ctx), ctx)
+		return installClaude(ctx)
 	case "opencode":
 		return installOpenCode(ctx)
 	case "openclaw":
@@ -377,6 +377,79 @@ func installCommandClient(client string, command []string, ctx configContext) (m
 	return result, nil
 }
 
+func installClaude(ctx configContext) (map[string]any, error) {
+	command := claudeCommand(ctx)
+	result := commandStatus("claude", command)
+	result["changed"] = false
+	if ctx.dryRun {
+		result["status"] = "dry_run"
+		return result, nil
+	}
+	if !commandAvailable(command[0]) {
+		result["status"] = "manual_required"
+		return result, nil
+	}
+
+	completed, err := runCommand(command)
+	recordCommandResult(result, completed)
+	if err != nil {
+		result["status"] = "failed"
+		result["error"] = err.Error()
+		return nil, configCommandError{Message: "claude MCP configuration failed", Details: result}
+	}
+	if completed.ReturnCode == 0 {
+		result["status"] = "configured"
+		result["changed"] = true
+		return result, nil
+	}
+	if !commandAlreadyExists(completed) {
+		result["status"] = "failed"
+		return nil, configCommandError{Message: "claude MCP configuration failed", Details: result}
+	}
+
+	result["configured"] = true
+	if !ctx.force {
+		result["status"] = "already_exists"
+		result["recommended_action"] = "rerun with --force to replace the existing Claude Lovart MCP server"
+		return result, nil
+	}
+
+	result["initial_returncode"] = completed.ReturnCode
+	result["initial_stdout"] = tail(completed.Stdout, 2000)
+	result["initial_stderr"] = tail(completed.Stderr, 2000)
+	removeCommand := claudeRemoveCommand()
+	result["remove_command"] = removeCommand
+	removed, err := runCommand(removeCommand)
+	result["remove_returncode"] = removed.ReturnCode
+	result["remove_stdout"] = tail(removed.Stdout, 2000)
+	result["remove_stderr"] = tail(removed.Stderr, 2000)
+	if err != nil {
+		result["status"] = "failed"
+		result["error"] = err.Error()
+		return nil, configCommandError{Message: "claude MCP replacement failed", Details: result}
+	}
+	if removed.ReturnCode != 0 {
+		result["status"] = "failed"
+		return nil, configCommandError{Message: "claude MCP replacement failed", Details: result}
+	}
+
+	retried, err := runCommand(command)
+	recordCommandResult(result, retried)
+	if err != nil {
+		result["status"] = "failed"
+		result["error"] = err.Error()
+		return nil, configCommandError{Message: "claude MCP configuration failed", Details: result}
+	}
+	if retried.ReturnCode != 0 {
+		result["status"] = "failed"
+		return nil, configCommandError{Message: "claude MCP configuration failed", Details: result}
+	}
+	result["status"] = "configured"
+	result["changed"] = true
+	result["replaced"] = true
+	return result, nil
+}
+
 func uninstallCommandClient(client string, command []string, ctx configContext) (map[string]any, error) {
 	result := commandStatus(client, command)
 	result["changed"] = false
@@ -404,6 +477,17 @@ func uninstallCommandClient(client string, command []string, ctx configContext) 
 	result["status"] = "removed"
 	result["changed"] = true
 	return result, nil
+}
+
+func recordCommandResult(result map[string]any, completed commandResult) {
+	result["returncode"] = completed.ReturnCode
+	result["stdout"] = tail(completed.Stdout, 2000)
+	result["stderr"] = tail(completed.Stderr, 2000)
+}
+
+func commandAlreadyExists(completed commandResult) bool {
+	text := strings.ToLower(completed.Stdout + "\n" + completed.Stderr)
+	return strings.Contains(text, "already exists")
 }
 
 func claudeCommand(ctx configContext) []string {
