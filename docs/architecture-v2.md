@@ -237,11 +237,13 @@ lovart update sync --metadata-only
 lovart mcp
 lovart mcp status [--clients auto|all|none|codex,claude,opencode,openclaw]
 lovart mcp install --clients auto --yes [--dry-run] [--force]
+lovart mcp smoke [--model <model>] [--body-file <file>|--prompt <text>] [--mode auto|fast|relax] [--submit --allow-paid --max-credits N]
 lovart dev sign
 lovart dev auth-login [--timeout-seconds N] [--debug-port N]
 ```
 
 `lovart update sync` refreshes runtime signer and generator metadata. `lovart upgrade` updates the installed CLI binary and, by default, the Lovart Connector extension files.
+`lovart mcp smoke` starts the local MCP server through stdio and runs an agent-style contract and preflight check. It never submits generation by default; real submission requires `--submit --allow-paid --max-credits N`.
 
 ## MCP Tools (19)
 
