@@ -60,15 +60,6 @@ if ($DryRun) {
   exit 0
 }
 
-if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
-  Fail "gh CLI is required; install GitHub CLI and run gh auth login"
-}
-
-& gh auth status *> $null
-if ($LASTEXITCODE -ne 0) {
-  Fail "gh is not authenticated; run gh auth login"
-}
-
 if (-not $Yes) {
   $Answer = Read-Host "Install Lovart to $InstallPath and configure MCP clients '$McpClients'? [y/N]"
   if ($Answer -notin @("y", "Y", "yes", "YES")) {
@@ -84,8 +75,36 @@ try {
   $ExtTmp = Join-Path $TmpDir "lovart-connector-extension.zip"
   $SumsTmp = Join-Path $TmpDir "SHA256SUMS"
 
+  function Get-PublicAssetUrl {
+    param([string]$AssetName)
+    if ($Version -eq "latest") {
+      return "https://github.com/$Repo/releases/latest/download/$AssetName"
+    }
+    return "https://github.com/$Repo/releases/download/$Version/$AssetName"
+  }
+
   function Download-Asset {
     param([string]$Pattern, [string]$Output)
+    $Url = Get-PublicAssetUrl -AssetName $Pattern
+    try {
+      Invoke-WebRequest -Uri $Url -OutFile $Output -ErrorAction Stop
+      return
+    } catch {
+      Remove-Item $Output -Force -ErrorAction SilentlyContinue
+      if (-not $Json) {
+        Write-Host "Public download failed for $Pattern; trying authenticated gh fallback..."
+      }
+    }
+
+    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+      Fail "failed to download $Pattern; public download failed and gh CLI is not installed. Install gh and run gh auth login for private forks or API-limited access."
+    }
+
+    & gh auth status *> $null
+    if ($LASTEXITCODE -ne 0) {
+      Fail "failed to download $Pattern; public download failed and gh is not authenticated. Run gh auth login for private forks or API-limited access."
+    }
+
     if ($Version -eq "latest") {
       & gh release download --repo $Repo --pattern $Pattern -O $Output
     } else {

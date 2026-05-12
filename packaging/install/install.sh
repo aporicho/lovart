@@ -119,8 +119,6 @@ if [ "$DRY_RUN" -eq 1 ]; then
   exit 0
 fi
 
-command -v gh >/dev/null 2>&1 || fail "gh CLI is required; install GitHub CLI and run gh auth login"
-gh auth status >/dev/null 2>&1 || fail "gh is not authenticated; run gh auth login"
 command -v unzip >/dev/null 2>&1 || fail "unzip is required to install Lovart Connector extension"
 
 if [ "$YES" -ne 1 ]; then
@@ -146,13 +144,37 @@ cleanup() {
 }
 trap cleanup EXIT
 
+release_asset_url() {
+  local asset="$1"
+  if [ "$VERSION" = "latest" ]; then
+    printf 'https://github.com/%s/releases/latest/download/%s\n' "$REPO" "$asset"
+  else
+    printf 'https://github.com/%s/releases/download/%s/%s\n' "$REPO" "$VERSION" "$asset"
+  fi
+}
+
 download_release_asset() {
   local pattern="$1"
   local output="$2"
-  if [ "$VERSION" = "latest" ]; then
-    gh release download --repo "$REPO" --pattern "$pattern" -O "$output"
+  local url
+  url="$(release_asset_url "$pattern")"
+
+  if command -v curl >/dev/null 2>&1; then
+    if curl -fL --retry 3 --retry-delay 1 -o "$output" "$url"; then
+      return 0
+    fi
+    rm -f "$output"
+    log "Public download failed for ${pattern}; trying authenticated gh fallback..."
   else
-    gh release download "$VERSION" --repo "$REPO" --pattern "$pattern" -O "$output"
+    log "curl is not available; trying authenticated gh fallback..."
+  fi
+
+  command -v gh >/dev/null 2>&1 || fail "failed to download ${pattern}; install curl for public releases, or install GitHub CLI and run gh auth login for private forks or API-limited access"
+  gh auth status >/dev/null 2>&1 || fail "failed to download ${pattern}; public download failed and gh is not authenticated; run gh auth login for private forks or API-limited access"
+  if [ "$VERSION" = "latest" ]; then
+    gh release download --repo "$REPO" --pattern "$pattern" -O "$output" || fail "failed to download ${pattern}"
+  else
+    gh release download "$VERSION" --repo "$REPO" --pattern "$pattern" -O "$output" || fail "failed to download ${pattern}"
   fi
 }
 

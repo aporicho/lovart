@@ -88,8 +88,12 @@ func TestInstallScriptsConfigureMCPAndCheckJSON(t *testing.T) {
 	shellScript := readRepoFile(t, "packaging/install/install.sh")
 	powershellScript := readRepoFile(t, "packaging/install/install.ps1")
 	for _, want := range []string{
+		"release_asset_url",
+		"releases/latest/download",
+		"curl -fL",
 		"gh auth status",
 		"gh release download",
+		"private forks or API-limited access",
 		"--mcp-clients",
 		`"mcp" "install"`,
 		`grep -q '"ok":true'`,
@@ -98,16 +102,25 @@ func TestInstallScriptsConfigureMCPAndCheckJSON(t *testing.T) {
 			t.Fatalf("install.sh missing %q", want)
 		}
 	}
+	if strings.Index(shellScript, "curl -fL") > strings.Index(shellScript, "gh auth status") {
+		t.Fatal("install.sh should try public curl downloads before authenticated gh fallback")
+	}
 	for _, want := range []string{
+		"Get-PublicAssetUrl",
+		"Invoke-WebRequest",
 		"Get-FileHash -Algorithm SHA256",
 		"lovart-windows-x64.exe",
 		"McpClients",
+		"private forks or API-limited access",
 		`"mcp", "install"`,
 		"ConvertFrom-Json",
 	} {
 		if !strings.Contains(powershellScript, want) {
 			t.Fatalf("install.ps1 missing %q", want)
 		}
+	}
+	if strings.Index(powershellScript, "Invoke-WebRequest") > strings.Index(powershellScript, "gh auth status") {
+		t.Fatal("install.ps1 should try public Invoke-WebRequest downloads before authenticated gh fallback")
 	}
 }
 
