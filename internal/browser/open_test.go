@@ -42,6 +42,71 @@ func TestCommandsForWSLPreferDiscoveredWindowsOpeners(t *testing.T) {
 	}
 }
 
+func TestCommandsForWSLSkipGenericOpenersForChromeInternalURL(t *testing.T) {
+	url := "chrome://extensions/"
+	env := environment{
+		goos:      "linux",
+		osRelease: "6.6.87.2-microsoft-standard-WSL2",
+		lookPath: func(name string) (string, error) {
+			switch name {
+			case "wslview":
+				return "/usr/bin/wslview", nil
+			case "cmd.exe":
+				return "/windows/cmd.exe", nil
+			case "powershell.exe":
+				return "/windows/powershell.exe", nil
+			case "explorer.exe":
+				return "/windows/explorer.exe", nil
+			default:
+				return "", errors.New("missing")
+			}
+		},
+	}
+	got := commandsForEnvironment(env, url)
+	want := []Command{
+		{Name: "/windows/cmd.exe", Args: []string{"/c", "start", "", "chrome", url}, Wait: true},
+		{Name: "/windows/powershell.exe", Args: []string{"-NoProfile", "-Command", "Start-Process -FilePath chrome -ArgumentList $args[0]", url}},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("commands = %#v, want %#v", got, want)
+	}
+}
+
+func TestCommandsForWSLDoNotUseWslviewForChromeInternalURL(t *testing.T) {
+	got := commandsForEnvironment(environment{
+		goos:      "linux",
+		osRelease: "microsoft-standard-WSL2",
+		lookPath: func(name string) (string, error) {
+			if name == "wslview" {
+				return "/usr/bin/wslview", nil
+			}
+			return "", errors.New("missing")
+		},
+	}, "chrome://extensions/")
+	if len(got) != 0 {
+		t.Fatalf("expected no commands without explicit Chrome opener, got %#v", got)
+	}
+}
+
+func TestCommandsForLinuxSkipGenericOpenersForChromeInternalURL(t *testing.T) {
+	url := "chrome://extensions/"
+	got := Commands("linux", url)
+	for _, command := range got {
+		if command.Name == "xdg-open" {
+			t.Fatalf("chrome internal URL should not use xdg-open: %#v", got)
+		}
+	}
+}
+
+func TestCommandsForDarwinSkipGenericOpenersForChromeInternalURL(t *testing.T) {
+	url := "chrome://extensions/"
+	got := Commands("darwin", url)
+	want := []Command{{Name: "open", Args: []string{"-a", "Google Chrome", url}, Wait: true}}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("commands = %#v, want %#v", got, want)
+	}
+}
+
 func TestCommandsForWSLDoNotHardcodeWindowsPaths(t *testing.T) {
 	got := commandsForEnvironment(environment{
 		goos:      "linux",

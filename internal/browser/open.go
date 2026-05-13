@@ -29,6 +29,9 @@ func OpenURL(url string) error {
 	var lastErr error
 	commands := currentCommands(url)
 	if len(commands) == 0 && IsWSL() {
+		if isChromeInternalURL(url) {
+			return fmt.Errorf("no explicit Chrome opener found in WSL; open Chrome manually and enter: %s", url)
+		}
 		return fmt.Errorf("no Windows browser opener found in WSL; install wslu for wslview or open manually: %s", url)
 	}
 	for _, spec := range commands {
@@ -55,25 +58,35 @@ func IsWSL() bool {
 
 // Commands returns browser launch commands in preference order.
 func Commands(goos, url string) []Command {
+	chromeInternal := isChromeInternalURL(url)
 	switch goos {
 	case "darwin":
-		return []Command{
+		commands := []Command{
 			{Name: "open", Args: []string{"-a", "Google Chrome", url}, Wait: true},
-			{Name: "open", Args: []string{url}},
 		}
+		if !chromeInternal {
+			commands = append(commands, Command{Name: "open", Args: []string{url}})
+		}
+		return commands
 	case "windows":
-		return []Command{
+		commands := []Command{
 			{Name: "cmd", Args: []string{"/c", "start", "", "chrome", url}, Wait: true},
-			{Name: "rundll32", Args: []string{"url.dll,FileProtocolHandler", url}},
 		}
+		if !chromeInternal {
+			commands = append(commands, Command{Name: "rundll32", Args: []string{"url.dll,FileProtocolHandler", url}})
+		}
+		return commands
 	default:
-		return []Command{
+		commands := []Command{
 			{Name: "google-chrome", Args: []string{url}},
 			{Name: "google-chrome-stable", Args: []string{url}},
 			{Name: "chromium-browser", Args: []string{url}},
 			{Name: "chromium", Args: []string{url}},
-			{Name: "xdg-open", Args: []string{url}},
 		}
+		if !chromeInternal {
+			commands = append(commands, Command{Name: "xdg-open", Args: []string{url}})
+		}
+		return commands
 	}
 }
 
@@ -120,17 +133,31 @@ func wslCommands(env environment, url string) []Command {
 		lookPath = exec.LookPath
 	}
 	var commands []Command
-	if path, err := lookPath("wslview"); err == nil {
-		commands = append(commands, Command{Name: path, Args: []string{url}})
+	chromeInternal := isChromeInternalURL(url)
+	if !chromeInternal {
+		if path, err := lookPath("wslview"); err == nil {
+			commands = append(commands, Command{Name: path, Args: []string{url}})
+		}
 	}
 	if path, err := lookPath("cmd.exe"); err == nil {
 		commands = append(commands, Command{Name: path, Args: []string{"/c", "start", "", "chrome", url}, Wait: true})
 	}
 	if path, err := lookPath("powershell.exe"); err == nil {
-		commands = append(commands, Command{Name: path, Args: []string{"-NoProfile", "-Command", "Start-Process -FilePath $args[0]", url}})
+		if chromeInternal {
+			commands = append(commands, Command{Name: path, Args: []string{"-NoProfile", "-Command", "Start-Process -FilePath chrome -ArgumentList $args[0]", url}})
+		} else {
+			commands = append(commands, Command{Name: path, Args: []string{"-NoProfile", "-Command", "Start-Process -FilePath $args[0]", url}})
+		}
+	}
+	if chromeInternal {
+		return commands
 	}
 	if path, err := lookPath("explorer.exe"); err == nil {
 		commands = append(commands, Command{Name: path, Args: []string{url}})
 	}
 	return commands
+}
+
+func isChromeInternalURL(url string) bool {
+	return strings.HasPrefix(strings.ToLower(url), "chrome://")
 }

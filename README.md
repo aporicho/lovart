@@ -138,6 +138,8 @@ lovart extension open
 在 WSL 中，`lovart extension status` 会在可用时输出 `windows_extension_dir`，Load
 unpacked 时优先选择该 Windows 可读路径；如果没有该字段，可安装 `wslu` 提供
 `wslview`，或手动使用 `wslpath -w ~/.lovart/extension/lovart-connector` 转换路径。
+如果 Windows 弹出“获取打开此 `chrome` 链接的应用”，不要进入 Microsoft Store；
+请直接打开 Chrome，在地址栏输入 `chrome://extensions/`。
 
 ## Runtime Data
 
