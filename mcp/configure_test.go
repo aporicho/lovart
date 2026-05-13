@@ -358,7 +358,7 @@ func TestInstallAutoContinuesWhenDetectedClientFails(t *testing.T) {
 	if len(failed) != 1 || failed[0] != "openclaw" || data["partial_failure"] != true {
 		t.Fatalf("unexpected partial failure metadata: %#v", data)
 	}
-	if !strings.Contains(readText(filepath.Join(home, ".codex", "config.toml")), lovartPath) {
+	if !strings.Contains(readText(filepath.Join(home, ".codex", "config.toml")), tomlString(lovartPath)) {
 		t.Fatalf("codex config was not written")
 	}
 }
@@ -399,7 +399,7 @@ func TestInstallExplicitClientsContinuesThenFails(t *testing.T) {
 	if len(failed) != 1 || failed[0] != "openclaw" {
 		t.Fatalf("unexpected failed clients: %#v", failed)
 	}
-	if !strings.Contains(readText(filepath.Join(home, ".codex", "config.toml")), lovartPath) {
+	if !strings.Contains(readText(filepath.Join(home, ".codex", "config.toml")), tomlString(lovartPath)) {
 		t.Fatalf("codex config was not written")
 	}
 }
