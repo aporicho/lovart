@@ -20,6 +20,16 @@ func Save(c *Credentials) error {
 
 // SaveSession persists credentials and project context to the creds file.
 func SaveSession(session Session) error {
+	normalized := NormalizeCredentials(&Credentials{
+		Cookie: session.Cookie,
+		Token:  session.Token,
+		CSRF:   session.CSRF,
+		WebID:  session.CID,
+	})
+	session.Cookie = normalized.Cookie
+	session.Token = normalized.Token
+	session.CSRF = normalized.CSRF
+	session.CID = normalized.WebID
 	if session.Cookie == "" && session.Token == "" {
 		return fmt.Errorf("auth: cannot save session without cookie or token")
 	}

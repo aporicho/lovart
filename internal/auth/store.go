@@ -56,7 +56,23 @@ func Load() (*Credentials, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Credentials{Cookie: session.Cookie, Token: session.Token, CSRF: session.CSRF, WebID: session.CID}, nil
+	return NormalizeCredentials(&Credentials{Cookie: session.Cookie, Token: session.Token, CSRF: session.CSRF, WebID: session.CID}), nil
+}
+
+// NormalizeCredentials applies browser-cookie auth hints to a credentials
+// snapshot without mutating the caller's value.
+func NormalizeCredentials(creds *Credentials) *Credentials {
+	if creds == nil {
+		return nil
+	}
+	normalized := *creds
+	if token := cookieValue(normalized.Cookie, "usertoken"); token != "" {
+		normalized.Token = token
+	}
+	if normalized.WebID == "" {
+		normalized.WebID = cookieValue(normalized.Cookie, "webid")
+	}
+	return &normalized
 }
 
 // LoadProjectContext reads project context from the creds file.
@@ -157,8 +173,8 @@ func (s Session) mergeHeaders(headers map[string]any) Session {
 }
 
 func (s Session) mergeCookieHints() Session {
-	if s.Token == "" {
-		s.Token = cookieValue(s.Cookie, "usertoken")
+	if token := cookieValue(s.Cookie, "usertoken"); token != "" {
+		s.Token = token
 	}
 	if s.CID == "" {
 		s.CID = cookieValue(s.Cookie, "webid")

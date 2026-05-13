@@ -36,13 +36,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function connectToCLI(message) {
   const storage = message.storage || {};
   const cookie = await cookieHeader();
+  const cookieHints = parseCookieHints(cookie);
   const payload = {
     state: message.state,
     cookie,
-    token: firstNonEmpty(storage.token, lastHeaders.token),
+    token: firstNonEmpty(cookieHints.usertoken, storage.token, lastHeaders.token),
     csrf: firstNonEmpty(storage.csrf, lastHeaders.csrf),
     project_id: storage.project_id || "",
-    cid: storage.cid || "",
+    cid: firstNonEmpty(storage.cid, cookieHints.webid),
     source: "browser_extension"
   };
   const response = await fetch("http://127.0.0.1:" + message.port + COMPLETE_PATH, {
@@ -63,6 +64,26 @@ async function cookieHeader() {
     .map((cookie) => cookie.name + "=" + cookie.value)
     .sort()
     .join("; ");
+}
+
+function parseCookieHints(header) {
+  const hints = {};
+  String(header || "").split(";").forEach((part) => {
+    const trimmed = part.trim();
+    const equal = trimmed.indexOf("=");
+    if (equal <= 0) {
+      return;
+    }
+    const name = trimmed.slice(0, equal);
+    const value = trimmed.slice(equal + 1);
+    if (name === "usertoken") {
+      hints.usertoken = value;
+    }
+    if (name === "webid") {
+      hints.webid = value;
+    }
+  });
+  return hints;
 }
 
 function firstNonEmpty() {

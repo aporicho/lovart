@@ -135,6 +135,7 @@ func (ProjectVerifier) Verify(ctx context.Context, session auth.Session) (auth.S
 		Cookie: session.Cookie,
 		Token:  session.Token,
 		CSRF:   session.CSRF,
+		WebID:  session.CID,
 	}, signer)
 	if err := client.SyncTime(ctx); err != nil {
 		return auth.Session{}, VerifyInfo{}, fmt.Errorf("dev auth: verify time sync: %w", err)

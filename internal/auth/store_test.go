@@ -79,6 +79,64 @@ func TestLoadDerivesTokenAndWebIDFromCookie(t *testing.T) {
 	}
 }
 
+func TestLoadPrefersCookieUserTokenOverStoredToken(t *testing.T) {
+	dir := t.TempDir()
+	credsPath := filepath.Join(dir, "creds.json")
+	os.MkdirAll(filepath.Dir(credsPath), 0700)
+	t.Setenv("LOVART_HOME", dir)
+	paths.Reset()
+
+	if err := os.WriteFile(credsPath, []byte(`{
+		"cookie":"foo=bar; usertoken=cookie-token; webid=web-123",
+		"token":"header-token",
+		"source":"browser_extension"
+	}`), 0600); err != nil {
+		t.Fatalf("write creds: %v", err)
+	}
+
+	loaded, err := Load()
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if loaded.Token != "cookie-token" {
+		t.Fatalf("Token = %q, want cookie usertoken", loaded.Token)
+	}
+	if loaded.WebID != "web-123" {
+		t.Fatalf("WebID = %q, want cookie webid", loaded.WebID)
+	}
+}
+
+func TestSaveSessionNormalizesCookieHints(t *testing.T) {
+	dir := t.TempDir()
+	credsPath := filepath.Join(dir, "creds.json")
+	os.MkdirAll(filepath.Dir(credsPath), 0700)
+	t.Setenv("LOVART_HOME", dir)
+	paths.Reset()
+
+	if err := SaveSession(Session{
+		Cookie: "foo=bar; usertoken=cookie-token; webid=web-123",
+		Token:  "header-token",
+		Source: "browser_extension",
+	}); err != nil {
+		t.Fatalf("SaveSession: %v", err)
+	}
+
+	var raw map[string]any
+	data, err := os.ReadFile(credsPath)
+	if err != nil {
+		t.Fatalf("read creds: %v", err)
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		t.Fatalf("parse creds: %v", err)
+	}
+	if raw["token"] != "cookie-token" {
+		t.Fatalf("stored token = %q, want cookie usertoken", raw["token"])
+	}
+	if raw["cid"] != "web-123" {
+		t.Fatalf("stored cid = %q, want cookie webid", raw["cid"])
+	}
+}
+
 func TestSetProject(t *testing.T) {
 	dir := t.TempDir()
 	credsPath := filepath.Join(dir, "creds.json")

@@ -40,6 +40,9 @@ func (c *Client) SyncTime(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("http: read time sync response: %w", err)
 	}
+	if resp.StatusCode == nethttp.StatusUnauthorized {
+		return fmt.Errorf("http: time sync unauthorized (HTTP 401): stored Lovart credentials are stale or token/cookie mismatch; run `lovart auth login` (body: %.200s)", string(data))
+	}
 
 	var result struct {
 		Code int `json:"code"`
@@ -52,6 +55,9 @@ func (c *Client) SyncTime(ctx context.Context) error {
 	}
 
 	if result.Code != 0 {
+		if result.Code == nethttp.StatusUnauthorized {
+			return fmt.Errorf("http: time sync unauthorized (code 401): stored Lovart credentials are stale or token/cookie mismatch; run `lovart auth login` (body: %.200s)", string(data))
+		}
 		return fmt.Errorf("http: time sync returned code %d (body: %.200s)", result.Code, string(data))
 	}
 

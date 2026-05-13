@@ -26,7 +26,7 @@ type Client struct {
 func NewClient(creds *auth.Credentials, signer signing.Signer) *Client {
 	return &Client{
 		http:   &nethttp.Client{Timeout: 120 * time.Second},
-		creds:  creds,
+		creds:  auth.NormalizeCredentials(creds),
 		signer: signer,
 	}
 }
