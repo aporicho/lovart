@@ -59,6 +59,12 @@ Chrome 的扩展信任流程。
 打开登录页和扩展页。在 WSL 中，`lovart` 会优先使用检测到的 Windows opener
 （例如 `wslview`、`cmd.exe`、`powershell.exe` 或 `explorer.exe`）打开 Windows
 浏览器；如果自动打开失败，命令输出会包含可手动打开的 URL。
+推荐在 WSL 中安装 `wslu` 来提供标准 `wslview`：
+
+```sh
+sudo apt update
+sudo apt install -y wslu
+```
 
 连接 Lovart 认证并准备 runtime cache：
 
@@ -327,6 +333,9 @@ lovart mcp install --clients codex,claude --dry-run
 MCP 也暴露安全的登录和扩展准备工具：`lovart_auth_login`、
 `lovart_extension_status`、`lovart_extension_install` 和 `lovart_extension_open`。
 这些工具不会返回 cookie、token、CSRF 或 CID。
+`lovart_auth_login` 会返回 pending 登录 URL，并在后台继续等待连接器扩展回调；
+如果浏览器没有自动打开，手动打开 `login_url` 后点击页面里的 Connect，再调用
+`lovart_auth_status` 确认 `available=true`。
 
 运行 agent-style smoke check：
 

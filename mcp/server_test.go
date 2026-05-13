@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 
@@ -409,6 +410,47 @@ func TestProductionProjectCurrentDoesNotExposeCID(t *testing.T) {
 	for _, forbidden := range []string{"cid-123", "cid_present", `"cid"`} {
 		if strings.Contains(string(data), forbidden) {
 			t.Fatalf("project current exposed %s: %s", forbidden, data)
+		}
+	}
+}
+
+func TestProductionAuthLoginReturnsPendingWhenBrowserOpenFails(t *testing.T) {
+	t.Cleanup(paths.Reset)
+	t.Setenv("LOVART_HOME", t.TempDir())
+	paths.Reset()
+
+	openedURL := ""
+	originalOpenAuthURL := openAuthURL
+	openAuthURL = func(url string) error {
+		openedURL = url
+		return errors.New("open failed")
+	}
+	t.Cleanup(func() { openAuthURL = originalOpenAuthURL })
+	originalAuthLoginPorts := authLoginPorts
+	authLoginPorts = []int{0}
+	t.Cleanup(func() { authLoginPorts = originalAuthLoginPorts })
+
+	env := ProductionExecutor{}.AuthLogin(context.Background(), AuthLoginArgs{TimeoutSeconds: 0.2})
+	data, err := json.Marshal(env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	result, ok := env.Data.(auth.BrowserLoginResult)
+	if !ok {
+		t.Fatalf("unexpected auth login data type: %T", env.Data)
+	}
+	if !result.Pending || result.Authenticated || result.LoginURL == "" || result.OpenError != "open failed" {
+		t.Fatalf("unexpected auth login result: %#v", result)
+	}
+	if openedURL == "" || openedURL != result.LoginURL {
+		t.Fatalf("opened url = %q, result url = %q", openedURL, result.LoginURL)
+	}
+	for _, want := range []string{`"pending":true`, `"login_url":"https://www.lovart.ai/?lovart_cli_auth=1`, `"open_error":"open failed"`} {
+		if !strings.Contains(string(data), want) {
+			t.Fatalf("auth login missing %s: %s", want, data)
 		}
 	}
 }

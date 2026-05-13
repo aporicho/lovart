@@ -30,6 +30,10 @@ import (
 // ProductionExecutor executes MCP tools against the Lovart runtime.
 type ProductionExecutor struct{}
 
+var openAuthURL = internalbrowser.OpenURL
+
+var authLoginPorts []int
+
 var openProjectURL = func(url string) error {
 	return exec.Command("open", url).Start()
 }
@@ -46,25 +50,18 @@ func (ProductionExecutor) AuthStatus(ctx context.Context) envelope.Envelope {
 	return okLocal(auth.GetStatus(), true)
 }
 
-// AuthLogin starts browser-extension login and waits for the approved session.
+// AuthLogin starts browser-extension login and returns a pending callback URL.
 func (ProductionExecutor) AuthLogin(ctx context.Context, args AuthLoginArgs) envelope.Envelope {
 	timeout := time.Duration(args.TimeoutSeconds * float64(time.Second))
-	result, err := auth.RunBrowserExtensionLogin(ctx, auth.BrowserLoginOptions{
-		Timeout:              timeout,
-		OpenBrowser:          internalbrowser.OpenURL,
-		RequireBrowserOpened: true,
+	result, err := auth.StartBrowserExtensionLogin(ctx, auth.BrowserLoginOptions{
+		Timeout:     timeout,
+		Ports:       authLoginPorts,
+		OpenBrowser: openAuthURL,
 	})
 	if err != nil {
 		return lovartErrorEnvelope(err, "auth login failed")
 	}
-	return okLocal(map[string]any{
-		"authenticated":  result.Authenticated,
-		"status":         result.Status,
-		"callback_port":  result.CallbackPort,
-		"expires_at":     result.ExpiresAt,
-		"opened_browser": result.OpenedBrowser,
-		"next_steps":     result.NextSteps,
-	}, false)
+	return okLocal(result, false)
 }
 
 // ExtensionStatus reports whether the local Connector extension files exist.

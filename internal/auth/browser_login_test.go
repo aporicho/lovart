@@ -20,6 +20,7 @@ func TestRunBrowserExtensionLoginSavesSessionWithoutExposingSecrets(t *testing.T
 	var openedURL string
 	result, err := RunBrowserExtensionLogin(context.Background(), BrowserLoginOptions{
 		Timeout: 5 * time.Second,
+		Ports:   []int{0},
 		OpenBrowser: func(loginURL string) error {
 			openedURL = loginURL
 			go completeLogin(t, loginURL)
@@ -54,6 +55,7 @@ func TestRunBrowserExtensionLoginRequiresBrowserOpenWhenRequested(t *testing.T) 
 	resetAuthRuntimeRoot(t)
 	result, err := RunBrowserExtensionLogin(context.Background(), BrowserLoginOptions{
 		Timeout:              time.Second,
+		Ports:                []int{0},
 		RequireBrowserOpened: true,
 		OpenBrowser: func(loginURL string) error {
 			return errAuthBrowserOpen
@@ -64,6 +66,32 @@ func TestRunBrowserExtensionLoginRequiresBrowserOpenWhenRequested(t *testing.T) 
 	}
 	if result.LoginURL == "" || result.CallbackPort == 0 {
 		t.Fatalf("missing manual login metadata: %#v", result)
+	}
+}
+
+func TestStartBrowserExtensionLoginKeepsCallbackOpenAfterBrowserOpenFailure(t *testing.T) {
+	resetAuthRuntimeRoot(t)
+	result, err := StartBrowserExtensionLogin(context.Background(), BrowserLoginOptions{
+		Timeout: 5 * time.Second,
+		Ports:   []int{0},
+		OpenBrowser: func(loginURL string) error {
+			return errAuthBrowserOpen
+		},
+	})
+	if err != nil {
+		t.Fatalf("StartBrowserExtensionLogin: %v", err)
+	}
+	if !result.Pending || result.OpenedBrowser || result.OpenError == "" {
+		t.Fatalf("unexpected pending result: %#v", result)
+	}
+	if result.LoginURL == "" || result.CallbackPort == 0 {
+		t.Fatalf("missing manual login metadata: %#v", result)
+	}
+
+	completeLogin(t, result.LoginURL)
+	status := waitForAuthStatus(t)
+	if !status.Available || !status.ProjectContextReady || status.Source != LoginSourceBrowserExtension {
+		t.Fatalf("status not saved correctly: %#v", status)
 	}
 }
 
@@ -106,6 +134,19 @@ func completeLogin(t *testing.T, loginURL string) {
 		return
 	}
 	_ = resp.Body.Close()
+}
+
+func waitForAuthStatus(t *testing.T) Status {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		status := GetStatus()
+		if status.Available {
+			return status
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	return GetStatus()
 }
 
 func resetAuthRuntimeRoot(t *testing.T) {
