@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -21,28 +22,34 @@ type OpenFunc func(string) error
 
 // Options controls extension status, install, and open operations.
 type Options struct {
-	SourceDir    string
-	ExtensionDir string
-	DryRun       bool
-	Open         bool
-	OpenURL      OpenFunc
+	SourceDir       string
+	ExtensionDir    string
+	DryRun          bool
+	Open            bool
+	OpenURL         OpenFunc
+	WindowsPathFunc PathConvertFunc
 }
+
+// PathConvertFunc converts a Linux path into a Windows-readable path when
+// running under WSL.
+type PathConvertFunc func(string) (string, error)
 
 // Result is the safe JSON payload returned by extension operations.
 type Result struct {
-	Status        string   `json:"status"`
-	Exists        bool     `json:"exists"`
-	Installed     bool     `json:"installed"`
-	DryRun        bool     `json:"dry_run"`
-	SourceDir     string   `json:"source_dir,omitempty"`
-	ExtensionDir  string   `json:"extension_dir"`
-	ManifestPath  string   `json:"manifest_path"`
-	ManifestName  string   `json:"manifest_name,omitempty"`
-	Version       string   `json:"version,omitempty"`
-	ChromeURL     string   `json:"chrome_url"`
-	OpenedBrowser bool     `json:"opened_browser"`
-	OpenError     string   `json:"open_error,omitempty"`
-	ManualSteps   []string `json:"manual_steps"`
+	Status              string   `json:"status"`
+	Exists              bool     `json:"exists"`
+	Installed           bool     `json:"installed"`
+	DryRun              bool     `json:"dry_run"`
+	SourceDir           string   `json:"source_dir,omitempty"`
+	ExtensionDir        string   `json:"extension_dir"`
+	WindowsExtensionDir string   `json:"windows_extension_dir,omitempty"`
+	ManifestPath        string   `json:"manifest_path"`
+	ManifestName        string   `json:"manifest_name,omitempty"`
+	Version             string   `json:"version,omitempty"`
+	ChromeURL           string   `json:"chrome_url"`
+	OpenedBrowser       bool     `json:"opened_browser"`
+	OpenError           string   `json:"open_error,omitempty"`
+	ManualSteps         []string `json:"manual_steps"`
 }
 
 type manifestInfo struct {
@@ -56,7 +63,7 @@ func Status(opts Options) (Result, error) {
 	if err != nil {
 		return Result{}, err
 	}
-	result := baseResult(extensionDir)
+	result := baseResult(extensionDir, opts.WindowsPathFunc)
 	info, err := readManifest(result.ManifestPath)
 	if err != nil {
 		result.Status = "missing"
@@ -80,7 +87,7 @@ func Install(opts Options) (Result, error) {
 	if err != nil {
 		return Result{}, err
 	}
-	result := baseResult(extensionDir)
+	result := baseResult(extensionDir, opts.WindowsPathFunc)
 	result.SourceDir = sourceDir
 	result.DryRun = opts.DryRun
 
@@ -122,17 +129,23 @@ func Open(opts Options) (Result, error) {
 	return result, nil
 }
 
-func baseResult(extensionDir string) Result {
+func baseResult(extensionDir string, converter PathConvertFunc) Result {
+	windowsPath := windowsExtensionPath(extensionDir, converter)
+	selectPath := extensionDir
+	if windowsPath != "" {
+		selectPath = windowsPath
+	}
 	return Result{
-		Status:       "unknown",
-		ExtensionDir: extensionDir,
-		ManifestPath: filepath.Join(extensionDir, "manifest.json"),
-		ChromeURL:    ChromeExtensionsURL,
+		Status:              "unknown",
+		ExtensionDir:        extensionDir,
+		WindowsExtensionDir: windowsPath,
+		ManifestPath:        filepath.Join(extensionDir, "manifest.json"),
+		ChromeURL:           ChromeExtensionsURL,
 		ManualSteps: []string{
 			"open chrome://extensions/",
 			"enable Developer mode",
 			"click Load unpacked",
-			"select " + extensionDir,
+			"select " + selectPath,
 		},
 	}
 }
@@ -297,6 +310,32 @@ func openChromeExtensions(opener OpenFunc) (bool, string) {
 		return false, err.Error()
 	}
 	return true, ""
+}
+
+func windowsExtensionPath(path string, converter PathConvertFunc) string {
+	if converter == nil {
+		converter = defaultWindowsPath
+	}
+	converted, err := converter(path)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(converted)
+}
+
+func defaultWindowsPath(path string) (string, error) {
+	if !internalbrowser.IsWSL() {
+		return "", nil
+	}
+	wslpath, err := exec.LookPath("wslpath")
+	if err != nil {
+		return "", err
+	}
+	output, err := exec.Command(wslpath, "-w", path).Output()
+	if err != nil {
+		return "", err
+	}
+	return string(output), nil
 }
 
 func normalizePath(path string) (string, error) {

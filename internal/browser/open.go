@@ -2,8 +2,11 @@
 package browser
 
 import (
+	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 // Command describes one OS-specific browser launch attempt.
@@ -13,10 +16,22 @@ type Command struct {
 	Wait bool
 }
 
+type environment struct {
+	goos          string
+	osRelease     string
+	procVersion   string
+	wslDistroName string
+	lookPath      func(string) (string, error)
+}
+
 // OpenURL opens a URL in the user's browser.
 func OpenURL(url string) error {
 	var lastErr error
-	for _, spec := range Commands(runtime.GOOS, url) {
+	commands := currentCommands(url)
+	if len(commands) == 0 && IsWSL() {
+		return fmt.Errorf("no Windows browser opener found in WSL; install wslu for wslview or open manually: %s", url)
+	}
+	for _, spec := range commands {
 		cmd := exec.Command(spec.Name, spec.Args...)
 		var err error
 		if spec.Wait {
@@ -30,6 +45,12 @@ func OpenURL(url string) error {
 		lastErr = err
 	}
 	return lastErr
+}
+
+// IsWSL reports whether the current process appears to run under Windows
+// Subsystem for Linux.
+func IsWSL() bool {
+	return isWSLEnvironment(currentEnvironment())
 }
 
 // Commands returns browser launch commands in preference order.
@@ -54,4 +75,62 @@ func Commands(goos, url string) []Command {
 			{Name: "xdg-open", Args: []string{url}},
 		}
 	}
+}
+
+func currentCommands(url string) []Command {
+	return commandsForEnvironment(currentEnvironment(), url)
+}
+
+func currentEnvironment() environment {
+	env := environment{
+		goos:          runtime.GOOS,
+		wslDistroName: os.Getenv("WSL_DISTRO_NAME"),
+		lookPath:      exec.LookPath,
+	}
+	if data, err := os.ReadFile("/proc/sys/kernel/osrelease"); err == nil {
+		env.osRelease = string(data)
+	}
+	if data, err := os.ReadFile("/proc/version"); err == nil {
+		env.procVersion = string(data)
+	}
+	return env
+}
+
+func commandsForEnvironment(env environment, url string) []Command {
+	if env.goos == "linux" && isWSLEnvironment(env) {
+		return wslCommands(env, url)
+	}
+	return Commands(env.goos, url)
+}
+
+func isWSLEnvironment(env environment) bool {
+	if env.goos != "linux" {
+		return false
+	}
+	if env.wslDistroName != "" {
+		return true
+	}
+	text := strings.ToLower(env.osRelease + "\n" + env.procVersion)
+	return strings.Contains(text, "microsoft") || strings.Contains(text, "wsl")
+}
+
+func wslCommands(env environment, url string) []Command {
+	lookPath := env.lookPath
+	if lookPath == nil {
+		lookPath = exec.LookPath
+	}
+	var commands []Command
+	if path, err := lookPath("wslview"); err == nil {
+		commands = append(commands, Command{Name: path, Args: []string{url}})
+	}
+	if path, err := lookPath("cmd.exe"); err == nil {
+		commands = append(commands, Command{Name: path, Args: []string{"/c", "start", "", "chrome", url}, Wait: true})
+	}
+	if path, err := lookPath("powershell.exe"); err == nil {
+		commands = append(commands, Command{Name: path, Args: []string{"-NoProfile", "-Command", "Start-Process -FilePath $args[0]", url}})
+	}
+	if path, err := lookPath("explorer.exe"); err == nil {
+		commands = append(commands, Command{Name: path, Args: []string{url}})
+	}
+	return commands
 }

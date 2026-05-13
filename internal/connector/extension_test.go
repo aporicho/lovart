@@ -89,6 +89,47 @@ func TestStatusReportsMissingAndInstalled(t *testing.T) {
 	}
 }
 
+func TestWindowsExtensionDirUsesConvertedPathWhenAvailable(t *testing.T) {
+	target := filepath.Join(t.TempDir(), "lovart-connector")
+	result, err := Status(Options{
+		ExtensionDir: target,
+		WindowsPathFunc: func(path string) (string, error) {
+			if path != target {
+				t.Fatalf("path = %q, want %q", path, target)
+			}
+			return `\\wsl.localhost\Distro\home\user\.lovart\extension\lovart-connector`, nil
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.WindowsExtensionDir == "" {
+		t.Fatalf("missing windows extension dir: %#v", result)
+	}
+	if !strings.Contains(result.ManualSteps[len(result.ManualSteps)-1], result.WindowsExtensionDir) {
+		t.Fatalf("manual steps do not use windows path: %#v", result.ManualSteps)
+	}
+}
+
+func TestWindowsExtensionDirConversionFailureIsIgnored(t *testing.T) {
+	target := filepath.Join(t.TempDir(), "lovart-connector")
+	result, err := Status(Options{
+		ExtensionDir: target,
+		WindowsPathFunc: func(path string) (string, error) {
+			return "", errTestOpen
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.WindowsExtensionDir != "" {
+		t.Fatalf("unexpected windows extension dir: %#v", result)
+	}
+	if !strings.Contains(result.ManualSteps[len(result.ManualSteps)-1], target) {
+		t.Fatalf("manual steps should fall back to linux path: %#v", result.ManualSteps)
+	}
+}
+
 var errTestOpen = &testOpenError{}
 
 type testOpenError struct{}

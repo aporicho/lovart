@@ -55,6 +55,11 @@ lovart extension install --yes --open
 环境仍需要在扩展页启用 Developer mode 并手动 Load unpacked，CLI/MCP 不会绕过
 Chrome 的扩展信任流程。
 
+在普通 Linux 桌面环境中，`lovart` 会尝试用本机 Chrome/Chromium 或 `xdg-open`
+打开登录页和扩展页。在 WSL 中，`lovart` 会优先使用检测到的 Windows opener
+（例如 `wslview`、`cmd.exe`、`powershell.exe` 或 `explorer.exe`）打开 Windows
+浏览器；如果自动打开失败，命令输出会包含可手动打开的 URL。
+
 连接 Lovart 认证并准备 runtime cache：
 
 ```sh
@@ -123,6 +128,10 @@ release installer 会安装 Lovart Connector 扩展文件，但 Chrome 仍需要
 lovart extension status
 lovart extension open
 ```
+
+在 WSL 中，`lovart extension status` 会在可用时输出 `windows_extension_dir`，Load
+unpacked 时优先选择该 Windows 可读路径；如果没有该字段，可安装 `wslu` 提供
+`wslview`，或手动使用 `wslpath -w ~/.lovart/extension/lovart-connector` 转换路径。
 
 ## Runtime Data
 
