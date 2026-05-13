@@ -73,6 +73,20 @@ installer 脚本会优先使用 `curl` 或 `Invoke-WebRequest` 通过公开 GitH
 或 API 受限场景需要先运行 `gh auth login`。脚本会校验 `SHA256SUMS`，安装二进制文件，
 安装连接器扩展文件，并可选择配置本地 MCP client。
 
+远程一键安装：
+
+```sh
+/bin/bash -c "$(curl -fsSL https://github.com/aporicho/lovart/releases/latest/download/install.sh)" -- --yes --force
+```
+
+远程预览安装：
+
+```sh
+/bin/bash -c "$(curl -fsSL https://github.com/aporicho/lovart/releases/latest/download/install.sh)" -- --dry-run --json
+```
+
+如果已经 checkout 源码或下载了 release installer，也可以运行本地脚本。
+
 预览安装：
 
 ```sh
