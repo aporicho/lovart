@@ -59,6 +59,21 @@ func tool(name, description string, properties map[string]any, required ...strin
 func Tools() []Tool {
 	return []Tool{
 		tool("lovart_auth_status", "Show Lovart auth status without exposing secrets.", map[string]any{}),
+		tool("lovart_auth_login", "Open Lovart in the browser and wait for the Connector extension to authenticate without exposing secrets.", map[string]any{
+			"timeout_seconds": numberSchema("seconds to wait for browser extension authentication; defaults to 300"),
+		}),
+		tool("lovart_extension_status", "Show local Lovart Connector extension file status.", map[string]any{
+			"extension_dir": stringSchema("extension install directory"),
+		}),
+		tool("lovart_extension_install", "Prepare Lovart Connector extension files and open Chrome extension management.", map[string]any{
+			"source_dir":    stringSchema("source unpacked extension directory"),
+			"extension_dir": stringSchema("extension install directory"),
+			"dry_run":       boolSchema("preview changes without writing files"),
+			"open":          boolSchema("open chrome://extensions after preparing files; defaults to true"),
+		}),
+		tool("lovart_extension_open", "Open Chrome extension management for loading the Lovart Connector.", map[string]any{
+			"extension_dir": stringSchema("extension install directory"),
+		}),
 		tool("lovart_setup", "Run Lovart readiness checks without exposing secrets.", map[string]any{}),
 		tool("lovart_models", "List known Lovart generator models; pass refresh=true to fetch current remote metadata.", map[string]any{
 			"refresh": boolSchema("fetch current remote metadata"),

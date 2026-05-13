@@ -315,6 +315,95 @@ func TestCommandClientManualRequiredWhenUnavailable(t *testing.T) {
 	}
 }
 
+func TestInstallAutoContinuesWhenDetectedClientFails(t *testing.T) {
+	restoreCommandHooks(t)
+	home := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(home, ".codex"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	lookPath = func(name string) (string, error) {
+		if name == "openclaw" {
+			return "/bin/openclaw", nil
+		}
+		return "", errors.New("missing")
+	}
+	runCommand = func(command []string) (commandResult, error) {
+		if len(command) > 0 && command[0] == "openclaw" {
+			return commandResult{ReturnCode: 1, Stderr: "error: unknown command 'mcp'\n"}, nil
+		}
+		t.Fatalf("unexpected command: %#v", command)
+		return commandResult{}, nil
+	}
+
+	lovartPath := testLovartPath(t)
+	env := Install(ConfigOptions{Clients: "auto", LovartPath: lovartPath, Home: home, Yes: true})
+	if !env.OK {
+		t.Fatalf("auto partial failure should be ok: %#v", env)
+	}
+	if len(env.Warnings) != 1 || !strings.Contains(env.Warnings[0], "openclaw") {
+		t.Fatalf("missing warning: %#v", env.Warnings)
+	}
+	results := installResults(t, env)
+	if len(results) != 2 {
+		t.Fatalf("expected codex and openclaw results, got %#v", results)
+	}
+	if results[0]["client"] != "codex" || results[0]["status"] != "configured" {
+		t.Fatalf("codex was not configured first: %#v", results)
+	}
+	if results[1]["client"] != "openclaw" || results[1]["status"] != "failed" || results[1]["error_code"] != "mcp_config_failed" {
+		t.Fatalf("openclaw failure was not recorded: %#v", results[1])
+	}
+	data := env.Data.(map[string]any)
+	failed := data["failed_mcp_clients"].([]string)
+	if len(failed) != 1 || failed[0] != "openclaw" || data["partial_failure"] != true {
+		t.Fatalf("unexpected partial failure metadata: %#v", data)
+	}
+	if !strings.Contains(readText(filepath.Join(home, ".codex", "config.toml")), lovartPath) {
+		t.Fatalf("codex config was not written")
+	}
+}
+
+func TestInstallExplicitClientsContinuesThenFails(t *testing.T) {
+	restoreCommandHooks(t)
+	home := t.TempDir()
+	lookPath = func(name string) (string, error) {
+		if name == "openclaw" {
+			return "/bin/openclaw", nil
+		}
+		return "", errors.New("missing")
+	}
+	runCommand = func(command []string) (commandResult, error) {
+		if len(command) > 0 && command[0] == "openclaw" {
+			return commandResult{ReturnCode: 1, Stderr: "error: unknown command 'mcp'\n"}, nil
+		}
+		t.Fatalf("unexpected command: %#v", command)
+		return commandResult{}, nil
+	}
+
+	lovartPath := testLovartPath(t)
+	env := Install(ConfigOptions{Clients: "codex,openclaw", LovartPath: lovartPath, Home: home, Yes: true})
+	if env.OK || env.Error == nil || env.Error.Code != "mcp_config_failed" {
+		t.Fatalf("expected aggregate mcp_config_failed, got %#v", env)
+	}
+	results := env.Error.Details["results"].([]map[string]any)
+	if len(results) != 2 {
+		t.Fatalf("expected two results, got %#v", results)
+	}
+	if results[0]["client"] != "codex" || results[0]["status"] != "configured" {
+		t.Fatalf("codex was not configured before failure summary: %#v", results)
+	}
+	if results[1]["client"] != "openclaw" || results[1]["status"] != "failed" {
+		t.Fatalf("openclaw failure missing from summary: %#v", results[1])
+	}
+	failed := env.Error.Details["failed_mcp_clients"].([]string)
+	if len(failed) != 1 || failed[0] != "openclaw" {
+		t.Fatalf("unexpected failed clients: %#v", failed)
+	}
+	if !strings.Contains(readText(filepath.Join(home, ".codex", "config.toml")), lovartPath) {
+		t.Fatalf("codex config was not written")
+	}
+}
+
 func TestCommandClientRunsExpectedCommand(t *testing.T) {
 	restoreCommandHooks(t)
 	lookPath = func(name string) (string, error) { return "/bin/" + name, nil }

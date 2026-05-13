@@ -5,9 +5,12 @@ import (
 	stderrors "errors"
 	"fmt"
 	"os/exec"
+	"time"
 
 	"github.com/aporicho/lovart/internal/auth"
+	internalbrowser "github.com/aporicho/lovart/internal/browser"
 	"github.com/aporicho/lovart/internal/config"
+	"github.com/aporicho/lovart/internal/connector"
 	"github.com/aporicho/lovart/internal/discovery"
 	"github.com/aporicho/lovart/internal/downloads"
 	"github.com/aporicho/lovart/internal/envelope"
@@ -31,9 +34,73 @@ var openProjectURL = func(url string) error {
 	return exec.Command("open", url).Start()
 }
 
+func lovartErrorEnvelope(err error, fallback string) envelope.Envelope {
+	if lovartErr, ok := err.(*errors.LovartError); ok {
+		return envelope.Err(lovartErr.Code, lovartErr.Message, lovartErr.Details)
+	}
+	return envelope.Err(errors.CodeInternal, fallback, map[string]any{"error": err.Error()})
+}
+
 // AuthStatus reports credential presence without exposing secret values.
 func (ProductionExecutor) AuthStatus(ctx context.Context) envelope.Envelope {
 	return okLocal(auth.GetStatus(), true)
+}
+
+// AuthLogin starts browser-extension login and waits for the approved session.
+func (ProductionExecutor) AuthLogin(ctx context.Context, args AuthLoginArgs) envelope.Envelope {
+	timeout := time.Duration(args.TimeoutSeconds * float64(time.Second))
+	result, err := auth.RunBrowserExtensionLogin(ctx, auth.BrowserLoginOptions{
+		Timeout:              timeout,
+		OpenBrowser:          internalbrowser.OpenURL,
+		RequireBrowserOpened: true,
+	})
+	if err != nil {
+		return lovartErrorEnvelope(err, "auth login failed")
+	}
+	return okLocal(map[string]any{
+		"authenticated":  result.Authenticated,
+		"status":         result.Status,
+		"callback_port":  result.CallbackPort,
+		"expires_at":     result.ExpiresAt,
+		"opened_browser": result.OpenedBrowser,
+		"next_steps":     result.NextSteps,
+	}, false)
+}
+
+// ExtensionStatus reports whether the local Connector extension files exist.
+func (ProductionExecutor) ExtensionStatus(ctx context.Context, args ExtensionStatusArgs) envelope.Envelope {
+	result, err := connector.Status(connector.Options{ExtensionDir: args.ExtensionDir})
+	if err != nil {
+		return lovartErrorEnvelope(err, "extension status failed")
+	}
+	return okLocal(result, true)
+}
+
+// ExtensionInstall prepares Connector extension files for Chrome's Load unpacked flow.
+func (ProductionExecutor) ExtensionInstall(ctx context.Context, args ExtensionInstallArgs) envelope.Envelope {
+	result, err := connector.Install(connector.Options{
+		SourceDir:    args.SourceDir,
+		ExtensionDir: args.ExtensionDir,
+		DryRun:       args.DryRun,
+		Open:         args.Open,
+		OpenURL:      internalbrowser.OpenURL,
+	})
+	if err != nil {
+		return lovartErrorEnvelope(err, "extension install failed")
+	}
+	return okLocal(result, true)
+}
+
+// ExtensionOpen opens Chrome extension management for manual loading.
+func (ProductionExecutor) ExtensionOpen(ctx context.Context, args ExtensionOpenArgs) envelope.Envelope {
+	result, err := connector.Open(connector.Options{
+		ExtensionDir: args.ExtensionDir,
+		OpenURL:      internalbrowser.OpenURL,
+	})
+	if err != nil {
+		return lovartErrorEnvelope(err, "extension open failed")
+	}
+	return okLocal(result, true)
 }
 
 // Setup runs local readiness checks without exposing secrets.

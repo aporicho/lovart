@@ -22,6 +22,29 @@ const (
 // SetupArgs configures lovart_setup.
 type SetupArgs struct{}
 
+// AuthLoginArgs configures lovart_auth_login.
+type AuthLoginArgs struct {
+	TimeoutSeconds float64 `json:"timeout_seconds"`
+}
+
+// ExtensionStatusArgs configures lovart_extension_status.
+type ExtensionStatusArgs struct {
+	ExtensionDir string `json:"extension_dir"`
+}
+
+// ExtensionInstallArgs configures lovart_extension_install.
+type ExtensionInstallArgs struct {
+	SourceDir    string `json:"source_dir"`
+	ExtensionDir string `json:"extension_dir"`
+	DryRun       bool   `json:"dry_run"`
+	Open         bool   `json:"open"`
+}
+
+// ExtensionOpenArgs configures lovart_extension_open.
+type ExtensionOpenArgs struct {
+	ExtensionDir string `json:"extension_dir"`
+}
+
 // ModelsArgs configures lovart_models.
 type ModelsArgs struct {
 	Refresh bool `json:"refresh"`
@@ -122,6 +145,10 @@ type JobsResumeArgs struct {
 // Executor runs validated MCP tool calls.
 type Executor interface {
 	AuthStatus(ctx context.Context) envelope.Envelope
+	AuthLogin(ctx context.Context, args AuthLoginArgs) envelope.Envelope
+	ExtensionStatus(ctx context.Context, args ExtensionStatusArgs) envelope.Envelope
+	ExtensionInstall(ctx context.Context, args ExtensionInstallArgs) envelope.Envelope
+	ExtensionOpen(ctx context.Context, args ExtensionOpenArgs) envelope.Envelope
 	Setup(ctx context.Context, args SetupArgs) envelope.Envelope
 	Models(ctx context.Context, args ModelsArgs) envelope.Envelope
 	Config(ctx context.Context, args ConfigArgs) envelope.Envelope

@@ -46,11 +46,14 @@ dist/lovart self-test
 
 ```sh
 make ext-build
+lovart extension install --yes --open
 ```
 
 从源码 checkout 使用时，在 `chrome://extensions` 中启用 Developer mode，然后加载
 `extension/` 目录。release installer 会把扩展解压到
-`~/.lovart/extension/lovart-connector`；从 release 安装时加载该目录。
+`~/.lovart/extension/lovart-connector`；从 release 安装时加载该目录。Chrome 普通用户
+环境仍需要在扩展页启用 Developer mode 并手动 Load unpacked，CLI/MCP 不会绕过
+Chrome 的扩展信任流程。
 
 连接 Lovart 认证并准备 runtime cache：
 
@@ -112,6 +115,14 @@ pwsh -File packaging/install/install.ps1 -Yes -Force
 - Windows binary path: `%USERPROFILE%\bin\lovart.exe`
 - Extension path: `~/.lovart/extension/lovart-connector`
 - MCP clients: `auto`
+
+release installer 会安装 Lovart Connector 扩展文件，但 Chrome 仍需要用户在
+`chrome://extensions` 中 Load unpacked。可用下面的命令重新打开扩展页并查看加载路径：
+
+```sh
+lovart extension status
+lovart extension open
+```
 
 ## Runtime Data
 
@@ -303,6 +314,10 @@ lovart mcp install --clients codex,claude --dry-run
 
 支持的 MCP clients 是 `codex`、`claude`、`opencode` 和 `openclaw`。`lovart mcp status`
 也会打印手动配置 Codex 的 TOML 片段。
+
+MCP 也暴露安全的登录和扩展准备工具：`lovart_auth_login`、
+`lovart_extension_status`、`lovart_extension_install` 和 `lovart_extension_open`。
+这些工具不会返回 cookie、token、CSRF 或 CID。
 
 运行 agent-style smoke check：
 

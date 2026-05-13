@@ -116,6 +116,27 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 	switch name {
 	case "lovart_auth_status":
 		return s.executor.AuthStatus(ctx)
+	case "lovart_auth_login":
+		timeout := numberArg(args, "timeout_seconds", 300)
+		if timeout <= 0 {
+			return inputErr(fmt.Errorf("timeout_seconds must be positive"))
+		}
+		return s.executor.AuthLogin(ctx, AuthLoginArgs{TimeoutSeconds: timeout})
+	case "lovart_extension_status":
+		return s.executor.ExtensionStatus(ctx, ExtensionStatusArgs{
+			ExtensionDir: stringArg(args, "extension_dir", ""),
+		})
+	case "lovart_extension_install":
+		return s.executor.ExtensionInstall(ctx, ExtensionInstallArgs{
+			SourceDir:    stringArg(args, "source_dir", ""),
+			ExtensionDir: stringArg(args, "extension_dir", ""),
+			DryRun:       boolArg(args, "dry_run", false),
+			Open:         boolArg(args, "open", true),
+		})
+	case "lovart_extension_open":
+		return s.executor.ExtensionOpen(ctx, ExtensionOpenArgs{
+			ExtensionDir: stringArg(args, "extension_dir", ""),
+		})
 	case "lovart_setup":
 		return s.executor.Setup(ctx, SetupArgs{})
 	case "lovart_models":

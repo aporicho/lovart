@@ -12,6 +12,10 @@ import (
 )
 
 type fakeExecutor struct {
+	authLogin           AuthLoginArgs
+	extensionStatus     ExtensionStatusArgs
+	extensionInstall    ExtensionInstallArgs
+	extensionOpen       ExtensionOpenArgs
 	projectCreate       ProjectCreateArgs
 	projectSelect       ProjectSelectArgs
 	projectShow         ProjectShowArgs
@@ -27,6 +31,26 @@ type fakeExecutor struct {
 
 func (f *fakeExecutor) AuthStatus(ctx context.Context) envelope.Envelope {
 	return okLocal(map[string]any{"operation": "auth_status"})
+}
+
+func (f *fakeExecutor) AuthLogin(ctx context.Context, args AuthLoginArgs) envelope.Envelope {
+	f.authLogin = args
+	return okLocal(map[string]any{"operation": "auth_login", "timeout_seconds": args.TimeoutSeconds})
+}
+
+func (f *fakeExecutor) ExtensionStatus(ctx context.Context, args ExtensionStatusArgs) envelope.Envelope {
+	f.extensionStatus = args
+	return okLocal(map[string]any{"operation": "extension_status", "extension_dir": args.ExtensionDir})
+}
+
+func (f *fakeExecutor) ExtensionInstall(ctx context.Context, args ExtensionInstallArgs) envelope.Envelope {
+	f.extensionInstall = args
+	return okLocal(map[string]any{"operation": "extension_install", "open": args.Open, "dry_run": args.DryRun})
+}
+
+func (f *fakeExecutor) ExtensionOpen(ctx context.Context, args ExtensionOpenArgs) envelope.Envelope {
+	f.extensionOpen = args
+	return okLocal(map[string]any{"operation": "extension_open", "extension_dir": args.ExtensionDir})
 }
 
 func (f *fakeExecutor) Setup(ctx context.Context, args SetupArgs) envelope.Envelope {
@@ -136,12 +160,16 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 		t.Fatalf("tools/list failed: %#v", listResp)
 	}
 	tools := listResp.Result.(map[string]any)["tools"].([]Tool)
-	if len(tools) != 19 {
-		t.Fatalf("expected 19 tools, got %d", len(tools))
+	if len(tools) != 23 {
+		t.Fatalf("expected 23 tools, got %d", len(tools))
 	}
 	for _, tool := range tools {
-		if tool.Name == "lovart_update_sync" || tool.Name == "lovart_auth_extract" || tool.Name == "lovart_auth_login" || tool.Name == "lovart_auth_import" || tool.Name == "lovart_generate_dry_run" || tool.Name == "lovart_jobs_quote" || tool.Name == "lovart_jobs_dry_run" {
+		if tool.Name == "lovart_update_sync" || tool.Name == "lovart_auth_extract" || tool.Name == "lovart_auth_import" || tool.Name == "lovart_generate_dry_run" || tool.Name == "lovart_jobs_quote" || tool.Name == "lovart_jobs_dry_run" {
 			t.Fatalf("unsafe tool exposed: %s", tool.Name)
+		}
+		if strings.HasPrefix(tool.Name, "lovart_auth_") || strings.HasPrefix(tool.Name, "lovart_extension_") {
+			properties := tool.InputSchema["properties"].(map[string]any)
+			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "cookie", "token", "csrf"})
 		}
 		if strings.HasPrefix(tool.Name, "lovart_project_") {
 			properties := tool.InputSchema["properties"].(map[string]any)
@@ -215,6 +243,36 @@ func TestUnknownToolReturnsEnvelopeError(t *testing.T) {
 	}
 	if env.Error == nil || env.Error.Code != "input_error" {
 		t.Fatalf("unexpected error: %#v", env.Error)
+	}
+}
+
+func TestAuthLoginAndExtensionToolsParseArgs(t *testing.T) {
+	executor := &fakeExecutor{}
+	server := NewServerWithExecutor(executor)
+	env := server.CallTool(context.Background(), "lovart_auth_login", map[string]any{"timeout_seconds": 12.5})
+	if !env.OK || executor.authLogin.TimeoutSeconds != 12.5 {
+		t.Fatalf("auth login args not parsed: env=%#v args=%#v", env, executor.authLogin)
+	}
+	env = server.CallTool(context.Background(), "lovart_auth_login", map[string]any{"timeout_seconds": 0})
+	if env.OK || env.Error == nil || env.Error.Code != "input_error" {
+		t.Fatalf("expected invalid timeout error, got %#v", env)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_extension_install", map[string]any{
+		"source_dir":    "/source",
+		"extension_dir": "/target",
+		"dry_run":       true,
+	})
+	if !env.OK {
+		t.Fatalf("extension install failed: %#v", env)
+	}
+	if executor.extensionInstall.SourceDir != "/source" || executor.extensionInstall.ExtensionDir != "/target" || !executor.extensionInstall.DryRun || !executor.extensionInstall.Open {
+		t.Fatalf("extension install args = %#v", executor.extensionInstall)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_extension_open", map[string]any{"extension_dir": "/target"})
+	if !env.OK || executor.extensionOpen.ExtensionDir != "/target" {
+		t.Fatalf("extension open args not parsed: env=%#v args=%#v", env, executor.extensionOpen)
 	}
 }
 

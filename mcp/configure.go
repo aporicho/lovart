@@ -50,6 +50,11 @@ type commandResult struct {
 	Stderr     string
 }
 
+type installFailure struct {
+	Client string
+	Result map[string]any
+}
+
 // Install configures selected local MCP clients to use this lovart binary.
 func Install(opts ConfigOptions) envelope.Envelope {
 	if !opts.DryRun && !opts.Yes {
@@ -57,11 +62,12 @@ func Install(opts ConfigOptions) envelope.Envelope {
 			"recommended_actions": []string{"rerun with --yes", "rerun with --dry-run to preview changes"},
 		})
 	}
+	spec := clientSpec(opts.Clients)
 	ctx, err := newConfigContext(opts)
 	if err != nil {
 		return envelope.Err(errors.CodeInputError, "mcp install setup failed", map[string]any{"error": err.Error()})
 	}
-	selected, err := selectMCPClients(clientSpec(opts.Clients), ctx, false)
+	selected, err := selectMCPClients(spec, ctx, false)
 	if err != nil {
 		return envelope.Err(errors.CodeInputError, "unknown MCP client", map[string]any{
 			"error":             err.Error(),
@@ -69,23 +75,52 @@ func Install(opts ConfigOptions) envelope.Envelope {
 		})
 	}
 	results := make([]map[string]any, 0, len(selected))
+	var failures []installFailure
 	for _, client := range selected {
 		result, err := installClient(client, ctx)
 		if err != nil {
-			return configErrorEnvelope(err)
+			if len(selected) == 1 && spec != "auto" {
+				return configErrorEnvelope(err)
+			}
+			failure := installFailureFromError(client, err)
+			failures = append(failures, failure)
+			result = failure.Result
 		}
 		results = append(results, result)
 	}
-	return okLocal(map[string]any{
+	data := map[string]any{
 		"lovart_path":            ctx.lovartPath,
 		"dry_run":                ctx.dryRun,
 		"force":                  ctx.force,
-		"mcp_clients_requested":  clientSpec(opts.Clients),
+		"mcp_clients_requested":  spec,
 		"mcp_clients_selected":   selected,
 		"supported_mcp_clients":  supportedMCPClients,
 		"results":                results,
 		"recommended_next_steps": []string{"run `lovart mcp status`", "restart your MCP client"},
-	}, true)
+	}
+	if len(failures) == 0 {
+		return okLocal(data, true)
+	}
+	failedClients := failedMCPClients(failures)
+	data["partial_failure"] = true
+	data["failed_mcp_clients"] = failedClients
+	if spec == "auto" {
+		env := okLocal(data, true)
+		env.Warnings = []string{fmt.Sprintf("MCP configuration failed for %s; other selected clients were still processed", strings.Join(failedClients, ", "))}
+		return env
+	}
+	return envelope.Err("mcp_config_failed", "one or more MCP client configurations failed", map[string]any{
+		"partial_failure":        true,
+		"failed_mcp_clients":     failedClients,
+		"mcp_clients_requested":  spec,
+		"mcp_clients_selected":   selected,
+		"supported_mcp_clients":  supportedMCPClients,
+		"lovart_path":            ctx.lovartPath,
+		"dry_run":                ctx.dryRun,
+		"force":                  ctx.force,
+		"results":                results,
+		"recommended_next_steps": []string{"inspect failed client results", "rerun with a narrower --clients list or configure failed clients manually"},
+	})
 }
 
 // Uninstall removes Lovart MCP config from selected local clients.
@@ -335,6 +370,51 @@ func uninstallClient(client string, ctx configContext) (map[string]any, error) {
 	default:
 		return nil, configInputError{Message: "unknown MCP client", Details: map[string]any{"client": client}}
 	}
+}
+
+func installFailureFromError(client string, err error) installFailure {
+	code, message, details := configErrorDetails(err)
+	result := copyMap(details)
+	if _, ok := result["client"]; !ok {
+		result["client"] = client
+	}
+	if _, ok := result["status"]; !ok {
+		result["status"] = "failed"
+	}
+	result["error_code"] = code
+	if _, ok := result["error"]; !ok {
+		result["error"] = message
+	}
+	return installFailure{Client: client, Result: result}
+}
+
+func configErrorDetails(err error) (string, string, map[string]any) {
+	switch e := err.(type) {
+	case configConflictError:
+		return "config_conflict", e.Message, e.Details
+	case configCommandError:
+		return "mcp_config_failed", e.Message, e.Details
+	case configInputError:
+		return errors.CodeInputError, e.Message, e.Details
+	default:
+		return errors.CodeInternal, err.Error(), map[string]any{}
+	}
+}
+
+func failedMCPClients(failures []installFailure) []string {
+	failed := make([]string, 0, len(failures))
+	for _, failure := range failures {
+		failed = append(failed, failure.Client)
+	}
+	return failed
+}
+
+func copyMap(source map[string]any) map[string]any {
+	copy := make(map[string]any, len(source))
+	for key, value := range source {
+		copy[key] = value
+	}
+	return copy
 }
 
 func commandStatus(client string, command []string) map[string]any {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/aporicho/lovart/internal/auth"
@@ -52,53 +51,27 @@ func newAuthLoginCmd() *cobra.Command {
 				return nil
 			}
 			timeout := time.Duration(timeoutSeconds * float64(time.Second))
-			ctx, cancel := context.WithTimeout(context.Background(), timeout)
-			defer cancel()
-
-			server, err := auth.StartLoginServer(ctx, auth.LoginServerOptions{Timeout: timeout})
+			result, err := auth.RunBrowserExtensionLogin(context.Background(), auth.BrowserLoginOptions{
+				Timeout:     timeout,
+				OpenBrowser: openBrowser,
+				BeforeOpen: func(result auth.BrowserLoginResult) {
+					fmt.Fprintf(os.Stderr, "Lovart auth login waiting on http://127.0.0.1:%d\n", result.CallbackPort)
+					fmt.Fprintln(os.Stderr, "Opening Lovart in Google Chrome. Stay signed in, then click Connect in the Lovart Connector page prompt.")
+				},
+				OnOpenError: func(result auth.BrowserLoginResult) {
+					fmt.Fprintf(os.Stderr, "Could not open browser automatically: %v\nOpen manually: %s\n", result.OpenError, result.LoginURL)
+				},
+			})
 			if err != nil {
-				printEnvelope(envelope.Err(errors.CodeInternal, "start auth login server", map[string]any{"error": err.Error()}))
+				printEnvelope(authLoginErrorEnvelope(err))
 				return nil
 			}
-			defer func() {
-				closeCtx, closeCancel := context.WithTimeout(context.Background(), time.Second)
-				defer closeCancel()
-				_ = server.Close(closeCtx)
-			}()
-
-			loginURL := "https://www.lovart.ai/?lovart_cli_auth=1&port=" + strconv.Itoa(server.Port())
-			fmt.Fprintf(os.Stderr, "Lovart auth login waiting on http://127.0.0.1:%d\n", server.Port())
-			fmt.Fprintln(os.Stderr, "Opening Lovart in Google Chrome. Stay signed in, then click Connect in the Lovart Connector page prompt.")
-			if err := openBrowser(loginURL); err != nil {
-				fmt.Fprintf(os.Stderr, "Could not open browser automatically: %v\nOpen manually: %s\n", err, loginURL)
-			}
-
-			select {
-			case session := <-server.Result():
-				session.Source = auth.LoginSourceBrowserExtension
-				if err := auth.SaveSession(session); err != nil {
-					printEnvelope(envelope.Err(errors.CodeInternal, "save auth session", map[string]any{"error": err.Error()}))
-					return nil
-				}
-				printEnvelope(okLocal(map[string]any{
-					"authenticated": true,
-					"status":        auth.GetStatus(),
-					"next_steps": []string{
-						"lovart doctor",
-						"lovart project list",
-						"lovart project select <project_id>",
-					},
-				}))
-				return nil
-			case <-server.Cancelled():
-				printEnvelope(envelope.Err(errors.CodeInputError, "auth login cancelled", nil))
-				return nil
-			case <-ctx.Done():
-				printEnvelope(envelope.Err(errors.CodeTimeout, "auth login timed out", map[string]any{
-					"recommended_actions": []string{"rerun `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
-				}))
-				return nil
-			}
+			printEnvelope(okLocal(map[string]any{
+				"authenticated": true,
+				"status":        result.Status,
+				"next_steps":    result.NextSteps,
+			}))
+			return nil
 		},
 	}
 	cmd.Flags().Float64Var(&timeoutSeconds, "timeout-seconds", 300, "seconds to wait for browser connection")
@@ -128,4 +101,11 @@ func newAuthLogoutCmd() *cobra.Command {
 	}
 	cmd.Flags().BoolVar(&yes, "yes", false, "confirm deleting stored Lovart credentials")
 	return cmd
+}
+
+func authLoginErrorEnvelope(err error) envelope.Envelope {
+	if lovartErr, ok := err.(*errors.LovartError); ok {
+		return envelope.Err(lovartErr.Code, lovartErr.Message, lovartErr.Details)
+	}
+	return envelope.Err(errors.CodeInternal, "auth login failed", map[string]any{"error": err.Error()})
 }
