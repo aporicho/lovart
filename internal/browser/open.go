@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -22,6 +23,7 @@ type environment struct {
 	procVersion   string
 	wslDistroName string
 	lookPath      func(string) (string, error)
+	glob          func(string) ([]string, error)
 }
 
 // OpenURL opens a URL in the user's browser.
@@ -99,6 +101,7 @@ func currentEnvironment() environment {
 		goos:          runtime.GOOS,
 		wslDistroName: os.Getenv("WSL_DISTRO_NAME"),
 		lookPath:      exec.LookPath,
+		glob:          filepath.Glob,
 	}
 	if data, err := os.ReadFile("/proc/sys/kernel/osrelease"); err == nil {
 		env.osRelease = string(data)
@@ -134,6 +137,11 @@ func wslCommands(env environment, url string) []Command {
 	}
 	var commands []Command
 	chromeInternal := isChromeInternalURL(url)
+	if chromeInternal {
+		for _, path := range windowsChromePaths(env) {
+			commands = append(commands, Command{Name: path, Args: []string{url}})
+		}
+	}
 	if !chromeInternal {
 		if path, err := lookPath("wslview"); err == nil {
 			commands = append(commands, Command{Name: path, Args: []string{url}})
@@ -160,4 +168,31 @@ func wslCommands(env environment, url string) []Command {
 
 func isChromeInternalURL(url string) bool {
 	return strings.HasPrefix(strings.ToLower(url), "chrome://")
+}
+
+func windowsChromePaths(env environment) []string {
+	glob := env.glob
+	if glob == nil {
+		glob = filepath.Glob
+	}
+	patterns := []string{
+		"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe",
+		"/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+		"/mnt/c/Users/*/AppData/Local/Google/Chrome/Application/chrome.exe",
+	}
+	var paths []string
+	seen := map[string]bool{}
+	for _, pattern := range patterns {
+		matches, err := glob(pattern)
+		if err != nil {
+			continue
+		}
+		for _, match := range matches {
+			if !seen[match] {
+				seen[match] = true
+				paths = append(paths, match)
+			}
+		}
+	}
+	return paths
 }

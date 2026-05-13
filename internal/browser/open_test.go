@@ -47,6 +47,12 @@ func TestCommandsForWSLSkipGenericOpenersForChromeInternalURL(t *testing.T) {
 	env := environment{
 		goos:      "linux",
 		osRelease: "6.6.87.2-microsoft-standard-WSL2",
+		glob: func(pattern string) ([]string, error) {
+			if pattern == "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" {
+				return []string{"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"}, nil
+			}
+			return nil, nil
+		},
 		lookPath: func(name string) (string, error) {
 			switch name {
 			case "wslview":
@@ -64,6 +70,7 @@ func TestCommandsForWSLSkipGenericOpenersForChromeInternalURL(t *testing.T) {
 	}
 	got := commandsForEnvironment(env, url)
 	want := []Command{
+		{Name: "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe", Args: []string{url}},
 		{Name: "/windows/cmd.exe", Args: []string{"/c", "start", "", "chrome", url}, Wait: true},
 		{Name: "/windows/powershell.exe", Args: []string{"-NoProfile", "-Command", "Start-Process -FilePath chrome -ArgumentList $args[0]", url}},
 	}
@@ -76,6 +83,7 @@ func TestCommandsForWSLDoNotUseWslviewForChromeInternalURL(t *testing.T) {
 	got := commandsForEnvironment(environment{
 		goos:      "linux",
 		osRelease: "microsoft-standard-WSL2",
+		glob:      missingGlob,
 		lookPath: func(name string) (string, error) {
 			if name == "wslview" {
 				return "/usr/bin/wslview", nil
@@ -129,4 +137,8 @@ func TestIsWSLEnvironmentRequiresLinux(t *testing.T) {
 
 func missingLookPath(name string) (string, error) {
 	return "", errors.New("missing")
+}
+
+func missingGlob(pattern string) ([]string, error) {
+	return nil, nil
 }
