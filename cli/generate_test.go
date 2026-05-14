@@ -13,12 +13,12 @@ import (
 func TestGenerateCommandExposesProjectOverrides(t *testing.T) {
 	cmd := newGenerateCmd()
 
-	for _, name := range []string{"project-id", "body-file", "prompt", "no-wait", "no-download", "no-canvas", "canvas"} {
+	for _, name := range []string{"project-id", "body-file", "prompt", "wait", "download", "canvas"} {
 		if cmd.Flags().Lookup(name) == nil {
 			t.Fatalf("generate command missing --%s flag", name)
 		}
 	}
-	for _, name := range []string{"cid", "dry-run"} {
+	for _, name := range []string{"cid", "dry-run", "no-wait", "no-download", "no-canvas"} {
 		if cmd.Flags().Lookup(name) != nil {
 			t.Fatalf("generate command should not expose --%s", name)
 		}
@@ -28,8 +28,8 @@ func TestGenerateCommandExposesProjectOverrides(t *testing.T) {
 		if flag == nil {
 			t.Fatalf("generate command missing --%s flag", name)
 		}
-		if flag.DefValue != "true" {
-			t.Fatalf("--%s default = %q, want true", name, flag.DefValue)
+		if flag.DefValue != "false" {
+			t.Fatalf("--%s default = %q, want false", name, flag.DefValue)
 		}
 	}
 

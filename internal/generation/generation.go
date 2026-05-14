@@ -38,6 +38,11 @@ type Options struct {
 	Download   bool
 }
 
+// WaitOptions configures task polling.
+type WaitOptions struct {
+	PollInterval time.Duration
+}
+
 // Preflight checks all gates: auth, quote, slot, mode.
 func Preflight(ctx context.Context, client *http.Client, model string, body map[string]any, opts Options) (*PreflightResult, error) {
 	// 1. Quote the request.
@@ -123,18 +128,8 @@ func FetchTask(ctx context.Context, client *http.Client, taskID string) (map[str
 	path := fmt.Sprintf("/v1/generator/tasks?task_id=%s", taskID)
 
 	var resp struct {
-		Code int `json:"code"`
-		Data struct {
-			Status          string `json:"status"`
-			GeneratorTaskID string `json:"generator_task_id"`
-			Artifacts       []struct {
-				Content  string `json:"content"`
-				Metadata struct {
-					Width  int `json:"width"`
-					Height int `json:"height"`
-				} `json:"metadata"`
-			} `json:"artifacts"`
-		} `json:"data"`
+		Code int            `json:"code"`
+		Data map[string]any `json:"data"`
 	}
 
 	if err := client.GetJSON(ctx, http.LGWBase, path, &resp); err != nil {
@@ -144,30 +139,20 @@ func FetchTask(ctx context.Context, client *http.Client, taskID string) (map[str
 		return nil, fmt.Errorf("generation: poll returned code %d", resp.Code)
 	}
 
-	result := map[string]any{
-		"task_id": resp.Data.GeneratorTaskID,
-		"status":  resp.Data.Status,
-	}
-	if resp.Data.Status == "completed" {
-		var urls []string
-		var details []map[string]any
-		for _, a := range resp.Data.Artifacts {
-			urls = append(urls, a.Content)
-			details = append(details, map[string]any{
-				"url":    a.Content,
-				"width":  a.Metadata.Width,
-				"height": a.Metadata.Height,
-			})
-		}
-		result["artifacts"] = urls
-		result["artifact_details"] = details
-	}
-
-	return result, nil
+	return BuildTaskResult(taskID, resp.Data), nil
 }
 
 // Wait polls the task status until it's completed.
 func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]any, error) {
+	return WaitWithOptions(ctx, client, taskID, WaitOptions{PollInterval: 2 * time.Second})
+}
+
+// WaitWithOptions polls the task status until it reaches a terminal state.
+func WaitWithOptions(ctx context.Context, client *http.Client, taskID string, opts WaitOptions) (map[string]any, error) {
+	pollInterval := opts.PollInterval
+	if pollInterval <= 0 {
+		pollInterval = 2 * time.Second
+	}
 	for {
 		select {
 		case <-ctx.Done():
@@ -179,10 +164,16 @@ func Wait(ctx context.Context, client *http.Client, taskID string) (map[string]a
 		if err != nil {
 			return nil, err
 		}
-		status, _ := result["status"].(string)
-		if status == "completed" || status == "failed" {
+		status := NormalizeTaskStatus(result)
+		if status == TaskStatusCompleted || status == TaskStatusFailed {
 			return result, nil
 		}
-		time.Sleep(2 * time.Second)
+		timer := time.NewTimer(pollInterval)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return nil, ctx.Err()
+		case <-timer.C:
+		}
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aporicho/lovart/internal/downloads"
 	"github.com/aporicho/lovart/internal/project"
 )
 
@@ -180,26 +179,5 @@ func canvasJobSubtitle(job JobState) string {
 }
 
 func requestCanvasImages(request RemoteRequest) []project.CanvasImage {
-	artifacts := downloads.ArtifactsFromDetails(request.Artifacts)
-	images := make([]project.CanvasImage, 0, len(artifacts))
-	for _, artifact := range artifacts {
-		if artifact.URL == "" {
-			continue
-		}
-		width := artifact.Width
-		if width == 0 {
-			width = 1024
-		}
-		height := artifact.Height
-		if height == 0 {
-			height = 1024
-		}
-		images = append(images, project.CanvasImage{
-			TaskID: request.TaskID,
-			URL:    artifact.URL,
-			Width:  width,
-			Height: height,
-		})
-	}
-	return images
+	return project.CanvasImagesFromArtifacts(request.TaskID, requestDownloadArtifacts(request, 1))
 }

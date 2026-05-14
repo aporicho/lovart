@@ -54,7 +54,13 @@ func newDownloadTaskCmd() *cobra.Command {
 				printEnvelope(envelope.Err(errors.CodeInternal, "fetch task", map[string]any{"error": err.Error(), "task_id": taskID}))
 				return nil
 			}
-			if status, _ := task["status"].(string); status != "completed" {
+			normalizedStatus := generation.NormalizeTaskStatus(task)
+			status, _ := task["status"].(string)
+			if normalizedStatus == generation.TaskStatusFailed {
+				printEnvelope(taskFailureEnvelope(taskID, task, detail))
+				return nil
+			}
+			if normalizedStatus != generation.TaskStatusCompleted {
 				printEnvelope(envelope.Err(errors.CodeInputError, "task is not completed", map[string]any{
 					"task_id": taskID,
 					"status":  status,

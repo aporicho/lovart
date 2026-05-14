@@ -45,6 +45,24 @@ func lovartErrorEnvelope(err error, fallback string) envelope.Envelope {
 	return envelope.Err(errors.CodeInternal, fallback, map[string]any{"error": err.Error()})
 }
 
+func taskFailureEnvelope(taskID string, task map[string]any, detail string) envelope.Envelope {
+	failure := generation.ClassifyTaskFailure(task)
+	code := errors.CodeTaskFailed
+	message := "generation task failed"
+	if failure != nil {
+		code = failure.Code
+		message = failure.Message
+	}
+	details := map[string]any{
+		"task_id": taskID,
+		"task":    generation.TaskView(task, detail),
+	}
+	if failure != nil {
+		details["failure"] = failure
+	}
+	return envelope.Err(code, message, details)
+}
+
 // AuthStatus reports credential presence without exposing secret values.
 func (ProductionExecutor) AuthStatus(ctx context.Context) envelope.Envelope {
 	return okLocal(auth.GetStatus(), true)
@@ -355,6 +373,97 @@ func (ProductionExecutor) ProjectDelete(ctx context.Context, args ProjectDeleteA
 	}, true)
 }
 
+// TaskStatus returns one remote generation task status.
+func (ProductionExecutor) TaskStatus(ctx context.Context, args TaskStatusArgs) envelope.Envelope {
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	task, err := generation.FetchTask(ctx, client, args.TaskID)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "fetch task", map[string]any{"error": err.Error(), "task_id": args.TaskID})
+	}
+	return okPreflight(generation.TaskView(task, args.Detail))
+}
+
+// TaskWait waits for one remote generation task to reach a terminal status.
+func (ProductionExecutor) TaskWait(ctx context.Context, args TaskWaitArgs) envelope.Envelope {
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	timeout := time.Duration(args.TimeoutSeconds * float64(time.Second))
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	task, err := generation.WaitWithOptions(waitCtx, client, args.TaskID, generation.WaitOptions{PollInterval: time.Duration(args.PollInterval * float64(time.Second))})
+	if err != nil {
+		code := errors.CodeInternal
+		message := "wait task"
+		if stderrors.Is(err, context.DeadlineExceeded) {
+			code = errors.CodeTimeout
+			message = "task wait timed out"
+		}
+		return envelope.Err(code, message, map[string]any{
+			"error":           err.Error(),
+			"task_id":         args.TaskID,
+			"timeout_seconds": args.TimeoutSeconds,
+		})
+	}
+	return okPreflight(generation.TaskView(task, args.Detail))
+}
+
+// TaskCanvas writes completed task artifacts to a project canvas.
+func (ProductionExecutor) TaskCanvas(ctx context.Context, args TaskCanvasArgs) envelope.Envelope {
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	task, err := generation.FetchTask(ctx, client, args.TaskID)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "fetch task", map[string]any{"error": err.Error(), "task_id": args.TaskID})
+	}
+	normalizedStatus := generation.NormalizeTaskStatus(task)
+	if normalizedStatus == generation.TaskStatusFailed {
+		return taskFailureEnvelope(args.TaskID, task, args.Detail)
+	}
+	status, _ := task["status"].(string)
+	if normalizedStatus != generation.TaskStatusCompleted {
+		return envelope.Err(errors.CodeInputError, "task is not completed", map[string]any{
+			"task_id": args.TaskID,
+			"status":  status,
+			"recommended_actions": []string{
+				"call lovart_task_wait with this task_id",
+				"call lovart_task_status with this task_id",
+			},
+		})
+	}
+	projectID, cid, env := projectIDAndOptionalCID(args.ProjectID)
+	if env != nil {
+		return *env
+	}
+	images := project.CanvasImagesFromTask(args.TaskID, task)
+	if len(images) == 0 {
+		return envelope.Err(errors.CodeInputError, "no canvas images found for task", map[string]any{
+			"task_id": args.TaskID,
+			"task":    generation.TaskView(task, args.Detail),
+		})
+	}
+	if err := project.AddToCanvas(ctx, client, projectID, cid, images); err != nil {
+		return envelope.Err(errors.CodeInternal, "write task artifacts to canvas", map[string]any{"error": err.Error(), "task_id": args.TaskID, "project_id": projectID})
+	}
+	output := map[string]any{
+		"task_id":        args.TaskID,
+		"project_id":     projectID,
+		"canvas_url":     canvasURL(projectID),
+		"canvas_updated": true,
+		"image_count":    len(images),
+	}
+	if args.Detail == "full" {
+		output["task"] = generation.TaskView(task, args.Detail)
+	}
+	return okSubmit(output, true)
+}
+
 // TaskDownload downloads artifacts from a completed Lovart generation task.
 func (ProductionExecutor) TaskDownload(ctx context.Context, args TaskDownloadArgs) envelope.Envelope {
 	client, err := newSignedClient(ctx)
@@ -365,7 +474,12 @@ func (ProductionExecutor) TaskDownload(ctx context.Context, args TaskDownloadArg
 	if err != nil {
 		return envelope.Err(errors.CodeInternal, "fetch task", map[string]any{"error": err.Error(), "task_id": args.TaskID})
 	}
-	if status, _ := task["status"].(string); status != "completed" {
+	normalizedStatus := generation.NormalizeTaskStatus(task)
+	status, _ := task["status"].(string)
+	if normalizedStatus == generation.TaskStatusFailed {
+		return taskFailureEnvelope(args.TaskID, task, args.Detail)
+	}
+	if normalizedStatus != generation.TaskStatusCompleted {
 		return envelope.Err(errors.CodeInputError, "task is not completed", map[string]any{
 			"task_id": args.TaskID,
 			"status":  status,
@@ -623,11 +737,53 @@ func (ProductionExecutor) JobsResume(ctx context.Context, args JobsResumeArgs) e
 	return jobsResultEnvelope(result, err, "resume jobs", okSubmit)
 }
 
+// JobsFinalize downloads and/or writes completed batch artifacts.
+func (ProductionExecutor) JobsFinalize(ctx context.Context, args JobsFinalizeArgs) envelope.Envelope {
+	if !args.Download && !args.Canvas {
+		return envelope.Err(errors.CodeInputError, "choose at least one finalization action", map[string]any{
+			"recommended_actions": []string{
+				"set download=true",
+				"set canvas=true",
+			},
+		})
+	}
+	if args.CanvasLayout != "" && args.CanvasLayout != jobs.CanvasLayoutFrame && args.CanvasLayout != jobs.CanvasLayoutPlain {
+		return envelope.Err(errors.CodeInputError, "canvas_layout must be frame or plain", map[string]any{"canvas_layout": args.CanvasLayout})
+	}
+	opts := jobs.JobsOptions{
+		ProjectID:    args.ProjectID,
+		Download:     args.Download,
+		Canvas:       args.Canvas,
+		DownloadDir:  args.DownloadDir,
+		CanvasLayout: args.CanvasLayout,
+		Detail:       args.Detail,
+	}
+	if opts.CanvasLayout == "" {
+		opts.CanvasLayout = jobs.CanvasLayoutFrame
+	}
+	applyProjectContext(&opts)
+	var remote jobs.RemoteClient
+	if args.Canvas {
+		var env *envelope.Envelope
+		remote, env = newJobsRemote(ctx)
+		if env != nil {
+			return *env
+		}
+	}
+	result, err := jobs.FinalizeJobs(ctx, remote, args.RunDir, opts)
+	return jobsResultEnvelope(result, err, "finalize jobs", func(data any, _ bool) envelope.Envelope {
+		if args.Canvas {
+			return okSubmit(data, true)
+		}
+		return okPreflight(data)
+	})
+}
+
 func defaultMCPBatchOptions() jobs.JobsOptions {
 	return jobs.JobsOptions{
-		Wait:           true,
-		Download:       true,
-		Canvas:         true,
+		Wait:           false,
+		Download:       false,
+		Canvas:         false,
 		CanvasLayout:   jobs.CanvasLayoutFrame,
 		TimeoutSeconds: MCPWaitTimeoutSeconds,
 		PollInterval:   5,
@@ -713,16 +869,14 @@ func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, o
 		warnings = append(warnings, "task was submitted but polling failed; rerun a status or resume-capable command when available")
 		return warnings, nil
 	}
-	output["task"] = task
+	output["task"] = generation.TaskView(task, "summary")
 	output["status"] = task["status"]
-	if task["status"] == "failed" {
-		env := envelope.Err(errors.CodeTaskFailed, "generation task failed", map[string]any{
-			"task_id": taskID,
-			"task":    task,
-		})
+	normalizedStatus := generation.NormalizeTaskStatus(task)
+	if normalizedStatus == generation.TaskStatusFailed {
+		env := taskFailureEnvelope(taskID, task, "summary")
 		return nil, &env
 	}
-	if task["status"] != "completed" {
+	if normalizedStatus != generation.TaskStatusCompleted {
 		return warnings, nil
 	}
 	if args.Download {
@@ -753,23 +907,7 @@ func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, o
 		}
 	}
 	if args.Canvas && args.ProjectID != "" && cid != "" {
-		details, _ := task["artifact_details"].([]map[string]any)
-		images := make([]project.CanvasImage, 0, len(details))
-		for _, detail := range details {
-			url, _ := detail["url"].(string)
-			width, _ := detail["width"].(float64)
-			height, _ := detail["height"].(float64)
-			if url == "" {
-				continue
-			}
-			if width == 0 {
-				width = 1024
-			}
-			if height == 0 {
-				height = 1024
-			}
-			images = append(images, project.CanvasImage{TaskID: taskID, URL: url, Width: int(width), Height: int(height)})
-		}
+		images := project.CanvasImagesFromTask(taskID, task)
 		if len(images) == 0 {
 			return warnings, nil
 		}

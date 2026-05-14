@@ -5,17 +5,18 @@ import "fmt"
 
 // Standard error codes.
 const (
-	CodeInputError        = "input_error"
-	CodeAuthMissing       = "auth_missing"
-	CodeMetadataStale     = "metadata_stale"
-	CodeSignerStale       = "signer_stale"
-	CodeSchemaInvalid     = "schema_invalid"
-	CodeUnknownPricing    = "unknown_pricing"
-	CodeCreditRisk        = "credit_risk"
-	CodeTaskFailed        = "task_failed"
-	CodeTimeout           = "timeout"
-	CodeNetworkUnavailable = "network_unavailable"
-	CodeInternal          = "internal_error"
+	CodeInputError            = "input_error"
+	CodeAuthMissing           = "auth_missing"
+	CodeMetadataStale         = "metadata_stale"
+	CodeSignerStale           = "signer_stale"
+	CodeSchemaInvalid         = "schema_invalid"
+	CodeUnknownPricing        = "unknown_pricing"
+	CodeCreditRisk            = "credit_risk"
+	CodeTaskFailed            = "task_failed"
+	CodeContentPolicyRejected = "content_policy_rejected"
+	CodeTimeout               = "timeout"
+	CodeNetworkUnavailable    = "network_unavailable"
+	CodeInternal              = "internal_error"
 )
 
 // LovartError is the base error type with a machine-readable code and exit code.
@@ -63,7 +64,7 @@ func exitCodeFor(code string) int {
 		return 6
 	case CodeUnknownPricing:
 		return 7
-	case CodeTaskFailed:
+	case CodeTaskFailed, CodeContentPolicyRejected:
 		return 8
 	case CodeTimeout:
 		return 9

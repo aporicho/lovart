@@ -23,6 +23,9 @@ type fakeExecutor struct {
 	projectOpen      ProjectOpenArgs
 	projectRename    ProjectRenameArgs
 	projectDelete    ProjectDeleteArgs
+	taskStatus       TaskStatusArgs
+	taskWait         TaskWaitArgs
+	taskCanvas       TaskCanvasArgs
 	taskDownload     TaskDownloadArgs
 	canvasArtifacts  CanvasArtifactsArgs
 	canvasArtifact   CanvasArtifactArgs
@@ -31,6 +34,7 @@ type fakeExecutor struct {
 	jobsRun          JobsRunArgs
 	jobsStatus       JobsStatusArgs
 	jobsResume       JobsResumeArgs
+	jobsFinalize     JobsFinalizeArgs
 }
 
 func (f *fakeExecutor) AuthStatus(ctx context.Context) envelope.Envelope {
@@ -111,6 +115,21 @@ func (f *fakeExecutor) ProjectDelete(ctx context.Context, args ProjectDeleteArgs
 	return okSubmit(map[string]any{"operation": "project_delete", "project_id": args.ProjectID}, true)
 }
 
+func (f *fakeExecutor) TaskStatus(ctx context.Context, args TaskStatusArgs) envelope.Envelope {
+	f.taskStatus = args
+	return okPreflight(map[string]any{"operation": "task_status", "task_id": args.TaskID})
+}
+
+func (f *fakeExecutor) TaskWait(ctx context.Context, args TaskWaitArgs) envelope.Envelope {
+	f.taskWait = args
+	return okPreflight(map[string]any{"operation": "task_wait", "task_id": args.TaskID})
+}
+
+func (f *fakeExecutor) TaskCanvas(ctx context.Context, args TaskCanvasArgs) envelope.Envelope {
+	f.taskCanvas = args
+	return okSubmit(map[string]any{"operation": "task_canvas", "task_id": args.TaskID}, true)
+}
+
 func (f *fakeExecutor) TaskDownload(ctx context.Context, args TaskDownloadArgs) envelope.Envelope {
 	f.taskDownload = args
 	return okPreflight(map[string]any{"operation": "task_download", "task_id": args.TaskID})
@@ -155,6 +174,11 @@ func (f *fakeExecutor) JobsResume(ctx context.Context, args JobsResumeArgs) enve
 	return okSubmit(map[string]any{"operation": "jobs_resume"}, false)
 }
 
+func (f *fakeExecutor) JobsFinalize(ctx context.Context, args JobsFinalizeArgs) envelope.Envelope {
+	f.jobsFinalize = args
+	return okSubmit(map[string]any{"operation": "jobs_finalize"}, args.Canvas)
+}
+
 func TestHandleInitializeAndListTools(t *testing.T) {
 	server := NewServerWithExecutor(&fakeExecutor{})
 	initResp := server.HandleMessage(context.Background(), map[string]any{
@@ -179,8 +203,8 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 		t.Fatalf("tools/list failed: %#v", listResp)
 	}
 	tools := listResp.Result.(map[string]any)["tools"].([]Tool)
-	if len(tools) != 26 {
-		t.Fatalf("expected 26 tools, got %d", len(tools))
+	if len(tools) != 30 {
+		t.Fatalf("expected 30 tools, got %d", len(tools))
 	}
 	for _, tool := range tools {
 		if tool.Name == "lovart_project_repair_canvas" {
@@ -197,7 +221,7 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 			properties := tool.InputSchema["properties"].(map[string]any)
 			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "cookie", "token", "csrf"})
 		}
-		if strings.HasPrefix(tool.Name, "lovart_canvas_") || tool.Name == "lovart_task_download" {
+		if strings.HasPrefix(tool.Name, "lovart_canvas_") || strings.HasPrefix(tool.Name, "lovart_task_") {
 			properties := tool.InputSchema["properties"].(map[string]any)
 			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "cookie", "token", "csrf"})
 		}
@@ -214,6 +238,10 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 		if tool.Name == "lovart_jobs_resume" {
 			properties := tool.InputSchema["properties"].(map[string]any)
 			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "out_dir", "detail", "wait", "download", "canvas", "canvas_layout", "download_dir_template", "download_file_template", "timeout_seconds", "poll_interval", "project_id"})
+		}
+		if tool.Name == "lovart_jobs_finalize" {
+			properties := tool.InputSchema["properties"].(map[string]any)
+			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "out_dir", "wait", "download_dir_template", "download_file_template", "timeout_seconds", "poll_interval", "allow_paid", "max_total_credits", "retry_failed"})
 		}
 	}
 }
@@ -412,7 +440,43 @@ func TestDownloadToolsParseArgs(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 
-	env := server.CallTool(context.Background(), "lovart_task_download", map[string]any{
+	env := server.CallTool(context.Background(), "lovart_task_status", map[string]any{
+		"task_id": "task-123",
+		"detail":  "full",
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.taskStatus.TaskID != "task-123" || executor.taskStatus.Detail != "full" {
+		t.Fatalf("task status args = %#v", executor.taskStatus)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_task_wait", map[string]any{
+		"task_id":         "task-123",
+		"detail":          "full",
+		"timeout_seconds": 12.0,
+		"poll_interval":   0.5,
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.taskWait.TaskID != "task-123" || executor.taskWait.Detail != "full" || executor.taskWait.TimeoutSeconds != 12 || executor.taskWait.PollInterval != 0.5 {
+		t.Fatalf("task wait args = %#v", executor.taskWait)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_task_canvas", map[string]any{
+		"task_id":    "task-123",
+		"project_id": "project-123",
+		"detail":     "full",
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.taskCanvas.TaskID != "task-123" || executor.taskCanvas.ProjectID != "project-123" || executor.taskCanvas.Detail != "full" {
+		t.Fatalf("task canvas args = %#v", executor.taskCanvas)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_task_download", map[string]any{
 		"task_id":                "task-123",
 		"artifact_index":         2.0,
 		"download_dir":           "/tmp/images",
@@ -587,7 +651,7 @@ func TestProductionProjectOpenDoesNotExposeCID(t *testing.T) {
 	}
 }
 
-func TestGenerateDefaultsToCompletePostprocess(t *testing.T) {
+func TestGenerateDefaultsToAsyncPostprocess(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_generate", map[string]any{
@@ -597,7 +661,7 @@ func TestGenerateDefaultsToCompletePostprocess(t *testing.T) {
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if !executor.generate.Wait || !executor.generate.Download || !executor.generate.Canvas {
+	if executor.generate.Wait || executor.generate.Download || executor.generate.Canvas {
 		t.Fatalf("generate postprocess defaults = %#v", executor.generate)
 	}
 
@@ -612,7 +676,21 @@ func TestGenerateDefaultsToCompletePostprocess(t *testing.T) {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
 	if executor.generate.Wait || executor.generate.Download || executor.generate.Canvas {
-		t.Fatalf("no-wait normalization failed: %#v", executor.generate)
+		t.Fatalf("async normalization failed: %#v", executor.generate)
+	}
+
+	executor = &fakeExecutor{}
+	server = NewServerWithExecutor(executor)
+	env = server.CallTool(context.Background(), "lovart_generate", map[string]any{
+		"model":    "openai/gpt-image-2",
+		"body":     map[string]any{"prompt": "test"},
+		"download": true,
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if !executor.generate.Wait || !executor.generate.Download || executor.generate.Canvas {
+		t.Fatalf("download normalization failed: %#v", executor.generate)
 	}
 }
 
@@ -650,7 +728,7 @@ func TestJobsStatusDefaultsToSummary(t *testing.T) {
 
 func TestDefaultMCPBatchOptionsCompleteAndShortWait(t *testing.T) {
 	opts := defaultMCPBatchOptions()
-	if !opts.Wait || !opts.Download || !opts.Canvas {
+	if opts.Wait || opts.Download || opts.Canvas {
 		t.Fatalf("batch postprocess defaults = %#v", opts)
 	}
 	if opts.CanvasLayout != "frame" || opts.TimeoutSeconds != MCPWaitTimeoutSeconds || opts.PollInterval != 5 || opts.Detail != "summary" {
@@ -673,6 +751,31 @@ func TestJobsResumeArgsExposeUserSurface(t *testing.T) {
 	}
 	if executor.jobsResume.RunDir != "runs/x" || !executor.jobsResume.AllowPaid || executor.jobsResume.MaxTotalCredits != 24 || executor.jobsResume.DownloadDir != "runs/x/images" || !executor.jobsResume.RetryFailed {
 		t.Fatalf("jobs resume args = %#v", executor.jobsResume)
+	}
+}
+
+func TestJobsFinalizeArgsExposeUserSurface(t *testing.T) {
+	executor := &fakeExecutor{}
+	server := NewServerWithExecutor(executor)
+	env := server.CallTool(context.Background(), "lovart_jobs_finalize", map[string]any{
+		"run_dir":       "runs/x",
+		"download":      true,
+		"canvas":        true,
+		"project_id":    "proj_123",
+		"download_dir":  "runs/x/images",
+		"detail":        "requests",
+		"canvas_layout": "plain",
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.jobsFinalize.RunDir != "runs/x" || !executor.jobsFinalize.Download || !executor.jobsFinalize.Canvas || executor.jobsFinalize.ProjectID != "proj_123" || executor.jobsFinalize.DownloadDir != "runs/x/images" || executor.jobsFinalize.Detail != "requests" || executor.jobsFinalize.CanvasLayout != "plain" {
+		t.Fatalf("jobs finalize args = %#v", executor.jobsFinalize)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_jobs_finalize", map[string]any{"run_dir": "runs/x"})
+	if env.OK || env.Error == nil || env.Error.Code != "input_error" {
+		t.Fatalf("expected finalize action input error, got %#v", env)
 	}
 }
 

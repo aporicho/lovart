@@ -23,6 +23,7 @@ func newJobsCmd() *cobra.Command {
 	cmd.AddCommand(newJobsRunCmd())
 	cmd.AddCommand(newJobsResumeCmd())
 	cmd.AddCommand(newJobsStatusCmd())
+	cmd.AddCommand(newJobsFinalizeCmd())
 
 	return cmd
 }
@@ -35,6 +36,9 @@ func newJobsRunCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jobsFile := args[0]
+			if opts.Download || opts.Canvas {
+				opts.Wait = true
+			}
 			state, validationErr, err := jobs.PrepareRun(jobsFile, opts)
 			if err != nil {
 				printEnvelope(envelope.Err(errors.CodeInputError, "read jobs file", map[string]any{"error": err.Error()}))
@@ -132,11 +136,64 @@ func newJobsStatusCmd() *cobra.Command {
 	return cmd
 }
 
+func newJobsFinalizeCmd() *cobra.Command {
+	opts := jobs.JobsOptions{Detail: "summary", CanvasLayout: jobs.CanvasLayoutFrame}
+	cmd := &cobra.Command{
+		Use:   "finalize <run_dir>",
+		Short: "Finalize completed batch artifacts",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !opts.Download && !opts.Canvas {
+				printEnvelope(envelope.Err(errors.CodeInputError, "choose at least one finalization action", map[string]any{
+					"recommended_actions": []string{
+						"run `lovart jobs finalize <run_dir> --download`",
+						"run `lovart jobs finalize <run_dir> --canvas`",
+						"run `lovart jobs finalize <run_dir> --download --canvas`",
+					},
+				}))
+				return nil
+			}
+			if opts.Detail != "summary" && opts.Detail != "requests" && opts.Detail != "full" {
+				printEnvelope(envelope.Err(errors.CodeInputError, "invalid detail", map[string]any{"detail": opts.Detail}))
+				return nil
+			}
+			if opts.CanvasLayout != jobs.CanvasLayoutFrame && opts.CanvasLayout != jobs.CanvasLayoutPlain {
+				printEnvelope(envelope.Err(errors.CodeInputError, "invalid canvas layout", map[string]any{"canvas_layout": opts.CanvasLayout}))
+				return nil
+			}
+			applyProjectContext(&opts)
+			var remote jobs.RemoteClient
+			if opts.Canvas {
+				var ok bool
+				remote, ok = newJobsRemote()
+				if !ok {
+					return nil
+				}
+			}
+			result, err := jobs.FinalizeJobs(context.Background(), remote, args[0], opts)
+			printJobsResult(result, err, "finalize jobs", func(data any, _ bool) envelope.Envelope {
+				if opts.Canvas {
+					return okSubmit(data, true)
+				}
+				return okPreflight(data)
+			})
+			return nil
+		},
+	}
+	cmd.Flags().BoolVar(&opts.Download, "download", false, "download completed artifacts")
+	cmd.Flags().BoolVar(&opts.Canvas, "canvas", false, "write completed artifacts to the project canvas")
+	cmd.Flags().StringVar(&opts.DownloadDir, "download-dir", "", "directory for downloaded artifacts")
+	cmd.Flags().StringVar(&opts.ProjectID, "project-id", "", "target project ID")
+	cmd.Flags().StringVar(&opts.Detail, "detail", "summary", "output detail: summary, requests, full")
+	cmd.Flags().StringVar(&opts.CanvasLayout, "canvas-layout", jobs.CanvasLayoutFrame, "canvas layout: frame, plain")
+	return cmd
+}
+
 func defaultBatchOptions() jobs.JobsOptions {
 	return jobs.JobsOptions{
-		Wait:           true,
-		Download:       true,
-		Canvas:         true,
+		Wait:           false,
+		Download:       false,
+		Canvas:         false,
 		CanvasLayout:   jobs.CanvasLayoutFrame,
 		TimeoutSeconds: 3600,
 		PollInterval:   5,
@@ -151,6 +208,9 @@ func addJobsGateFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 
 func addJobsRunFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 	addJobsGateFlags(cmd, opts)
+	cmd.Flags().BoolVar(&opts.Wait, "wait", false, "wait for task completion")
+	cmd.Flags().BoolVar(&opts.Download, "download", false, "download artifacts after completion")
+	cmd.Flags().BoolVar(&opts.Canvas, "canvas", false, "write completed artifacts to the project canvas")
 	cmd.Flags().StringVar(&opts.DownloadDir, "download-dir", "", "directory for downloaded artifacts")
 	cmd.Flags().StringVar(&opts.ProjectID, "project-id", "", "target project ID")
 }

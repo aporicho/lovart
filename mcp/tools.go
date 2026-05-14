@@ -110,6 +110,21 @@ func Tools() []Tool {
 			"project_id":         stringSchema("Lovart project id"),
 			"confirm_project_id": stringSchema("must exactly match project_id"),
 		}, "project_id", "confirm_project_id"),
+		tool("lovart_task_status", "Read the status of one Lovart generation task. Failed remote tasks return ok=true with data.failure.", map[string]any{
+			"task_id": stringSchema("Lovart generation task id"),
+			"detail":  artifactDetailSchema(),
+		}, "task_id"),
+		tool("lovart_task_wait", "Wait for one Lovart generation task to reach a terminal status.", map[string]any{
+			"task_id":         stringSchema("Lovart generation task id"),
+			"detail":          artifactDetailSchema(),
+			"timeout_seconds": numberSchema("seconds to wait before returning timeout; defaults to 90"),
+			"poll_interval":   numberSchema("seconds between status polls; defaults to 2"),
+		}, "task_id"),
+		tool("lovart_task_canvas", "Write completed task artifacts back to the selected Lovart project canvas.", map[string]any{
+			"task_id":    stringSchema("Lovart generation task id"),
+			"project_id": stringSchema("optional project override"),
+			"detail":     artifactDetailSchema(),
+		}, "task_id"),
 		tool("lovart_task_download", "Download artifacts from a completed Lovart generation task.", map[string]any{
 			"task_id":                stringSchema("Lovart generation task id"),
 			"artifact_index":         numberSchema("optional 1-based artifact index to download"),
@@ -148,21 +163,21 @@ func Tools() []Tool {
 			"body":  map[string]any{"type": "object"},
 			"mode":  modeSchema(),
 		}, "model", "body"),
-		tool("lovart_generate", "Submit a single generation request after the normal paid/zero-credit gate.", map[string]any{
+		tool("lovart_generate", "Submit a single generation request after the normal paid/zero-credit gate. Defaults to asynchronous submission; use lovart_task_status to poll task_id.", map[string]any{
 			"model":                  stringSchema("Lovart generator model name"),
 			"body":                   map[string]any{"type": "object"},
 			"mode":                   modeSchema(),
 			"allow_paid":             boolSchema("allow paid generation"),
 			"max_credits":            numberSchema("maximum credits allowed when allow_paid=true"),
 			"project_id":             stringSchema("optional project override"),
-			"wait":                   boolSchema("wait for completion"),
+			"wait":                   boolSchema("wait for completion; defaults to false for MCP"),
 			"download":               boolSchema("download artifacts after completion"),
 			"canvas":                 boolSchema("write completed artifacts back to project canvas"),
 			"download_dir":           stringSchema("artifact download directory"),
 			"download_dir_template":  stringSchema("download subdirectory template"),
 			"download_file_template": stringSchema("download filename template"),
 		}, "model", "body"),
-		tool("lovart_jobs_run", "Run a complete batch generation from a user-level jobs JSONL file.", map[string]any{
+		tool("lovart_jobs_run", "Submit a batch generation from a user-level jobs JSONL file and return the run directory for status polling.", map[string]any{
 			"jobs_file":         stringSchema("path to jobs.jsonl"),
 			"allow_paid":        boolSchema("allow paid batch generation"),
 			"max_total_credits": numberSchema("maximum total credits allowed when allow_paid=true"),
@@ -180,6 +195,15 @@ func Tools() []Tool {
 			"max_total_credits": numberSchema("maximum total credits allowed when allow_paid=true"),
 			"download_dir":      stringSchema("artifact download directory"),
 			"retry_failed":      boolSchema("retry failed requests that were never submitted"),
+		}, "run_dir"),
+		tool("lovart_jobs_finalize", "Download and/or write completed batch artifacts without resubmitting jobs.", map[string]any{
+			"run_dir":       stringSchema("batch run directory"),
+			"download":      boolSchema("download completed artifacts"),
+			"canvas":        boolSchema("write completed artifacts to the project canvas"),
+			"project_id":    stringSchema("optional project override"),
+			"download_dir":  stringSchema("artifact download directory"),
+			"detail":        detailSchema(),
+			"canvas_layout": stringSchema("canvas layout: frame or plain; defaults to frame"),
 		}, "run_dir"),
 	}
 }

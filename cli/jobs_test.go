@@ -17,8 +17,8 @@ func TestJobsRunAndResumeExposeUserCapabilityFlags(t *testing.T) {
 	}{
 		{
 			cmd:       newJobsRunCmd(),
-			allowed:   []string{"allow-paid", "max-total-credits", "download-dir", "project-id"},
-			forbidden: []string{"out-dir", "detail", "wait", "download", "canvas", "no-wait", "no-download", "no-canvas", "canvas-layout", "download-dir-template", "download-file-template", "timeout-seconds", "poll-interval", "cid", "retry-failed"},
+			allowed:   []string{"allow-paid", "max-total-credits", "download-dir", "project-id", "wait", "download", "canvas"},
+			forbidden: []string{"out-dir", "detail", "no-wait", "no-download", "no-canvas", "canvas-layout", "download-dir-template", "download-file-template", "timeout-seconds", "poll-interval", "cid", "retry-failed"},
 		},
 		{
 			cmd:       newJobsResumeCmd(),
@@ -36,6 +36,35 @@ func TestJobsRunAndResumeExposeUserCapabilityFlags(t *testing.T) {
 			if tc.cmd.Flags().Lookup(name) != nil {
 				t.Fatalf("%s command exposes internal --%s flag", tc.cmd.Name(), name)
 			}
+		}
+	}
+}
+
+func TestJobsRunPostprocessFlagsDefaultToAsync(t *testing.T) {
+	cmd := newJobsRunCmd()
+	for _, name := range []string{"wait", "download", "canvas"} {
+		flag := cmd.Flags().Lookup(name)
+		if flag == nil {
+			t.Fatalf("jobs run missing --%s", name)
+		}
+		if flag.DefValue != "false" {
+			t.Fatalf("jobs run --%s default = %q, want false", name, flag.DefValue)
+		}
+	}
+}
+
+func TestJobsFinalizeCommandSurface(t *testing.T) {
+	cmd := newJobsFinalizeCmd()
+	allowed := []string{"download", "canvas", "download-dir", "project-id", "detail", "canvas-layout"}
+	for _, name := range allowed {
+		if cmd.Flags().Lookup(name) == nil {
+			t.Fatalf("jobs finalize missing --%s flag", name)
+		}
+	}
+	forbidden := []string{"allow-paid", "max-total-credits", "retry-failed", "wait", "no-wait", "timeout-seconds", "poll-interval", "cid"}
+	for _, name := range forbidden {
+		if cmd.Flags().Lookup(name) != nil {
+			t.Fatalf("jobs finalize exposes internal --%s flag", name)
 		}
 	}
 }

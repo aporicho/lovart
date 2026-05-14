@@ -107,6 +107,27 @@ type TaskDownloadArgs struct {
 	Detail               string `json:"detail"`
 }
 
+// TaskStatusArgs configures lovart_task_status.
+type TaskStatusArgs struct {
+	TaskID string `json:"task_id"`
+	Detail string `json:"detail"`
+}
+
+// TaskWaitArgs configures lovart_task_wait.
+type TaskWaitArgs struct {
+	TaskID         string  `json:"task_id"`
+	Detail         string  `json:"detail"`
+	TimeoutSeconds float64 `json:"timeout_seconds"`
+	PollInterval   float64 `json:"poll_interval"`
+}
+
+// TaskCanvasArgs configures lovart_task_canvas.
+type TaskCanvasArgs struct {
+	TaskID    string `json:"task_id"`
+	ProjectID string `json:"project_id"`
+	Detail    string `json:"detail"`
+}
+
 // CanvasArtifactsArgs configures lovart_canvas_artifacts.
 type CanvasArtifactsArgs struct {
 	ProjectID string `json:"project_id"`
@@ -178,6 +199,17 @@ type JobsResumeArgs struct {
 	RetryFailed     bool    `json:"retry_failed"`
 }
 
+// JobsFinalizeArgs configures lovart_jobs_finalize.
+type JobsFinalizeArgs struct {
+	RunDir       string `json:"run_dir"`
+	Download     bool   `json:"download"`
+	Canvas       bool   `json:"canvas"`
+	ProjectID    string `json:"project_id"`
+	DownloadDir  string `json:"download_dir"`
+	Detail       string `json:"detail"`
+	CanvasLayout string `json:"canvas_layout"`
+}
+
 // Executor runs validated MCP tool calls.
 type Executor interface {
 	AuthStatus(ctx context.Context) envelope.Envelope
@@ -197,6 +229,9 @@ type Executor interface {
 	ProjectOpen(ctx context.Context, args ProjectOpenArgs) envelope.Envelope
 	ProjectRename(ctx context.Context, args ProjectRenameArgs) envelope.Envelope
 	ProjectDelete(ctx context.Context, args ProjectDeleteArgs) envelope.Envelope
+	TaskStatus(ctx context.Context, args TaskStatusArgs) envelope.Envelope
+	TaskWait(ctx context.Context, args TaskWaitArgs) envelope.Envelope
+	TaskCanvas(ctx context.Context, args TaskCanvasArgs) envelope.Envelope
 	TaskDownload(ctx context.Context, args TaskDownloadArgs) envelope.Envelope
 	CanvasArtifacts(ctx context.Context, args CanvasArtifactsArgs) envelope.Envelope
 	CanvasArtifact(ctx context.Context, args CanvasArtifactArgs) envelope.Envelope
@@ -206,6 +241,7 @@ type Executor interface {
 	JobsRun(ctx context.Context, args JobsRunArgs) envelope.Envelope
 	JobsStatus(ctx context.Context, args JobsStatusArgs) envelope.Envelope
 	JobsResume(ctx context.Context, args JobsResumeArgs) envelope.Envelope
+	JobsFinalize(ctx context.Context, args JobsFinalizeArgs) envelope.Envelope
 }
 
 func okLocal(data any, cacheUsed ...bool) envelope.Envelope {

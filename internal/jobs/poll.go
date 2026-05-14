@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/aporicho/lovart/internal/generation"
 )
 
 func waitActive(ctx context.Context, remote RemoteClient, state *RunState, opts JobsOptions) error {
@@ -59,12 +61,12 @@ func refreshActiveOnce(ctx context.Context, remote RemoteClient, state *RunState
 			}
 			request.Task = task
 			request.Artifacts = artifactDetails(task)
-			switch normalizeRemoteStatus(task) {
-			case StatusCompleted:
+			switch generation.NormalizeTaskStatus(task) {
+			case generation.TaskStatusCompleted:
 				request.Status = StatusCompleted
-			case StatusFailed:
+			case generation.TaskStatusFailed:
 				request.Status = StatusFailed
-				addRequestError(request, "task_failed", "remote Lovart task failed", map[string]any{"task": task})
+				addRemoteTaskFailure(request, task)
 			default:
 				request.Status = StatusRunning
 			}
@@ -87,18 +89,6 @@ func countActive(state *RunState) int {
 	return total
 }
 
-func normalizeRemoteStatus(task map[string]any) string {
-	status, _ := task["status"].(string)
-	switch status {
-	case "completed", "complete", "done", "finished", "success", "succeeded":
-		return StatusCompleted
-	case "failed", "failure", "error", "cancelled", "canceled", "rejected":
-		return StatusFailed
-	default:
-		return StatusRunning
-	}
-}
-
 func artifactDetails(task map[string]any) []map[string]any {
 	raw, _ := task["artifact_details"].([]map[string]any)
 	if raw != nil {
@@ -119,4 +109,19 @@ func artifactDetails(task map[string]any) []map[string]any {
 		out = append(out, map[string]any{"url": url})
 	}
 	return out
+}
+
+func addRemoteTaskFailure(request *RemoteRequest, task map[string]any) {
+	failure := generation.ClassifyTaskFailure(task)
+	code := "task_failed"
+	message := "remote Lovart task failed"
+	if failure != nil {
+		code = failure.Code
+		message = failure.Message
+	}
+	details := map[string]any{"task": generation.TaskView(task, "summary")}
+	if failure != nil {
+		details["failure"] = failure
+	}
+	addRequestError(request, code, message, details)
 }

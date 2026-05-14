@@ -126,6 +126,42 @@ func ResumeJobs(ctx context.Context, remote RemoteClient, runDir string, opts Jo
 	return Result(state, "resume", opts.Detail), nil
 }
 
+// FinalizeJobs downloads and/or writes already-completed batch artifacts.
+func FinalizeJobs(ctx context.Context, remote RemoteClient, runDir string, opts JobsOptions) (*BatchResult, error) {
+	state, err := LoadState(runDir)
+	if err != nil {
+		return nil, err
+	}
+	changed := false
+	if opts.ProjectID != "" && state.ProjectID == "" {
+		state.ProjectID = opts.ProjectID
+		changed = true
+	}
+	if opts.CID != "" && state.CID == "" {
+		state.CID = opts.CID
+		changed = true
+	}
+	if changed {
+		if err := SaveState(state); err != nil {
+			return nil, err
+		}
+	}
+	if opts.Download {
+		if err := downloadCompleted(ctx, state, opts); err != nil {
+			return nil, err
+		}
+	}
+	if opts.Canvas {
+		if remote == nil {
+			return nil, fmt.Errorf("jobs: canvas finalize requires remote client")
+		}
+		if err := canvasCompleted(ctx, remote, state, opts); err != nil {
+			return nil, err
+		}
+	}
+	return Result(state, "finalize", opts.Detail), nil
+}
+
 // StatusJobs returns saved state, optionally refreshing active task statuses.
 func StatusJobs(ctx context.Context, remote RemoteClient, runDir string, opts JobsOptions) (*BatchResult, error) {
 	state, err := LoadState(runDir)

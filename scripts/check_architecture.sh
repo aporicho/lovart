@@ -33,7 +33,7 @@ cmd_bad=0
 for f in $(find cmd/lovart -maxdepth 1 -name '*.go' -type f 2>/dev/null || true); do
     base=$(basename "$f")
     case "$base" in
-        main.go|mcp.go|selfmanage.go|selfmanage_test.go)
+        main.go|mcp.go|mcp_smoke_test.go|selfmanage.go|selfmanage_test.go)
             ;;
         *)
             fail "unexpected cmd/lovart source file: $f"

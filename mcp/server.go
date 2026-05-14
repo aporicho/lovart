@@ -10,6 +10,7 @@ import (
 
 	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/errors"
+	"github.com/aporicho/lovart/internal/jobs"
 	"github.com/aporicho/lovart/internal/version"
 )
 
@@ -198,6 +199,24 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 			return inputErr(fmt.Errorf("confirm_project_id must match project_id"))
 		}
 		return s.executor.ProjectDelete(ctx, ProjectDeleteArgs{ProjectID: projectID, ConfirmProjectID: confirmProjectID})
+	case "lovart_task_status":
+		statusArgs, err := parseTaskStatusArgs(args)
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.TaskStatus(ctx, statusArgs)
+	case "lovart_task_wait":
+		waitArgs, err := parseTaskWaitArgs(args)
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.TaskWait(ctx, waitArgs)
+	case "lovart_task_canvas":
+		canvasArgs, err := parseTaskCanvasArgs(args)
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.TaskCanvas(ctx, canvasArgs)
 	case "lovart_task_download":
 		downloadArgs, err := parseTaskDownloadArgs(args)
 		if err != nil {
@@ -253,6 +272,12 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 			return inputErr(err)
 		}
 		return s.executor.JobsResume(ctx, resumeArgs)
+	case "lovart_jobs_finalize":
+		finalizeArgs, err := parseJobsFinalizeArgs(args)
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.JobsFinalize(ctx, finalizeArgs)
 	default:
 		return envelope.Err(errors.CodeInputError, "unknown MCP tool", map[string]any{"tool": name})
 	}
@@ -272,6 +297,54 @@ func parseQuoteArgs(args map[string]any) (QuoteArgs, error) {
 		return QuoteArgs{}, err
 	}
 	return QuoteArgs{Model: model, Body: body, Mode: mode}, nil
+}
+
+func parseTaskStatusArgs(args map[string]any) (TaskStatusArgs, error) {
+	taskID, err := requiredString(args, "task_id")
+	if err != nil {
+		return TaskStatusArgs{}, err
+	}
+	detail, err := artifactDetailArg(args, "detail", "summary")
+	if err != nil {
+		return TaskStatusArgs{}, err
+	}
+	return TaskStatusArgs{TaskID: taskID, Detail: detail}, nil
+}
+
+func parseTaskWaitArgs(args map[string]any) (TaskWaitArgs, error) {
+	taskID, err := requiredString(args, "task_id")
+	if err != nil {
+		return TaskWaitArgs{}, err
+	}
+	detail, err := artifactDetailArg(args, "detail", "summary")
+	if err != nil {
+		return TaskWaitArgs{}, err
+	}
+	timeoutSeconds := numberArg(args, "timeout_seconds", MCPWaitTimeoutSeconds)
+	if timeoutSeconds <= 0 {
+		return TaskWaitArgs{}, fmt.Errorf("timeout_seconds must be positive")
+	}
+	pollInterval := numberArg(args, "poll_interval", 2)
+	if pollInterval <= 0 {
+		return TaskWaitArgs{}, fmt.Errorf("poll_interval must be positive")
+	}
+	return TaskWaitArgs{TaskID: taskID, Detail: detail, TimeoutSeconds: timeoutSeconds, PollInterval: pollInterval}, nil
+}
+
+func parseTaskCanvasArgs(args map[string]any) (TaskCanvasArgs, error) {
+	taskID, err := requiredString(args, "task_id")
+	if err != nil {
+		return TaskCanvasArgs{}, err
+	}
+	detail, err := artifactDetailArg(args, "detail", "summary")
+	if err != nil {
+		return TaskCanvasArgs{}, err
+	}
+	return TaskCanvasArgs{
+		TaskID:    taskID,
+		ProjectID: stringArg(args, "project_id", ""),
+		Detail:    detail,
+	}, nil
 }
 
 func parseTaskDownloadArgs(args map[string]any) (TaskDownloadArgs, error) {
@@ -352,18 +425,9 @@ func parseGenerateArgs(args map[string]any) (GenerateArgs, error) {
 	if err != nil {
 		return GenerateArgs{}, err
 	}
-	wait := boolArg(args, "wait", true)
-	download := boolArg(args, "download", true)
-	canvas := boolArg(args, "canvas", true)
-	if rawWait, ok := args["wait"].(bool); ok && !rawWait {
-		if _, ok := args["download"]; !ok {
-			download = false
-		}
-		if _, ok := args["canvas"]; !ok {
-			canvas = false
-		}
-		wait = false
-	}
+	wait := boolArg(args, "wait", false)
+	download := boolArg(args, "download", false)
+	canvas := boolArg(args, "canvas", false)
 	return GenerateArgs{
 		Model:                model,
 		Body:                 body,
@@ -422,6 +486,33 @@ func parseJobsResumeArgs(args map[string]any) (JobsResumeArgs, error) {
 		DownloadDir:     stringArg(args, "download_dir", ""),
 		RetryFailed:     boolArg(args, "retry_failed", false),
 	}, nil
+}
+
+func parseJobsFinalizeArgs(args map[string]any) (JobsFinalizeArgs, error) {
+	runDir, err := requiredString(args, "run_dir")
+	if err != nil {
+		return JobsFinalizeArgs{}, err
+	}
+	detail, err := detailArg(args, "detail", "summary")
+	if err != nil {
+		return JobsFinalizeArgs{}, err
+	}
+	parsed := JobsFinalizeArgs{
+		RunDir:       runDir,
+		Download:     boolArg(args, "download", false),
+		Canvas:       boolArg(args, "canvas", false),
+		ProjectID:    stringArg(args, "project_id", ""),
+		DownloadDir:  stringArg(args, "download_dir", ""),
+		Detail:       detail,
+		CanvasLayout: stringArg(args, "canvas_layout", jobs.CanvasLayoutFrame),
+	}
+	if !parsed.Download && !parsed.Canvas {
+		return JobsFinalizeArgs{}, fmt.Errorf("choose at least one finalization action: download or canvas")
+	}
+	if parsed.CanvasLayout != jobs.CanvasLayoutFrame && parsed.CanvasLayout != jobs.CanvasLayoutPlain {
+		return JobsFinalizeArgs{}, fmt.Errorf("canvas_layout must be one of %s, %s", jobs.CanvasLayoutFrame, jobs.CanvasLayoutPlain)
+	}
+	return parsed, nil
 }
 
 func requiredString(args map[string]any, key string) (string, error) {

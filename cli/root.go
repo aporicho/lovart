@@ -33,6 +33,7 @@ func NewRootCommand() *cobra.Command {
 		newQuoteCmd(),
 		newBalanceCmd(),
 		newGenerateCmd(),
+		newTaskCmd(),
 		newDownloadCmd(),
 		newJobsCmd(),
 		newCleanCmd(),

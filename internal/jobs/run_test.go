@@ -164,6 +164,40 @@ func TestStatusJobsRefreshesActiveTasks(t *testing.T) {
 	}
 }
 
+func TestStatusJobsClassifiesContentPolicyFailures(t *testing.T) {
+	setupRuntimeSchema(t)
+	dir := t.TempDir()
+	path := filepath.Join(dir, "jobs.jsonl")
+	if err := os.WriteFile(path, []byte(`{"job_id":"a","model":"openai/gpt-image-2","body":{"prompt":"test"}}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	opts := JobsOptions{AllowPaid: true, MaxTotalCredits: 10, ProjectID: "project", CID: "cid"}
+	state, validation, err := PrepareRun(path, opts)
+	if err != nil || validation != nil {
+		t.Fatalf("PrepareRun validation=%v err=%v", validation, err)
+	}
+	remote := &fakeRemote{price: 0}
+	if _, err := RunPreparedJobs(context.Background(), remote, state, opts); err != nil {
+		t.Fatal(err)
+	}
+	remote.taskStatus = "rejected"
+	remote.taskExtra = map[string]any{
+		"error_code": "moderation_failed",
+		"error_msg":  "内容审核不通过",
+	}
+	result, err := StatusJobs(context.Background(), remote, state.RunDir, JobsOptions{Refresh: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Summary.RemoteStatusCounts[StatusFailed] != 1 || len(result.Failed) != 1 {
+		t.Fatalf("status result=%#v", result)
+	}
+	lastError := result.Failed[0].LastError
+	if lastError == nil || lastError.Code != generation.FailureTypeContentPolicyRejected {
+		t.Fatalf("last error=%#v", lastError)
+	}
+}
+
 func TestRunPreparedJobsDownloadsArtifactsByFields(t *testing.T) {
 	setupRuntimeSchema(t)
 	png, err := base64.StdEncoding.DecodeString("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=")
@@ -380,6 +414,7 @@ type fakeRemote struct {
 	canvasBatchSections int
 	canvasSectionImages []int
 	canvasSectionTitles []string
+	taskExtra           map[string]any
 	submittedOutputs    map[string]int
 	quotedBodies        []map[string]any
 	submittedBodies     []map[string]any
@@ -421,11 +456,15 @@ func (f *fakeRemote) FetchTask(ctx context.Context, taskID string) (map[string]a
 			"url": fmt.Sprintf("%s?i=%d", artifactURL, i+1),
 		})
 	}
-	return map[string]any{
+	task := map[string]any{
 		"task_id":          taskID,
 		"status":           status,
 		"artifact_details": artifacts,
-	}, nil
+	}
+	for key, value := range f.taskExtra {
+		task[key] = value
+	}
+	return task, nil
 }
 
 func (f *fakeRemote) AddToCanvas(ctx context.Context, projectID, cid string, images []project.CanvasImage) error {
