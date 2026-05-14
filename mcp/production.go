@@ -386,6 +386,35 @@ func (ProductionExecutor) TaskStatus(ctx context.Context, args TaskStatusArgs) e
 	return okPreflight(generation.TaskView(task, args.Detail))
 }
 
+// TaskList lists active remote generation tasks.
+func (ProductionExecutor) TaskList(ctx context.Context, args TaskListArgs) envelope.Envelope {
+	if !args.Active {
+		return envelope.Err(errors.CodeInputError, "only active task listing is supported", map[string]any{"active": args.Active})
+	}
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	result, err := generation.ListRunningTasks(ctx, client)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "list active tasks", map[string]any{"error": err.Error()})
+	}
+	return okPreflight(result)
+}
+
+// TaskCancel cancels active remote generation tasks.
+func (ProductionExecutor) TaskCancel(ctx context.Context, args TaskCancelArgs) envelope.Envelope {
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	result, err := generation.CancelRunningTasks(ctx, client, args.TaskIDs)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "cancel active tasks", map[string]any{"error": err.Error(), "task_ids": args.TaskIDs})
+	}
+	return okSubmit(result, true)
+}
+
 // TaskWait waits for one remote generation task to reach a terminal status.
 func (ProductionExecutor) TaskWait(ctx context.Context, args TaskWaitArgs) envelope.Envelope {
 	client, err := newSignedClient(ctx)
@@ -670,6 +699,9 @@ func (ProductionExecutor) JobsRun(ctx context.Context, args JobsRunArgs) envelop
 	opts.MaxTotalCredits = args.MaxTotalCredits
 	opts.ProjectID = args.ProjectID
 	opts.DownloadDir = args.DownloadDir
+	opts.SubmitIntervalSeconds = args.SubmitIntervalSeconds
+	opts.SubmitLimit = args.SubmitLimit
+	opts.MaxActiveTasks = args.MaxActiveTasks
 	applyProjectContext(&opts)
 	state, validationErr, err := jobs.PrepareRun(args.JobsFile, opts)
 	if err != nil {
@@ -728,6 +760,9 @@ func (ProductionExecutor) JobsResume(ctx context.Context, args JobsResumeArgs) e
 	opts.MaxTotalCredits = args.MaxTotalCredits
 	opts.DownloadDir = args.DownloadDir
 	opts.RetryFailed = args.RetryFailed
+	opts.SubmitIntervalSeconds = args.SubmitIntervalSeconds
+	opts.SubmitLimit = args.SubmitLimit
+	opts.MaxActiveTasks = args.MaxActiveTasks
 	applyProjectContext(&opts)
 	remote, env := newJobsRemote(ctx)
 	if env != nil {
@@ -781,13 +816,15 @@ func (ProductionExecutor) JobsFinalize(ctx context.Context, args JobsFinalizeArg
 
 func defaultMCPBatchOptions() jobs.JobsOptions {
 	return jobs.JobsOptions{
-		Wait:           false,
-		Download:       false,
-		Canvas:         false,
-		CanvasLayout:   jobs.CanvasLayoutFrame,
-		TimeoutSeconds: MCPWaitTimeoutSeconds,
-		PollInterval:   5,
-		Detail:         "summary",
+		Wait:                  false,
+		Download:              false,
+		Canvas:                false,
+		CanvasLayout:          jobs.CanvasLayoutFrame,
+		TimeoutSeconds:        MCPWaitTimeoutSeconds,
+		PollInterval:          5,
+		SubmitIntervalSeconds: 2,
+		MaxActiveTasks:        10,
+		Detail:                "summary",
 	}
 }
 

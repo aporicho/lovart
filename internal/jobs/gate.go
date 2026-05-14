@@ -51,7 +51,7 @@ func evaluateGate(state *RunState, opts JobsOptions, statuses map[string]bool) *
 			if request.Status == StatusFailed {
 				gate.FailedRequestIDs = append(gate.FailedRequestIDs, request.RequestID)
 			}
-			if len(request.Errors) > 0 {
+			if hasBlockingRequestErrors(request) {
 				gate.BlockingRequestIDs = append(gate.BlockingRequestIDs, request.RequestID)
 			}
 		}
@@ -77,6 +77,15 @@ func evaluateGate(state *RunState, opts JobsOptions, statuses map[string]bool) *
 		gate.RecommendedActions = append(gate.RecommendedActions, fmt.Sprintf("increase `--max-total-credits` to at least %.0f or reduce the batch", gate.TotalCredits))
 	}
 	return gate
+}
+
+func hasBlockingRequestErrors(request RemoteRequest) bool {
+	for _, err := range request.Errors {
+		if err.Code != "submission_deferred" {
+			return true
+		}
+	}
+	return false
 }
 
 func gateErrorCode(gate *BatchGate) string {

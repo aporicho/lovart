@@ -27,18 +27,19 @@ const (
 
 // RunState persists all local batch execution state.
 type RunState struct {
-	Version      int        `json:"version"`
-	JobsFile     string     `json:"jobs_file"`
-	JobsFileHash string     `json:"jobs_file_hash"`
-	RunDir       string     `json:"run_dir"`
-	StateFile    string     `json:"state_file"`
-	ProjectID    string     `json:"project_id,omitempty"`
-	CID          string     `json:"cid,omitempty"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
-	BatchGate    *BatchGate `json:"batch_gate,omitempty"`
-	TimedOut     bool       `json:"timed_out,omitempty"`
-	Jobs         []JobState `json:"jobs"`
+	Version        int                `json:"version"`
+	JobsFile       string             `json:"jobs_file"`
+	JobsFileHash   string             `json:"jobs_file_hash"`
+	RunDir         string             `json:"run_dir"`
+	StateFile      string             `json:"state_file"`
+	ProjectID      string             `json:"project_id,omitempty"`
+	CID            string             `json:"cid,omitempty"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+	BatchGate      *BatchGate         `json:"batch_gate,omitempty"`
+	LastSubmission *SubmissionSummary `json:"last_submission,omitempty"`
+	TimedOut       bool               `json:"timed_out,omitempty"`
+	Jobs           []JobState         `json:"jobs"`
 }
 
 // JobState records one logical user job and all concrete remote requests.
@@ -98,6 +99,7 @@ type BatchResult struct {
 	StateFile          string                 `json:"state_file"`
 	Summary            BatchSummary           `json:"summary"`
 	BatchGate          *BatchGate             `json:"batch_gate,omitempty"`
+	Submission         *SubmissionSummary     `json:"submission,omitempty"`
 	TimedOut           bool                   `json:"timed_out,omitempty"`
 	TaskCount          int                    `json:"task_count"`
 	TaskSampleLimit    int                    `json:"task_sample_limit,omitempty"`
@@ -108,6 +110,23 @@ type BatchResult struct {
 	Failed             []RequestSummary       `json:"failed,omitempty"`
 	Jobs               []JobState             `json:"jobs,omitempty"`
 	RecommendedActions []string               `json:"recommended_actions,omitempty"`
+}
+
+// SubmissionSummary describes the most recent batch submit pass.
+type SubmissionSummary struct {
+	AttemptedCount        int     `json:"attempted_count"`
+	SubmittedCount        int     `json:"submitted_count"`
+	FailedCount           int     `json:"failed_count,omitempty"`
+	Deferred              bool    `json:"deferred,omitempty"`
+	DeferredCount         int     `json:"deferred_count,omitempty"`
+	DeferredReason        string  `json:"deferred_reason,omitempty"`
+	DeferredRequestID     string  `json:"deferred_request_id,omitempty"`
+	RemainingPending      int     `json:"remaining_pending"`
+	SubmitIntervalSeconds float64 `json:"submit_interval_seconds,omitempty"`
+	SubmitLimit           int     `json:"submit_limit,omitempty"`
+	MaxActiveTasks        int     `json:"max_active_tasks,omitempty"`
+	ActiveTaskCount       int     `json:"active_task_count,omitempty"`
+	NextAction            string  `json:"next_action,omitempty"`
 }
 
 // BatchSummary is a compact state summary.

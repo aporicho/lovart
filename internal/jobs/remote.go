@@ -14,6 +14,7 @@ type RemoteClient interface {
 	Quote(ctx context.Context, model string, body map[string]any, mode string) (*pricing.QuoteResult, error)
 	Submit(ctx context.Context, model string, body map[string]any, opts generation.Options) (*generation.SubmitResult, error)
 	FetchTask(ctx context.Context, taskID string) (map[string]any, error)
+	ListRunningTasks(ctx context.Context) (*generation.TaskPoolResult, error)
 	AddToCanvas(ctx context.Context, projectID, cid string, images []project.CanvasImage) error
 	AddBatchToCanvas(ctx context.Context, projectID, cid string, batch project.CanvasBatch) error
 }
@@ -37,6 +38,10 @@ func (c *httpRemoteClient) Submit(ctx context.Context, model string, body map[st
 
 func (c *httpRemoteClient) FetchTask(ctx context.Context, taskID string) (map[string]any, error) {
 	return generation.FetchTask(ctx, c.client, taskID)
+}
+
+func (c *httpRemoteClient) ListRunningTasks(ctx context.Context) (*generation.TaskPoolResult, error) {
+	return generation.ListRunningTasks(ctx, c.client)
 }
 
 func (c *httpRemoteClient) AddToCanvas(ctx context.Context, projectID, cid string, images []project.CanvasImage) error {

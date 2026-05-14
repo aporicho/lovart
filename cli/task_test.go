@@ -4,6 +4,17 @@ import "testing"
 
 func TestTaskStatusCommandSurface(t *testing.T) {
 	cmd := newTaskCmd()
+	list, _, err := cmd.Find([]string{"list"})
+	if err != nil {
+		t.Fatalf("task list missing: %v", err)
+	}
+	if list.Flags().Lookup("active") == nil {
+		t.Fatalf("task list missing --active")
+	}
+	if got, want := list.Use, "list"; got != want {
+		t.Fatalf("task list use = %q, want %q", got, want)
+	}
+
 	status, _, err := cmd.Find([]string{"status"})
 	if err != nil {
 		t.Fatalf("task status missing: %v", err)
@@ -39,5 +50,16 @@ func TestTaskStatusCommandSurface(t *testing.T) {
 	}
 	if got, want := canvas.Use, "canvas <task_id>"; got != want {
 		t.Fatalf("task canvas use = %q, want %q", got, want)
+	}
+
+	cancel, _, err := cmd.Find([]string{"cancel"})
+	if err != nil {
+		t.Fatalf("task cancel missing: %v", err)
+	}
+	if cancel.Flags().Lookup("yes") == nil {
+		t.Fatalf("task cancel missing --yes")
+	}
+	if got, want := cancel.Use, "cancel <task_id...>"; got != want {
+		t.Fatalf("task cancel use = %q, want %q", got, want)
 	}
 }

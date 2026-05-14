@@ -199,6 +199,18 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 			return inputErr(fmt.Errorf("confirm_project_id must match project_id"))
 		}
 		return s.executor.ProjectDelete(ctx, ProjectDeleteArgs{ProjectID: projectID, ConfirmProjectID: confirmProjectID})
+	case "lovart_task_list":
+		listArgs, err := parseTaskListArgs(args)
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.TaskList(ctx, listArgs)
+	case "lovart_task_cancel":
+		cancelArgs, err := parseTaskCancelArgs(args)
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.TaskCancel(ctx, cancelArgs)
 	case "lovart_task_status":
 		statusArgs, err := parseTaskStatusArgs(args)
 		if err != nil {
@@ -367,6 +379,18 @@ func parseTaskDownloadArgs(args map[string]any) (TaskDownloadArgs, error) {
 	}, nil
 }
 
+func parseTaskListArgs(args map[string]any) (TaskListArgs, error) {
+	return TaskListArgs{Active: boolArg(args, "active", true)}, nil
+}
+
+func parseTaskCancelArgs(args map[string]any) (TaskCancelArgs, error) {
+	taskIDs, err := requiredStringSlice(args, "task_ids")
+	if err != nil {
+		return TaskCancelArgs{}, err
+	}
+	return TaskCancelArgs{TaskIDs: taskIDs}, nil
+}
+
 func parseCanvasArtifactsArgs(args map[string]any) (CanvasArtifactsArgs, error) {
 	detail, err := artifactDetailArg(args, "detail", "summary")
 	if err != nil {
@@ -450,11 +474,14 @@ func parseJobsRunArgs(args map[string]any) (JobsRunArgs, error) {
 		return JobsRunArgs{}, err
 	}
 	return JobsRunArgs{
-		JobsFile:        jobsFile,
-		AllowPaid:       boolArg(args, "allow_paid", false),
-		MaxTotalCredits: numberArg(args, "max_total_credits", 0),
-		ProjectID:       stringArg(args, "project_id", ""),
-		DownloadDir:     stringArg(args, "download_dir", ""),
+		JobsFile:              jobsFile,
+		AllowPaid:             boolArg(args, "allow_paid", false),
+		MaxTotalCredits:       numberArg(args, "max_total_credits", 0),
+		ProjectID:             stringArg(args, "project_id", ""),
+		DownloadDir:           stringArg(args, "download_dir", ""),
+		SubmitIntervalSeconds: numberArg(args, "submit_interval_seconds", 2),
+		SubmitLimit:           intArg(args, "submit_limit", 0),
+		MaxActiveTasks:        intArg(args, "max_active_tasks", 10),
 	}, nil
 }
 
@@ -480,11 +507,14 @@ func parseJobsResumeArgs(args map[string]any) (JobsResumeArgs, error) {
 		return JobsResumeArgs{}, err
 	}
 	return JobsResumeArgs{
-		RunDir:          runDir,
-		AllowPaid:       boolArg(args, "allow_paid", false),
-		MaxTotalCredits: numberArg(args, "max_total_credits", 0),
-		DownloadDir:     stringArg(args, "download_dir", ""),
-		RetryFailed:     boolArg(args, "retry_failed", false),
+		RunDir:                runDir,
+		AllowPaid:             boolArg(args, "allow_paid", false),
+		MaxTotalCredits:       numberArg(args, "max_total_credits", 0),
+		DownloadDir:           stringArg(args, "download_dir", ""),
+		RetryFailed:           boolArg(args, "retry_failed", false),
+		SubmitIntervalSeconds: numberArg(args, "submit_interval_seconds", 2),
+		SubmitLimit:           intArg(args, "submit_limit", 0),
+		MaxActiveTasks:        intArg(args, "max_active_tasks", 10),
 	}, nil
 }
 
@@ -533,6 +563,38 @@ func requiredBody(args map[string]any) (map[string]any, error) {
 		return nil, fmt.Errorf("body must be an object")
 	}
 	return body, nil
+}
+
+func requiredStringSlice(args map[string]any, key string) ([]string, error) {
+	raw, ok := args[key]
+	if !ok || raw == nil {
+		return nil, fmt.Errorf("%s is required", key)
+	}
+	values, ok := raw.([]any)
+	if !ok {
+		if typed, ok := raw.([]string); ok {
+			values = make([]any, 0, len(typed))
+			for _, value := range typed {
+				values = append(values, value)
+			}
+		} else {
+			return nil, fmt.Errorf("%s must be an array of strings", key)
+		}
+	}
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		text, ok := value.(string)
+		if !ok {
+			return nil, fmt.Errorf("%s must be an array of strings", key)
+		}
+		if text != "" {
+			out = append(out, text)
+		}
+	}
+	if len(out) == 0 {
+		return nil, fmt.Errorf("%s must contain at least one task id", key)
+	}
+	return out, nil
 }
 
 func stringArg(args map[string]any, key string, fallback string) string {

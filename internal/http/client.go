@@ -31,6 +31,14 @@ func NewClient(creds *auth.Credentials, signer signing.Signer) *Client {
 	}
 }
 
+// UserUUID returns the Lovart browser webid used by task-pool APIs.
+func (c *Client) UserUUID() string {
+	if c == nil || c.creds == nil {
+		return ""
+	}
+	return c.creds.WebID
+}
+
 // SetSigner replaces the signer used by this client.
 func (c *Client) SetSigner(s signing.Signer) {
 	c.signer = s

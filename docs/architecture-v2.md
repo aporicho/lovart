@@ -227,10 +227,12 @@ lovart project admin rename <id> <name>
 lovart project admin delete <id>
 lovart quote <model> --body-file <file> [--mode auto|fast|relax]
 lovart generate <model> (--body-file <file>|--prompt <text>) [--project-id <id>] [--mode auto|fast|relax] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]
+lovart task list --active
+lovart task cancel <task_id...> --yes
 lovart download task <task_id> [--index N]
 lovart download canvas [project_id] (--artifact-id ID|--index N|--task-id TASK_ID|--all)
-lovart jobs run <jobs.jsonl> [--project-id <id>] [--allow-paid --max-total-credits N] [--download-dir <dir>]
-lovart jobs resume <run_dir> [--allow-paid --max-total-credits N] [--download-dir <dir>] [--retry-failed]
+lovart jobs run <jobs.jsonl> [--project-id <id>] [--allow-paid --max-total-credits N] [--download-dir <dir>] [--submit-interval-seconds N] [--submit-limit N] [--max-active-tasks N]
+lovart jobs resume <run_dir> [--allow-paid --max-total-credits N] [--download-dir <dir>] [--retry-failed] [--submit-interval-seconds N] [--submit-limit N] [--max-active-tasks N]
 lovart jobs status <run_dir> [--refresh] [--detail summary|requests|full]
 lovart update check
 lovart update diff
@@ -248,7 +250,7 @@ lovart dev auth-login [--timeout-seconds N] [--debug-port N]
 `lovart update sync` refreshes runtime signer and generator metadata. `lovart upgrade` updates the installed CLI binary and, by default, the Lovart Connector extension files.
 `lovart mcp smoke` starts the local MCP server through stdio and runs an agent-style contract and preflight check. It never submits generation by default; real submission requires `--submit --allow-paid --max-credits N`.
 
-## MCP Tools (26)
+## MCP Tools (32)
 
 ```
 lovart_auth_status, lovart_auth_login,
@@ -258,12 +260,13 @@ lovart_balance,
 lovart_project_current, lovart_project_list, lovart_project_create,
 lovart_project_select, lovart_project_show, lovart_project_open,
 lovart_project_rename, lovart_project_delete,
-lovart_task_download,
+lovart_task_list, lovart_task_cancel,
+lovart_task_status, lovart_task_wait, lovart_task_canvas, lovart_task_download,
 lovart_canvas_artifacts, lovart_canvas_artifact, lovart_canvas_download,
 lovart_quote,
 lovart_generate,
 lovart_jobs_run, lovart_jobs_status,
-lovart_jobs_resume
+lovart_jobs_resume, lovart_jobs_finalize
 ```
 
 ## Chrome Extension Flow

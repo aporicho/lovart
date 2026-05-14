@@ -58,6 +58,15 @@ func TestClientPrefersCookieAuthHints(t *testing.T) {
 	}
 }
 
+func TestClientUserUUIDComesFromCookieWebID(t *testing.T) {
+	client := NewClient(&auth.Credentials{
+		Cookie: "foo=bar; usertoken=cookie-token; webid=web-123",
+	}, nil)
+	if got := client.UserUUID(); got != "web-123" {
+		t.Fatalf("UserUUID = %q, want cookie webid", got)
+	}
+}
+
 func TestSyncTimeUnauthorizedHasActionableError(t *testing.T) {
 	client := NewClient(&auth.Credentials{Cookie: "foo=bar", Token: "token"}, nil)
 	client.http = &nethttp.Client{Transport: roundTripFunc(func(req *nethttp.Request) (*nethttp.Response, error) {

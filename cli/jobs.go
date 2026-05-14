@@ -191,13 +191,15 @@ func newJobsFinalizeCmd() *cobra.Command {
 
 func defaultBatchOptions() jobs.JobsOptions {
 	return jobs.JobsOptions{
-		Wait:           false,
-		Download:       false,
-		Canvas:         false,
-		CanvasLayout:   jobs.CanvasLayoutFrame,
-		TimeoutSeconds: 3600,
-		PollInterval:   5,
-		Detail:         "summary",
+		Wait:                  false,
+		Download:              false,
+		Canvas:                false,
+		CanvasLayout:          jobs.CanvasLayoutFrame,
+		TimeoutSeconds:        3600,
+		PollInterval:          5,
+		SubmitIntervalSeconds: 2,
+		MaxActiveTasks:        10,
+		Detail:                "summary",
 	}
 }
 
@@ -208,6 +210,7 @@ func addJobsGateFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 
 func addJobsRunFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 	addJobsGateFlags(cmd, opts)
+	addJobsSubmitFlags(cmd, opts)
 	cmd.Flags().BoolVar(&opts.Wait, "wait", false, "wait for task completion")
 	cmd.Flags().BoolVar(&opts.Download, "download", false, "download artifacts after completion")
 	cmd.Flags().BoolVar(&opts.Canvas, "canvas", false, "write completed artifacts to the project canvas")
@@ -217,7 +220,14 @@ func addJobsRunFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 
 func addJobsResumeFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 	addJobsGateFlags(cmd, opts)
+	addJobsSubmitFlags(cmd, opts)
 	cmd.Flags().StringVar(&opts.DownloadDir, "download-dir", "", "directory for downloaded artifacts")
+}
+
+func addJobsSubmitFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
+	cmd.Flags().Float64Var(&opts.SubmitIntervalSeconds, "submit-interval-seconds", opts.SubmitIntervalSeconds, "seconds to wait between batch task submissions")
+	cmd.Flags().IntVar(&opts.SubmitLimit, "submit-limit", 0, "maximum submit attempts in this command invocation; 0 means unlimited")
+	cmd.Flags().IntVar(&opts.MaxActiveTasks, "max-active-tasks", opts.MaxActiveTasks, "maximum active Lovart tasks allowed before deferring; 0 disables this gate")
 }
 
 func newJobsRemote() (jobs.RemoteClient, bool) {

@@ -20,9 +20,39 @@ func newTaskCmd() *cobra.Command {
 			return cmd.Help()
 		},
 	}
+	cmd.AddCommand(newTaskListCmd())
 	cmd.AddCommand(newTaskStatusCmd())
 	cmd.AddCommand(newTaskWaitCmd())
 	cmd.AddCommand(newTaskCanvasCmd())
+	cmd.AddCommand(newTaskCancelCmd())
+	return cmd
+}
+
+func newTaskListCmd() *cobra.Command {
+	var active bool
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List active generation tasks",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !active {
+				printEnvelope(envelope.Err(errors.CodeInputError, "only active task listing is supported", map[string]any{"active": active}))
+				return nil
+			}
+			client, err := newSignedClient()
+			if err != nil {
+				printEnvelope(envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()}))
+				return nil
+			}
+			result, err := generation.ListRunningTasks(context.Background(), client)
+			if err != nil {
+				printEnvelope(envelope.Err(errors.CodeInternal, "list active tasks", map[string]any{"error": err.Error()}))
+				return nil
+			}
+			printEnvelope(okPreflight(result))
+			return nil
+		},
+	}
+	cmd.Flags().BoolVar(&active, "active", true, "list active running tasks")
 	return cmd
 }
 
@@ -187,6 +217,40 @@ func newTaskCanvasCmd() *cobra.Command {
 	}
 	cmd.Flags().StringVar(&projectID, "project-id", "", "target project ID (defaults to current project context)")
 	cmd.Flags().StringVar(&detail, "detail", "summary", "output detail: summary, full")
+	return cmd
+}
+
+func newTaskCancelCmd() *cobra.Command {
+	var yes bool
+	cmd := &cobra.Command{
+		Use:   "cancel <task_id...>",
+		Short: "Cancel active generation tasks",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !yes {
+				printEnvelope(envelope.Err(errors.CodeInputError, "refusing to cancel tasks without --yes", map[string]any{
+					"task_ids": args,
+					"recommended_actions": []string{
+						"rerun with --yes to cancel these active tasks",
+					},
+				}))
+				return nil
+			}
+			client, err := newSignedClient()
+			if err != nil {
+				printEnvelope(envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()}))
+				return nil
+			}
+			result, err := generation.CancelRunningTasks(context.Background(), client, args)
+			if err != nil {
+				printEnvelope(envelope.Err(errors.CodeInternal, "cancel active tasks", map[string]any{"error": err.Error(), "task_ids": args}))
+				return nil
+			}
+			printEnvelope(okSubmit(result, true))
+			return nil
+		},
+	}
+	cmd.Flags().BoolVar(&yes, "yes", false, "confirm active task cancellation")
 	return cmd
 }
 

@@ -31,6 +31,17 @@ func boolSchema(description string) map[string]any {
 	return schema
 }
 
+func stringArraySchema(description string) map[string]any {
+	schema := map[string]any{
+		"type":  "array",
+		"items": map[string]any{"type": "string"},
+	}
+	if description != "" {
+		schema["description"] = description
+	}
+	return schema
+}
+
 func detailSchema() map[string]any {
 	return map[string]any{"type": "string", "enum": []string{"summary", "requests", "full"}}
 }
@@ -110,6 +121,12 @@ func Tools() []Tool {
 			"project_id":         stringSchema("Lovart project id"),
 			"confirm_project_id": stringSchema("must exactly match project_id"),
 		}, "project_id", "confirm_project_id"),
+		tool("lovart_task_list", "List active Lovart generation tasks currently occupying the account's task pool.", map[string]any{
+			"active": boolSchema("list active running tasks; defaults to true"),
+		}),
+		tool("lovart_task_cancel", "Cancel active Lovart generation tasks by task id. Use only when the user explicitly wants tasks stopped.", map[string]any{
+			"task_ids": stringArraySchema("Lovart generation task ids to cancel"),
+		}, "task_ids"),
 		tool("lovart_task_status", "Read the status of one Lovart generation task. Failed remote tasks return ok=true with data.failure.", map[string]any{
 			"task_id": stringSchema("Lovart generation task id"),
 			"detail":  artifactDetailSchema(),
@@ -178,11 +195,14 @@ func Tools() []Tool {
 			"download_file_template": stringSchema("download filename template"),
 		}, "model", "body"),
 		tool("lovart_jobs_run", "Submit a batch generation from a user-level jobs JSONL file and return the run directory for status polling.", map[string]any{
-			"jobs_file":         stringSchema("path to jobs.jsonl"),
-			"allow_paid":        boolSchema("allow paid batch generation"),
-			"max_total_credits": numberSchema("maximum total credits allowed when allow_paid=true"),
-			"project_id":        stringSchema("optional project override"),
-			"download_dir":      stringSchema("artifact download directory"),
+			"jobs_file":               stringSchema("path to jobs.jsonl"),
+			"allow_paid":              boolSchema("allow paid batch generation"),
+			"max_total_credits":       numberSchema("maximum total credits allowed when allow_paid=true"),
+			"project_id":              stringSchema("optional project override"),
+			"download_dir":            stringSchema("artifact download directory"),
+			"submit_interval_seconds": numberSchema("seconds to wait between batch task submissions; defaults to 2"),
+			"submit_limit":            numberSchema("maximum submit attempts in this MCP call; 0 means unlimited"),
+			"max_active_tasks":        numberSchema("maximum active Lovart tasks allowed before deferring; defaults to 10, 0 disables"),
 		}, "jobs_file"),
 		tool("lovart_jobs_status", "Read local batch run state.", map[string]any{
 			"run_dir": stringSchema("batch run directory"),
@@ -190,11 +210,14 @@ func Tools() []Tool {
 			"refresh": boolSchema("refresh active remote task statuses"),
 		}, "run_dir"),
 		tool("lovart_jobs_resume", "Resume an interrupted batch without resubmitting existing task IDs.", map[string]any{
-			"run_dir":           stringSchema("batch run directory"),
-			"allow_paid":        boolSchema("allow paid batch generation"),
-			"max_total_credits": numberSchema("maximum total credits allowed when allow_paid=true"),
-			"download_dir":      stringSchema("artifact download directory"),
-			"retry_failed":      boolSchema("retry failed requests that were never submitted"),
+			"run_dir":                 stringSchema("batch run directory"),
+			"allow_paid":              boolSchema("allow paid batch generation"),
+			"max_total_credits":       numberSchema("maximum total credits allowed when allow_paid=true"),
+			"download_dir":            stringSchema("artifact download directory"),
+			"retry_failed":            boolSchema("retry failed requests that were never submitted"),
+			"submit_interval_seconds": numberSchema("seconds to wait between batch task submissions; defaults to 2"),
+			"submit_limit":            numberSchema("maximum submit attempts in this MCP call; 0 means unlimited"),
+			"max_active_tasks":        numberSchema("maximum active Lovart tasks allowed before deferring; defaults to 10, 0 disables"),
 		}, "run_dir"),
 		tool("lovart_jobs_finalize", "Download and/or write completed batch artifacts without resubmitting jobs.", map[string]any{
 			"run_dir":       stringSchema("batch run directory"),

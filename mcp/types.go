@@ -107,6 +107,16 @@ type TaskDownloadArgs struct {
 	Detail               string `json:"detail"`
 }
 
+// TaskListArgs configures lovart_task_list.
+type TaskListArgs struct {
+	Active bool `json:"active"`
+}
+
+// TaskCancelArgs configures lovart_task_cancel.
+type TaskCancelArgs struct {
+	TaskIDs []string `json:"task_ids"`
+}
+
 // TaskStatusArgs configures lovart_task_status.
 type TaskStatusArgs struct {
 	TaskID string `json:"task_id"`
@@ -176,11 +186,14 @@ type GenerateArgs struct {
 
 // JobsRunArgs configures lovart_jobs_run.
 type JobsRunArgs struct {
-	JobsFile        string  `json:"jobs_file"`
-	AllowPaid       bool    `json:"allow_paid"`
-	MaxTotalCredits float64 `json:"max_total_credits"`
-	ProjectID       string  `json:"project_id"`
-	DownloadDir     string  `json:"download_dir"`
+	JobsFile              string  `json:"jobs_file"`
+	AllowPaid             bool    `json:"allow_paid"`
+	MaxTotalCredits       float64 `json:"max_total_credits"`
+	ProjectID             string  `json:"project_id"`
+	DownloadDir           string  `json:"download_dir"`
+	SubmitIntervalSeconds float64 `json:"submit_interval_seconds"`
+	SubmitLimit           int     `json:"submit_limit"`
+	MaxActiveTasks        int     `json:"max_active_tasks"`
 }
 
 // JobsStatusArgs configures lovart_jobs_status.
@@ -192,11 +205,14 @@ type JobsStatusArgs struct {
 
 // JobsResumeArgs configures lovart_jobs_resume.
 type JobsResumeArgs struct {
-	RunDir          string  `json:"run_dir"`
-	AllowPaid       bool    `json:"allow_paid"`
-	MaxTotalCredits float64 `json:"max_total_credits"`
-	DownloadDir     string  `json:"download_dir"`
-	RetryFailed     bool    `json:"retry_failed"`
+	RunDir                string  `json:"run_dir"`
+	AllowPaid             bool    `json:"allow_paid"`
+	MaxTotalCredits       float64 `json:"max_total_credits"`
+	DownloadDir           string  `json:"download_dir"`
+	RetryFailed           bool    `json:"retry_failed"`
+	SubmitIntervalSeconds float64 `json:"submit_interval_seconds"`
+	SubmitLimit           int     `json:"submit_limit"`
+	MaxActiveTasks        int     `json:"max_active_tasks"`
 }
 
 // JobsFinalizeArgs configures lovart_jobs_finalize.
@@ -230,6 +246,8 @@ type Executor interface {
 	ProjectRename(ctx context.Context, args ProjectRenameArgs) envelope.Envelope
 	ProjectDelete(ctx context.Context, args ProjectDeleteArgs) envelope.Envelope
 	TaskStatus(ctx context.Context, args TaskStatusArgs) envelope.Envelope
+	TaskList(ctx context.Context, args TaskListArgs) envelope.Envelope
+	TaskCancel(ctx context.Context, args TaskCancelArgs) envelope.Envelope
 	TaskWait(ctx context.Context, args TaskWaitArgs) envelope.Envelope
 	TaskCanvas(ctx context.Context, args TaskCanvasArgs) envelope.Envelope
 	TaskDownload(ctx context.Context, args TaskDownloadArgs) envelope.Envelope

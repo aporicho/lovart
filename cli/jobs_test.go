@@ -17,12 +17,12 @@ func TestJobsRunAndResumeExposeUserCapabilityFlags(t *testing.T) {
 	}{
 		{
 			cmd:       newJobsRunCmd(),
-			allowed:   []string{"allow-paid", "max-total-credits", "download-dir", "project-id", "wait", "download", "canvas"},
+			allowed:   []string{"allow-paid", "max-total-credits", "download-dir", "project-id", "submit-interval-seconds", "submit-limit", "max-active-tasks", "wait", "download", "canvas"},
 			forbidden: []string{"out-dir", "detail", "no-wait", "no-download", "no-canvas", "canvas-layout", "download-dir-template", "download-file-template", "timeout-seconds", "poll-interval", "cid", "retry-failed"},
 		},
 		{
 			cmd:       newJobsResumeCmd(),
-			allowed:   []string{"allow-paid", "max-total-credits", "download-dir", "retry-failed"},
+			allowed:   []string{"allow-paid", "max-total-credits", "download-dir", "retry-failed", "submit-interval-seconds", "submit-limit", "max-active-tasks"},
 			forbidden: []string{"out-dir", "detail", "wait", "download", "canvas", "no-wait", "no-download", "no-canvas", "canvas-layout", "download-dir-template", "download-file-template", "timeout-seconds", "poll-interval", "project-id", "cid"},
 		},
 	}
@@ -49,6 +49,23 @@ func TestJobsRunPostprocessFlagsDefaultToAsync(t *testing.T) {
 		}
 		if flag.DefValue != "false" {
 			t.Fatalf("jobs run --%s default = %q, want false", name, flag.DefValue)
+		}
+	}
+}
+
+func TestJobsRunAndResumeDefaultSubmitPacing(t *testing.T) {
+	for _, cmd := range []*cobra.Command{newJobsRunCmd(), newJobsResumeCmd()} {
+		interval := cmd.Flags().Lookup("submit-interval-seconds")
+		limit := cmd.Flags().Lookup("submit-limit")
+		maxActive := cmd.Flags().Lookup("max-active-tasks")
+		if interval == nil || interval.DefValue != "2" {
+			t.Fatalf("%s submit interval flag = %#v", cmd.Name(), interval)
+		}
+		if limit == nil || limit.DefValue != "0" {
+			t.Fatalf("%s submit limit flag = %#v", cmd.Name(), limit)
+		}
+		if maxActive == nil || maxActive.DefValue != "10" {
+			t.Fatalf("%s max active flag = %#v", cmd.Name(), maxActive)
 		}
 	}
 }

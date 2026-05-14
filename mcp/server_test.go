@@ -23,6 +23,8 @@ type fakeExecutor struct {
 	projectOpen      ProjectOpenArgs
 	projectRename    ProjectRenameArgs
 	projectDelete    ProjectDeleteArgs
+	taskList         TaskListArgs
+	taskCancel       TaskCancelArgs
 	taskStatus       TaskStatusArgs
 	taskWait         TaskWaitArgs
 	taskCanvas       TaskCanvasArgs
@@ -120,6 +122,16 @@ func (f *fakeExecutor) TaskStatus(ctx context.Context, args TaskStatusArgs) enve
 	return okPreflight(map[string]any{"operation": "task_status", "task_id": args.TaskID})
 }
 
+func (f *fakeExecutor) TaskList(ctx context.Context, args TaskListArgs) envelope.Envelope {
+	f.taskList = args
+	return okPreflight(map[string]any{"operation": "task_list", "active": args.Active})
+}
+
+func (f *fakeExecutor) TaskCancel(ctx context.Context, args TaskCancelArgs) envelope.Envelope {
+	f.taskCancel = args
+	return okSubmit(map[string]any{"operation": "task_cancel", "task_ids": args.TaskIDs}, true)
+}
+
 func (f *fakeExecutor) TaskWait(ctx context.Context, args TaskWaitArgs) envelope.Envelope {
 	f.taskWait = args
 	return okPreflight(map[string]any{"operation": "task_wait", "task_id": args.TaskID})
@@ -203,8 +215,8 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 		t.Fatalf("tools/list failed: %#v", listResp)
 	}
 	tools := listResp.Result.(map[string]any)["tools"].([]Tool)
-	if len(tools) != 30 {
-		t.Fatalf("expected 30 tools, got %d", len(tools))
+	if len(tools) != 32 {
+		t.Fatalf("expected 32 tools, got %d", len(tools))
 	}
 	for _, tool := range tools {
 		if tool.Name == "lovart_project_repair_canvas" {
@@ -440,7 +452,27 @@ func TestDownloadToolsParseArgs(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 
-	env := server.CallTool(context.Background(), "lovart_task_status", map[string]any{
+	env := server.CallTool(context.Background(), "lovart_task_list", map[string]any{
+		"active": true,
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if !executor.taskList.Active {
+		t.Fatalf("task list args = %#v", executor.taskList)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_task_cancel", map[string]any{
+		"task_ids": []any{"task-a", "task-b"},
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if len(executor.taskCancel.TaskIDs) != 2 || executor.taskCancel.TaskIDs[0] != "task-a" || executor.taskCancel.TaskIDs[1] != "task-b" {
+		t.Fatalf("task cancel args = %#v", executor.taskCancel)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_task_status", map[string]any{
 		"task_id": "task-123",
 		"detail":  "full",
 	})
@@ -698,16 +730,19 @@ func TestJobsRunArgsExposeUserSurface(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_jobs_run", map[string]any{
-		"jobs_file":         "runs/x/jobs.jsonl",
-		"allow_paid":        true,
-		"max_total_credits": 12.0,
-		"project_id":        "proj_123",
-		"download_dir":      "runs/x/images",
+		"jobs_file":               "runs/x/jobs.jsonl",
+		"allow_paid":              true,
+		"max_total_credits":       12.0,
+		"project_id":              "proj_123",
+		"download_dir":            "runs/x/images",
+		"submit_interval_seconds": 1.5,
+		"submit_limit":            7.0,
+		"max_active_tasks":        9.0,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.jobsRun.JobsFile != "runs/x/jobs.jsonl" || !executor.jobsRun.AllowPaid || executor.jobsRun.MaxTotalCredits != 12 || executor.jobsRun.ProjectID != "proj_123" || executor.jobsRun.DownloadDir != "runs/x/images" {
+	if executor.jobsRun.JobsFile != "runs/x/jobs.jsonl" || !executor.jobsRun.AllowPaid || executor.jobsRun.MaxTotalCredits != 12 || executor.jobsRun.ProjectID != "proj_123" || executor.jobsRun.DownloadDir != "runs/x/images" || executor.jobsRun.SubmitIntervalSeconds != 1.5 || executor.jobsRun.SubmitLimit != 7 || executor.jobsRun.MaxActiveTasks != 9 {
 		t.Fatalf("jobs run args = %#v", executor.jobsRun)
 	}
 }
@@ -731,7 +766,7 @@ func TestDefaultMCPBatchOptionsCompleteAndShortWait(t *testing.T) {
 	if opts.Wait || opts.Download || opts.Canvas {
 		t.Fatalf("batch postprocess defaults = %#v", opts)
 	}
-	if opts.CanvasLayout != "frame" || opts.TimeoutSeconds != MCPWaitTimeoutSeconds || opts.PollInterval != 5 || opts.Detail != "summary" {
+	if opts.CanvasLayout != "frame" || opts.TimeoutSeconds != MCPWaitTimeoutSeconds || opts.PollInterval != 5 || opts.SubmitIntervalSeconds != 2 || opts.MaxActiveTasks != 10 || opts.Detail != "summary" {
 		t.Fatalf("batch execution defaults = %#v", opts)
 	}
 }
@@ -740,16 +775,19 @@ func TestJobsResumeArgsExposeUserSurface(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_jobs_resume", map[string]any{
-		"run_dir":           "runs/x",
-		"allow_paid":        true,
-		"max_total_credits": 24.0,
-		"download_dir":      "runs/x/images",
-		"retry_failed":      true,
+		"run_dir":                 "runs/x",
+		"allow_paid":              true,
+		"max_total_credits":       24.0,
+		"download_dir":            "runs/x/images",
+		"retry_failed":            true,
+		"submit_interval_seconds": 3.0,
+		"submit_limit":            5.0,
+		"max_active_tasks":        8.0,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.jobsResume.RunDir != "runs/x" || !executor.jobsResume.AllowPaid || executor.jobsResume.MaxTotalCredits != 24 || executor.jobsResume.DownloadDir != "runs/x/images" || !executor.jobsResume.RetryFailed {
+	if executor.jobsResume.RunDir != "runs/x" || !executor.jobsResume.AllowPaid || executor.jobsResume.MaxTotalCredits != 24 || executor.jobsResume.DownloadDir != "runs/x/images" || !executor.jobsResume.RetryFailed || executor.jobsResume.SubmitIntervalSeconds != 3 || executor.jobsResume.SubmitLimit != 5 || executor.jobsResume.MaxActiveTasks != 8 {
 		t.Fatalf("jobs resume args = %#v", executor.jobsResume)
 	}
 }

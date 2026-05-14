@@ -21,6 +21,7 @@ func Result(state *RunState, operation string, detail string) *BatchResult {
 		StateFile:          state.StateFile,
 		Summary:            summary,
 		BatchGate:          state.BatchGate,
+		Submission:         state.LastSubmission,
 		TimedOut:           state.TimedOut,
 		TaskCount:          countTasks(requests),
 		TaskSampleLimit:    taskSampleLimit,
