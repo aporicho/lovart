@@ -163,7 +163,7 @@ func Tools() []Tool {
 			"body":  map[string]any{"type": "object"},
 			"mode":  modeSchema(),
 		}, "model", "body"),
-		tool("lovart_generate", "Submit a single generation request after the normal paid/zero-credit gate. Defaults to asynchronous submission; use lovart_task_status to poll task_id.", map[string]any{
+		tool("lovart_generate", "Submit a single generation request after the normal paid/zero-credit gate. Defaults to asynchronous submission; use lovart_task_wait for the normal flow.", map[string]any{
 			"model":                  stringSchema("Lovart generator model name"),
 			"body":                   map[string]any{"type": "object"},
 			"mode":                   modeSchema(),
