@@ -198,10 +198,6 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 			return inputErr(fmt.Errorf("confirm_project_id must match project_id"))
 		}
 		return s.executor.ProjectDelete(ctx, ProjectDeleteArgs{ProjectID: projectID, ConfirmProjectID: confirmProjectID})
-	case "lovart_project_repair_canvas":
-		return s.executor.ProjectRepairCanvas(ctx, ProjectRepairCanvasArgs{
-			ProjectID: stringArg(args, "project_id", ""),
-		})
 	case "lovart_quote":
 		quoteArgs, err := parseQuoteArgs(args)
 		if err != nil {

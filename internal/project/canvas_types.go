@@ -27,16 +27,17 @@ type CanvasBatch struct {
 
 // CanvasLayoutOptions controls how generated sections are placed on the canvas.
 type CanvasLayoutOptions struct {
-	Columns      int
-	Gap          int
-	Padding      int
-	TitleHeight  int
-	FrameGap     int
+	Columns     int
+	Gap         int
+	Padding     int
+	TitleHeight int
+	FrameGap    int
+	// ImageMaxSide optionally scales displayed images; zero preserves original artifact dimensions.
 	ImageMaxSide int
 }
 
-// CanvasRepairResult reports canvas normalization changes.
-type CanvasRepairResult struct {
+// canvasNormalizeResult reports canvas normalization changes.
+type canvasNormalizeResult struct {
 	Changed                   bool     `json:"changed"`
 	PicCount                  int      `json:"pic_count"`
 	CoverList                 []string `json:"cover_list,omitempty"`

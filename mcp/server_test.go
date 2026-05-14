@@ -13,21 +13,20 @@ import (
 )
 
 type fakeExecutor struct {
-	authLogin           AuthLoginArgs
-	extensionStatus     ExtensionStatusArgs
-	extensionInstall    ExtensionInstallArgs
-	extensionOpen       ExtensionOpenArgs
-	projectCreate       ProjectCreateArgs
-	projectSelect       ProjectSelectArgs
-	projectShow         ProjectShowArgs
-	projectOpen         ProjectOpenArgs
-	projectRename       ProjectRenameArgs
-	projectDelete       ProjectDeleteArgs
-	projectRepairCanvas ProjectRepairCanvasArgs
-	generate            GenerateArgs
-	jobsRun             JobsRunArgs
-	jobsStatus          JobsStatusArgs
-	jobsResume          JobsResumeArgs
+	authLogin        AuthLoginArgs
+	extensionStatus  ExtensionStatusArgs
+	extensionInstall ExtensionInstallArgs
+	extensionOpen    ExtensionOpenArgs
+	projectCreate    ProjectCreateArgs
+	projectSelect    ProjectSelectArgs
+	projectShow      ProjectShowArgs
+	projectOpen      ProjectOpenArgs
+	projectRename    ProjectRenameArgs
+	projectDelete    ProjectDeleteArgs
+	generate         GenerateArgs
+	jobsRun          JobsRunArgs
+	jobsStatus       JobsStatusArgs
+	jobsResume       JobsResumeArgs
 }
 
 func (f *fakeExecutor) AuthStatus(ctx context.Context) envelope.Envelope {
@@ -108,11 +107,6 @@ func (f *fakeExecutor) ProjectDelete(ctx context.Context, args ProjectDeleteArgs
 	return okSubmit(map[string]any{"operation": "project_delete", "project_id": args.ProjectID}, true)
 }
 
-func (f *fakeExecutor) ProjectRepairCanvas(ctx context.Context, args ProjectRepairCanvasArgs) envelope.Envelope {
-	f.projectRepairCanvas = args
-	return okSubmit(map[string]any{"operation": "project_repair_canvas", "project_id": args.ProjectID}, true)
-}
-
 func (f *fakeExecutor) Quote(ctx context.Context, args QuoteArgs) envelope.Envelope {
 	return okPreflight(map[string]any{"operation": "quote"})
 }
@@ -161,10 +155,13 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 		t.Fatalf("tools/list failed: %#v", listResp)
 	}
 	tools := listResp.Result.(map[string]any)["tools"].([]Tool)
-	if len(tools) != 23 {
-		t.Fatalf("expected 23 tools, got %d", len(tools))
+	if len(tools) != 22 {
+		t.Fatalf("expected 22 tools, got %d", len(tools))
 	}
 	for _, tool := range tools {
+		if tool.Name == "lovart_project_repair_canvas" {
+			t.Fatalf("removed repair canvas tool is still exposed")
+		}
 		if tool.Name == "lovart_update_sync" || tool.Name == "lovart_auth_extract" || tool.Name == "lovart_auth_import" || tool.Name == "lovart_generate_dry_run" || tool.Name == "lovart_jobs_quote" || tool.Name == "lovart_jobs_dry_run" {
 			t.Fatalf("unsafe tool exposed: %s", tool.Name)
 		}
@@ -339,11 +336,8 @@ func TestProjectShowOpenRepairAcceptOptionalProjectID(t *testing.T) {
 	}
 
 	env = server.CallTool(context.Background(), "lovart_project_repair_canvas", map[string]any{"project_id": "proj_456"})
-	if !env.OK {
-		t.Fatalf("unexpected envelope: %#v", env)
-	}
-	if executor.projectRepairCanvas.ProjectID != "proj_456" {
-		t.Fatalf("project repair args = %#v", executor.projectRepairCanvas)
+	if env.OK {
+		t.Fatalf("removed repair tool unexpectedly succeeded: %#v", env)
 	}
 }
 

@@ -96,11 +96,6 @@ type ProjectDeleteArgs struct {
 	ConfirmProjectID string `json:"confirm_project_id"`
 }
 
-// ProjectRepairCanvasArgs configures lovart_project_repair_canvas.
-type ProjectRepairCanvasArgs struct {
-	ProjectID string `json:"project_id"`
-}
-
 // GenerateArgs configures single generation tools.
 type GenerateArgs struct {
 	Model                string         `json:"model"`
@@ -161,7 +156,6 @@ type Executor interface {
 	ProjectOpen(ctx context.Context, args ProjectOpenArgs) envelope.Envelope
 	ProjectRename(ctx context.Context, args ProjectRenameArgs) envelope.Envelope
 	ProjectDelete(ctx context.Context, args ProjectDeleteArgs) envelope.Envelope
-	ProjectRepairCanvas(ctx context.Context, args ProjectRepairCanvasArgs) envelope.Envelope
 	Quote(ctx context.Context, args QuoteArgs) envelope.Envelope
 	Generate(ctx context.Context, args GenerateArgs) envelope.Envelope
 	JobsRun(ctx context.Context, args JobsRunArgs) envelope.Envelope

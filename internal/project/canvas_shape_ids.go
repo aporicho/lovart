@@ -18,7 +18,7 @@ type canvasShapeIDFieldFix struct {
 	value string
 }
 
-func ensureCanvasShapeIDs(jsonStr string, result *CanvasRepairResult) (string, error) {
+func ensureCanvasShapeIDs(jsonStr string, result *canvasNormalizeResult) (string, error) {
 	store := gjson.Get(jsonStr, canvasStorePath)
 	if !store.Exists() {
 		return jsonStr, nil

@@ -78,7 +78,7 @@ func TestAddBatchToCanvasJSONCreatesFrameSection(t *testing.T) {
 	}
 }
 
-func TestAddBatchToCanvasJSONWrapsAndScalesLargeImages(t *testing.T) {
+func TestAddBatchToCanvasJSONPreservesOriginalImageDimensionsByDefault(t *testing.T) {
 	mutated, err := addBatchToCanvasJSON("", CanvasBatch{Sections: []CanvasSection{{
 		ID:    "large",
 		Title: "Large",
@@ -90,6 +90,46 @@ func TestAddBatchToCanvasJSONWrapsAndScalesLargeImages(t *testing.T) {
 			{TaskID: "task-large", URL: "https://new/5.png", Width: 4096, Height: 2048},
 		},
 	}}})
+	if err != nil {
+		t.Fatalf("addBatchToCanvasJSON returned error: %v", err)
+	}
+
+	store := decodeStore(t, mutated.JSON)
+	frame := findShapeByType(t, store, "frame")
+	frameID := frame["id"].(string)
+	frameProps := frame["props"].(map[string]any)
+	if int(frameProps["w"].(float64)) != 16884 || int(frameProps["h"].(float64)) != 4596 {
+		t.Fatalf("frame size = %vx%v, want 16884x4596", frameProps["w"], frameProps["h"])
+	}
+
+	fifth := findImageByURL(t, store, "https://new/5.png")
+	if fifth["parentId"] != frameID {
+		t.Fatalf("fifth parentId = %v, want %s", fifth["parentId"], frameID)
+	}
+	if int(fifth["x"].(float64)) != 100 || int(fifth["y"].(float64)) != 2448 {
+		t.Fatalf("fifth position = (%v,%v), want (100,2448)", fifth["x"], fifth["y"])
+	}
+	props := fifth["props"].(map[string]any)
+	if int(props["w"].(float64)) != 4096 || int(props["h"].(float64)) != 2048 {
+		t.Fatalf("fifth size = %vx%v, want 4096x2048", props["w"], props["h"])
+	}
+}
+
+func TestAddBatchToCanvasJSONScalesLargeImagesWhenMaxSideConfigured(t *testing.T) {
+	mutated, err := addBatchToCanvasJSON("", CanvasBatch{
+		Options: CanvasLayoutOptions{ImageMaxSide: 1024},
+		Sections: []CanvasSection{{
+			ID:    "large",
+			Title: "Large",
+			Images: []CanvasImage{
+				{TaskID: "task-large", URL: "https://new/1.png", Width: 4096, Height: 2048},
+				{TaskID: "task-large", URL: "https://new/2.png", Width: 4096, Height: 2048},
+				{TaskID: "task-large", URL: "https://new/3.png", Width: 4096, Height: 2048},
+				{TaskID: "task-large", URL: "https://new/4.png", Width: 4096, Height: 2048},
+				{TaskID: "task-large", URL: "https://new/5.png", Width: 4096, Height: 2048},
+			},
+		}},
+	})
 	if err != nil {
 		t.Fatalf("addBatchToCanvasJSON returned error: %v", err)
 	}

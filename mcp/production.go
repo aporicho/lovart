@@ -355,26 +355,6 @@ func (ProductionExecutor) ProjectDelete(ctx context.Context, args ProjectDeleteA
 	}, true)
 }
 
-// ProjectRepairCanvas repairs the selected or provided project's canvas.
-func (ProductionExecutor) ProjectRepairCanvas(ctx context.Context, args ProjectRepairCanvasArgs) envelope.Envelope {
-	projectID, cid, env := projectIDAndOptionalCID(args.ProjectID)
-	if env != nil {
-		return *env
-	}
-	client, err := newSignedClient(ctx)
-	if err != nil {
-		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
-	}
-	result, err := project.RepairCanvas(ctx, client, projectID, cid)
-	if err != nil {
-		return envelope.Err(errors.CodeInternal, "repair canvas", map[string]any{"error": err.Error()})
-	}
-	return okSubmit(map[string]any{
-		"project_id": projectID,
-		"repair":     result,
-	}, result != nil && result.Changed)
-}
-
 // Quote fetches live pricing for a single request.
 func (ProductionExecutor) Quote(ctx context.Context, args QuoteArgs) envelope.Envelope {
 	if validation := registry.ValidateRequest(args.Model, args.Body); !validation.OK {

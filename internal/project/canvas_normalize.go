@@ -17,41 +17,41 @@ type canvasShapeOrder struct {
 	y     float64
 }
 
-func normalizeCanvasJSON(jsonStr string) (*canvasMutation, CanvasRepairResult, error) {
-	result := CanvasRepairResult{}
+func normalizeCanvasJSON(jsonStr string) (*canvasMutation, canvasNormalizeResult, error) {
+	result := canvasNormalizeResult{}
 	if strings.TrimSpace(jsonStr) == "" {
 		jsonStr = defaultCanvasJSON()
 		result.Changed = true
 	}
 	if !json.Valid([]byte(jsonStr)) {
-		return nil, CanvasRepairResult{}, fmt.Errorf("invalid canvas JSON")
+		return nil, canvasNormalizeResult{}, fmt.Errorf("invalid canvas JSON")
 	}
 
 	var err error
 	jsonStr, err = ensureCanvasStore(jsonStr)
 	if err != nil {
-		return nil, CanvasRepairResult{}, err
+		return nil, canvasNormalizeResult{}, err
 	}
 
 	jsonStr, err = ensureBaseCanvasRecords(jsonStr, &result)
 	if err != nil {
-		return nil, CanvasRepairResult{}, err
+		return nil, canvasNormalizeResult{}, err
 	}
 	jsonStr, err = ensureCanvasSchemaSequences(jsonStr, &result)
 	if err != nil {
-		return nil, CanvasRepairResult{}, err
+		return nil, canvasNormalizeResult{}, err
 	}
 	jsonStr, err = ensureCanvasShapeIDs(jsonStr, &result)
 	if err != nil {
-		return nil, CanvasRepairResult{}, err
+		return nil, canvasNormalizeResult{}, err
 	}
 	jsonStr, err = normalizeCanvasTextNodes(jsonStr, &result)
 	if err != nil {
-		return nil, CanvasRepairResult{}, err
+		return nil, canvasNormalizeResult{}, err
 	}
 	jsonStr, err = normalizeCanvasIndexes(jsonStr, &result)
 	if err != nil {
-		return nil, CanvasRepairResult{}, err
+		return nil, canvasNormalizeResult{}, err
 	}
 
 	mutated := &canvasMutation{
@@ -64,7 +64,7 @@ func normalizeCanvasJSON(jsonStr string) (*canvasMutation, CanvasRepairResult, e
 	return mutated, result, nil
 }
 
-func ensureBaseCanvasRecords(jsonStr string, result *CanvasRepairResult) (string, error) {
+func ensureBaseCanvasRecords(jsonStr string, result *canvasNormalizeResult) (string, error) {
 	defaultStore := gjson.Get(defaultCanvasJSON(), canvasStorePath)
 	for _, key := range []string{"document:document", "page:page"} {
 		if gjson.Get(jsonStr, canvasStorePath+"."+key).Exists() {
@@ -100,7 +100,7 @@ func ensureBaseCanvasRecords(jsonStr string, result *CanvasRepairResult) (string
 	return jsonStr, nil
 }
 
-func normalizeCanvasTextNodes(jsonStr string, result *CanvasRepairResult) (string, error) {
+func normalizeCanvasTextNodes(jsonStr string, result *canvasNormalizeResult) (string, error) {
 	store := gjson.Get(jsonStr, canvasStorePath)
 	var textIDs []string
 	store.ForEach(func(key, value gjson.Result) bool {
@@ -168,7 +168,7 @@ func normalizeRichTextValue(value any) bool {
 	return changed
 }
 
-func normalizeCanvasIndexes(jsonStr string, result *CanvasRepairResult) (string, error) {
+func normalizeCanvasIndexes(jsonStr string, result *canvasNormalizeResult) (string, error) {
 	groups := map[string][]canvasShapeOrder{}
 	store := gjson.Get(jsonStr, canvasStorePath)
 	store.ForEach(func(key, value gjson.Result) bool {
@@ -269,13 +269,11 @@ func canvasIndexForPosition(position int) string {
 	if position <= 0 {
 		position = 1
 	}
-	const prefixAlphabet = "abcdefghijklmnopqrstuvwxyz"
-	const suffixAlphabet = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	position--
-	prefix := position / len(suffixAlphabet)
-	suffix := position % len(suffixAlphabet)
-	if prefix >= len(prefixAlphabet) {
-		return fmt.Sprintf("zz%06d", prefix-len(prefixAlphabet)+1)
+	prefix := position / len(canvasIndexSuffixAlphabet)
+	suffix := position % len(canvasIndexSuffixAlphabet)
+	if prefix >= len(canvasIndexPrefixAlphabet) {
+		return fmt.Sprintf("zz%06d", prefix-len(canvasIndexPrefixAlphabet)+1)
 	}
-	return string([]byte{prefixAlphabet[prefix], suffixAlphabet[suffix]})
+	return string([]byte{canvasIndexPrefixAlphabet[prefix], canvasIndexSuffixAlphabet[suffix]})
 }

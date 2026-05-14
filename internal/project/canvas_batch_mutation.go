@@ -11,12 +11,11 @@ import (
 )
 
 const (
-	defaultCanvasColumns      = 4
-	defaultCanvasGap          = 100
-	defaultCanvasPadding      = 100
-	defaultCanvasTitleHeight  = 200
-	defaultCanvasFrameGap     = 240
-	defaultCanvasImageMaxSide = 1024
+	defaultCanvasColumns     = 4
+	defaultCanvasGap         = 100
+	defaultCanvasPadding     = 100
+	defaultCanvasTitleHeight = 200
+	defaultCanvasFrameGap    = 240
 )
 
 func addBatchToCanvasJSON(jsonStr string, batch CanvasBatch) (*canvasMutation, error) {
@@ -147,9 +146,6 @@ func normalizeCanvasLayoutOptions(options CanvasLayoutOptions) CanvasLayoutOptio
 	if options.FrameGap <= 0 {
 		options.FrameGap = defaultCanvasFrameGap
 	}
-	if options.ImageMaxSide <= 0 {
-		options.ImageMaxSide = defaultCanvasImageMaxSide
-	}
 	return options
 }
 
@@ -207,11 +203,14 @@ func computeSectionLayout(section CanvasSection, options CanvasLayoutOptions) se
 func displayImageSize(img CanvasImage, maxSide int) (int, int) {
 	w := img.Width
 	if w <= 0 {
-		w = maxSide
+		w = 1024
 	}
 	h := img.Height
 	if h <= 0 {
-		h = maxSide
+		h = 1024
+	}
+	if maxSide <= 0 {
+		return w, h
 	}
 	longSide := w
 	if h > longSide {

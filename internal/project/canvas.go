@@ -17,6 +17,7 @@ func AddToCanvas(ctx context.Context, client *http.Client, projectID, cid string
 	if err != nil {
 		return fmt.Errorf("canvas: query: %w", err)
 	}
+	originalCanvas := *fullCanvas
 
 	jsonStr, err := decodeCanvasJSON(fullCanvas.Canvas)
 	if err != nil {
@@ -44,7 +45,7 @@ func AddToCanvas(ctx context.Context, client *http.Client, projectID, cid string
 		fullCanvas.Name = "Untitled"
 	}
 
-	if err := saveCanvas(ctx, client, projectID, cid, fullCanvas); err != nil {
+	if _, err := saveCanvasWithBackup(ctx, client, projectID, cid, &originalCanvas, fullCanvas); err != nil {
 		return fmt.Errorf("canvas: save: %w", err)
 	}
 

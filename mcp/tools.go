@@ -106,9 +106,6 @@ func Tools() []Tool {
 			"project_id":         stringSchema("Lovart project id"),
 			"confirm_project_id": stringSchema("must exactly match project_id"),
 		}, "project_id", "confirm_project_id"),
-		tool("lovart_project_repair_canvas", "Normalize and repair a Lovart project canvas; defaults to the selected project.", map[string]any{
-			"project_id": stringSchema("optional Lovart project id"),
-		}),
 		tool("lovart_quote", "Fetch an exact Lovart credit quote for a model request.", map[string]any{
 			"model": stringSchema("Lovart generator model name"),
 			"body":  map[string]any{"type": "object"},

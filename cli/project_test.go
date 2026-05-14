@@ -12,7 +12,7 @@ func TestProjectCommandMovesAdvancedActionsUnderAdmin(t *testing.T) {
 	if cmd.Commands() == nil {
 		t.Fatalf("project command has no subcommands")
 	}
-	for _, name := range []string{"rename", "delete", "repair-canvas"} {
+	for _, name := range []string{"rename", "delete"} {
 		if found, _, err := cmd.Find([]string{name}); err == nil && found != cmd {
 			t.Fatalf("project command exposes advanced action at top level: %s", found.CommandPath())
 		}
@@ -22,6 +22,15 @@ func TestProjectCommandMovesAdvancedActionsUnderAdmin(t *testing.T) {
 		}
 		if got, want := found.CommandPath(), "project admin "+name; got != want {
 			t.Fatalf("advanced command path = %q, want %q", got, want)
+		}
+	}
+	admin, _, err := cmd.Find([]string{"admin"})
+	if err != nil {
+		t.Fatalf("project admin missing: %v", err)
+	}
+	for _, child := range admin.Commands() {
+		if child.Name() == "repair-canvas" {
+			t.Fatalf("project admin exposes removed repair command: %s", child.CommandPath())
 		}
 	}
 }
@@ -47,11 +56,5 @@ func TestProjectCurrentDoesNotExposeCID(t *testing.T) {
 		if strings.Contains(output, forbidden) {
 			t.Fatalf("project current exposed %s: %s", forbidden, output)
 		}
-	}
-}
-
-func TestProjectRepairCanvasDoesNotExposeCIDFlag(t *testing.T) {
-	if newProjectRepairCanvasCmd().Flags().Lookup("cid") != nil {
-		t.Fatalf("repair-canvas exposes --cid")
 	}
 }

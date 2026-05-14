@@ -52,15 +52,7 @@ func saveCanvas(ctx context.Context, client *http.Client, projectID, cid string,
 		}
 	}
 
-	body := map[string]any{
-		"canvas":           cs.Canvas,
-		"projectId":        projectID,
-		"projectName":      cs.Name,
-		"picCount":         cs.PicCount,
-		"version":          cs.Version,
-		"sessionId":        sessionID,
-		"projectCoverList": cover,
-	}
+	body := saveCanvasBody(projectID, cid, sessionID, cs, cover)
 
 	var resp struct {
 		Code int `json:"code"`
@@ -72,4 +64,31 @@ func saveCanvas(ctx context.Context, client *http.Client, projectID, cid string,
 		return fmt.Errorf("canvas: save project returned code %d", resp.Code)
 	}
 	return nil
+}
+
+func saveCanvasBody(projectID, cid, sessionID string, cs *canvasState, cover []string) map[string]any {
+	body := map[string]any{
+		"canvas":           cs.Canvas,
+		"projectId":        projectID,
+		"projectName":      cs.Name,
+		"picCount":         cs.PicCount,
+		"version":          cs.Version,
+		"sessionId":        sessionID,
+		"projectCoverList": cover,
+	}
+	if cid != "" {
+		body["cid"] = cid
+	}
+	return body
+}
+
+func saveCanvasWithBackup(ctx context.Context, client *http.Client, projectID, cid string, original, updated *canvasState) (string, error) {
+	backupPath, err := backupCanvasBeforeWrite(projectID, original)
+	if err != nil {
+		return "", err
+	}
+	if err := saveCanvas(ctx, client, projectID, cid, updated); err != nil {
+		return backupPath, fmt.Errorf("%w (backup: %s)", err, backupPath)
+	}
+	return backupPath, nil
 }

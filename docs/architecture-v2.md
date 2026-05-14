@@ -223,7 +223,6 @@ lovart project show [id]
 lovart project open [id]
 lovart project admin rename <id> <name>
 lovart project admin delete <id>
-lovart project admin repair-canvas [id]
 lovart quote <model> --body-file <file> [--mode auto|fast|relax]
 lovart generate <model> (--body-file <file>|--prompt <text>) [--project-id <id>] [--mode auto|fast|relax] [--allow-paid] [--no-wait] [--no-download] [--no-canvas]
 lovart jobs run <jobs.jsonl> [--project-id <id>] [--allow-paid --max-total-credits N] [--download-dir <dir>]
@@ -245,15 +244,16 @@ lovart dev auth-login [--timeout-seconds N] [--debug-port N]
 `lovart update sync` refreshes runtime signer and generator metadata. `lovart upgrade` updates the installed CLI binary and, by default, the Lovart Connector extension files.
 `lovart mcp smoke` starts the local MCP server through stdio and runs an agent-style contract and preflight check. It never submits generation by default; real submission requires `--submit --allow-paid --max-credits N`.
 
-## MCP Tools (19)
+## MCP Tools (22)
 
 ```
-lovart_auth_status,
+lovart_auth_status, lovart_auth_login,
+lovart_extension_status, lovart_extension_install, lovart_extension_open,
 lovart_setup, lovart_models, lovart_config,
 lovart_balance,
 lovart_project_current, lovart_project_list, lovart_project_create,
 lovart_project_select, lovart_project_show, lovart_project_open,
-lovart_project_rename, lovart_project_delete, lovart_project_repair_canvas,
+lovart_project_rename, lovart_project_delete,
 lovart_quote,
 lovart_generate,
 lovart_jobs_run, lovart_jobs_status,

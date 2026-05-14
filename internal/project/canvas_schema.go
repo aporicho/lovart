@@ -58,7 +58,7 @@ func lovartCanvasSchemaSequences() map[string]int {
 	}
 }
 
-func ensureCanvasSchemaSequences(jsonStr string, result *CanvasRepairResult) (string, error) {
+func ensureCanvasSchemaSequences(jsonStr string, result *canvasNormalizeResult) (string, error) {
 	schema := map[string]any{}
 	changed := false
 	schemaResult := gjson.Get(jsonStr, canvasSchemaPath)
