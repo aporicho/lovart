@@ -19,24 +19,39 @@ func quoteState(ctx context.Context, remote RemoteClient, state *RunState) error
 			if request.Quote != nil || request.TaskID != "" {
 				continue
 			}
+			normalizedBody, err := normalizeRemoteRequestBody(*request)
+			if err != nil {
+				addRequestError(request, "unknown_pricing", "request normalization failed", map[string]any{"error": err.Error()})
+				request.Status = StatusFailed
+				RefreshStatuses(state)
+				if err := SaveState(state); err != nil {
+					return err
+				}
+				continue
+			}
 			signature := CostSignature(JobLine{
 				JobID:   request.RequestID,
 				Model:   request.Model,
 				Mode:    request.Mode,
 				Outputs: request.OutputCount,
-				Body:    request.Body,
+				Body:    normalizedBody,
 			})
 			if cached, ok := cache[signature]; ok {
 				request.Quote = cached.quote
+				request.NormalizedBody = normalizedBody
 				request.Status = StatusQuoted
 				continue
 			}
-			quote, err := remote.Quote(ctx, request.Model, request.Body, request.Mode)
+			quote, err := remote.Quote(ctx, request.Model, normalizedBody, request.Mode)
 			if err != nil {
 				addRequestError(request, "unknown_pricing", "live quote failed", map[string]any{"error": err.Error()})
 				request.Status = StatusFailed
 			} else {
 				request.Quote = quote
+				request.NormalizedBody = quote.NormalizedBody
+				if len(request.NormalizedBody) == 0 {
+					request.NormalizedBody = normalizedBody
+				}
 				request.Status = StatusQuoted
 				request.UpdatedAt = time.Now().UTC()
 				cache[signature] = &pricingCacheEntry{quote: quote}

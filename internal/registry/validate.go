@@ -66,7 +66,19 @@ func (r *Registry) ValidateRequest(model string, body map[string]any) Validation
 			}},
 		}
 	}
-	issues := r.validateSchema("$", record.RequestSchema, body)
+	normalized, err := r.NormalizeRequest(model, body)
+	if err != nil {
+		return ValidationResult{
+			OK:    false,
+			Model: model,
+			Issues: []ValidationIssue{{
+				Path:    "$",
+				Code:    "normalize_failed",
+				Message: err.Error(),
+			}},
+		}
+	}
+	issues := r.validateSchema("$", record.RequestSchema, normalized)
 	sortIssues(issues)
 	return ValidationResult{OK: len(issues) == 0, Model: model, Issues: issues}
 }

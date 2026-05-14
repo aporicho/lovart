@@ -58,6 +58,7 @@ func newQuoteCmd() *cobra.Command {
 				"price":           result.Price,
 				"balance":         result.Balance,
 				"price_detail":    result.PriceDetail,
+				"normalized_body": result.NormalizedBody,
 				"pricing_context": result.PricingContext,
 			}))
 			return nil

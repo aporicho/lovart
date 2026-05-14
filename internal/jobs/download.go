@@ -35,6 +35,7 @@ func downloadCompleted(ctx context.Context, state *RunState, opts JobsOptions) e
 				continue
 			}
 
+			body := requestEffectiveBody(*request)
 			result, err := downloads.DownloadArtifacts(ctx, artifacts, downloads.Options{
 				RootDir:      root,
 				DirTemplate:  opts.DownloadDirTemplate,
@@ -46,7 +47,7 @@ func downloadCompleted(ctx context.Context, state *RunState, opts JobsOptions) e
 					JobID:  request.JobID,
 					Title:  request.Title,
 					Fields: request.Fields,
-					Body:   request.Body,
+					Body:   body,
 				},
 			})
 			if err != nil {

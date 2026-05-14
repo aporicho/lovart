@@ -35,6 +35,7 @@ type JobQuote struct {
 	APICalls       int                     `json:"api_calls"`
 	Price          float64                 `json:"price"`
 	Cached         bool                    `json:"cached"`
+	NormalizedBody map[string]any          `json:"normalized_body,omitempty"`
 	PriceDetail    *pricing.PriceDetail    `json:"price_detail,omitempty"`
 	PricingContext *pricing.PricingContext `json:"pricing_context,omitempty"`
 }
@@ -83,7 +84,11 @@ func QuotePreparedJobs(ctx context.Context, client *http.Client, jobs []JobLine,
 	var balance float64
 
 	for i, job := range jobs {
-		sig := CostSignature(job)
+		normalizedJob, err := normalizeJobLine(job)
+		if err != nil {
+			return nil, fmt.Errorf("jobs pricing: job %q: normalize request defaults: %w", job.JobID, err)
+		}
+		sig := CostSignature(normalizedJob)
 
 		var result *pricing.QuoteResult
 		var cached bool
@@ -93,17 +98,20 @@ func QuotePreparedJobs(ctx context.Context, client *http.Client, jobs []JobLine,
 			cached = true
 			summary.CacheHits++
 		} else {
-			subs, _ := Expand(job.Model, job.Outputs, job.Body)
+			subs, _ := Expand(normalizedJob.Model, normalizedJob.Outputs, normalizedJob.Body)
 			apiCalls := len(subs)
 
-			repBody := job.Body
+			repBody := normalizedJob.Body
 			if len(subs) > 0 {
 				repBody = subs[0].Body
 			}
 
-			r, err := pricing.QuoteWithOptions(ctx, client, job.Model, repBody, pricing.QuoteOptions{Mode: job.Mode})
+			r, err := pricing.QuoteWithOptions(ctx, client, normalizedJob.Model, repBody, pricing.QuoteOptions{Mode: normalizedJob.Mode})
 			if err != nil {
 				return nil, fmt.Errorf("jobs pricing: job %q: %w", job.JobID, err)
+			}
+			if len(r.NormalizedBody) == 0 {
+				r.NormalizedBody = repBody
 			}
 			result = r
 			summary.QuotedRequests++
@@ -118,15 +126,16 @@ func QuotePreparedJobs(ctx context.Context, client *http.Client, jobs []JobLine,
 				Price:          jobPrice,
 				Balance:        result.Balance,
 				PriceDetail:    result.PriceDetail,
+				NormalizedBody: result.NormalizedBody,
 				PricingContext: priceContext,
 			}
 
 			cache.Set(sig, result)
 		}
 
-		subs, _ := Expand(job.Model, job.Outputs, job.Body)
+		subs, _ := Expand(normalizedJob.Model, normalizedJob.Outputs, normalizedJob.Body)
 		apiCalls := len(subs)
-		actualOutputs := computeActualOutputs(job.Model, job.Outputs, subs)
+		actualOutputs := computeActualOutputs(normalizedJob.Model, normalizedJob.Outputs, subs)
 
 		summary.Jobs = append(summary.Jobs, JobQuote{
 			JobID:          job.JobID,
@@ -137,6 +146,7 @@ func QuotePreparedJobs(ctx context.Context, client *http.Client, jobs []JobLine,
 			APICalls:       apiCalls,
 			Price:          result.Price,
 			Cached:         cached,
+			NormalizedBody: result.NormalizedBody,
 			PriceDetail:    &result.PriceDetail,
 			PricingContext: result.PricingContext,
 		})

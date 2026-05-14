@@ -93,22 +93,6 @@ func TestApplyModePricingAppliesTimeRateWhenUnlimitedDoesNotMatch(t *testing.T) 
 	}
 }
 
-func TestUnlimitedExtraMatchesQualityAndResolution(t *testing.T) {
-	extra := stringPtr("low 2K")
-	if !unlimitedExtraMatches(extra, requestFacts{quality: "low", resolution: "2k"}) {
-		t.Fatalf("expected low 2K to match low/2k")
-	}
-	if unlimitedExtraMatches(extra, requestFacts{quality: "medium", resolution: "2k"}) {
-		t.Fatalf("expected low 2K not to match medium/2k")
-	}
-	if unlimitedExtraMatches(extra, requestFacts{quality: "low", resolution: "4k"}) {
-		t.Fatalf("expected low 2K not to match low/4k")
-	}
-	if !unlimitedExtraMatches(nil, requestFacts{quality: "high", resolution: "4k"}) {
-		t.Fatalf("expected empty extra item to match")
-	}
-}
-
 func peakTimeVariantConfig() timeVariantConfig {
 	return timeVariantConfig{
 		PeakRate:         "1.4",

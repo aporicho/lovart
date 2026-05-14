@@ -58,27 +58,28 @@ type JobState struct {
 
 // RemoteRequest is one atomic Lovart task submission.
 type RemoteRequest struct {
-	RequestID     string                 `json:"request_id"`
-	JobID         string                 `json:"job_id"`
-	Title         string                 `json:"title,omitempty"`
-	Fields        map[string]any         `json:"fields,omitempty"`
-	Model         string                 `json:"model"`
-	Mode          string                 `json:"mode"`
-	Index         int                    `json:"index"`
-	ArtifactStart int                    `json:"artifact_start,omitempty"`
-	OutputCount   int                    `json:"output_count"`
-	Body          map[string]any         `json:"body"`
-	Status        string                 `json:"status"`
-	Quote         *pricing.QuoteResult   `json:"quote,omitempty"`
-	TaskID        string                 `json:"task_id,omitempty"`
-	Response      map[string]any         `json:"response,omitempty"`
-	Task          map[string]any         `json:"task,omitempty"`
-	Artifacts     []map[string]any       `json:"artifacts,omitempty"`
-	Downloads     []downloads.FileResult `json:"downloads,omitempty"`
-	Canvas        *CanvasResult          `json:"canvas,omitempty"`
-	Attempts      int                    `json:"attempts"`
-	Errors        []JobError             `json:"errors,omitempty"`
-	UpdatedAt     time.Time              `json:"updated_at,omitempty"`
+	RequestID      string                 `json:"request_id"`
+	JobID          string                 `json:"job_id"`
+	Title          string                 `json:"title,omitempty"`
+	Fields         map[string]any         `json:"fields,omitempty"`
+	Model          string                 `json:"model"`
+	Mode           string                 `json:"mode"`
+	Index          int                    `json:"index"`
+	ArtifactStart  int                    `json:"artifact_start,omitempty"`
+	OutputCount    int                    `json:"output_count"`
+	Body           map[string]any         `json:"body"`
+	NormalizedBody map[string]any         `json:"normalized_body,omitempty"`
+	Status         string                 `json:"status"`
+	Quote          *pricing.QuoteResult   `json:"quote,omitempty"`
+	TaskID         string                 `json:"task_id,omitempty"`
+	Response       map[string]any         `json:"response,omitempty"`
+	Task           map[string]any         `json:"task,omitempty"`
+	Artifacts      []map[string]any       `json:"artifacts,omitempty"`
+	Downloads      []downloads.FileResult `json:"downloads,omitempty"`
+	Canvas         *CanvasResult          `json:"canvas,omitempty"`
+	Attempts       int                    `json:"attempts"`
+	Errors         []JobError             `json:"errors,omitempty"`
+	UpdatedAt      time.Time              `json:"updated_at,omitempty"`
 }
 
 // JobError records a structured per-request failure.

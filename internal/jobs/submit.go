@@ -22,8 +22,9 @@ func submitPending(ctx context.Context, remote RemoteClient, state *RunState, op
 			if request.TaskID != "" || (request.Status != StatusPending && request.Status != StatusQuoted) {
 				continue
 			}
+			body := requestEffectiveBody(*request)
 			request.Attempts++
-			result, err := remote.Submit(ctx, request.Model, request.Body, generation.Options{
+			result, err := remote.Submit(ctx, request.Model, body, generation.Options{
 				Mode:      request.Mode,
 				ProjectID: projectID,
 				CID:       cid,
@@ -39,7 +40,14 @@ func submitPending(ctx context.Context, remote RemoteClient, state *RunState, op
 			}
 			request.TaskID = result.TaskID
 			request.Status = StatusSubmitted
-			request.Response = map[string]any{"task_id": result.TaskID, "status": result.Status}
+			if len(result.NormalizedBody) > 0 {
+				request.NormalizedBody = result.NormalizedBody
+			}
+			request.Response = map[string]any{
+				"task_id":         result.TaskID,
+				"status":          result.Status,
+				"normalized_body": request.NormalizedBody,
+			}
 			request.UpdatedAt = time.Now().UTC()
 			RefreshStatuses(state)
 			if err := SaveState(state); err != nil {

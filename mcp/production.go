@@ -375,6 +375,7 @@ func (ProductionExecutor) Quote(ctx context.Context, args QuoteArgs) envelope.En
 		"price":           result.Price,
 		"balance":         result.Balance,
 		"price_detail":    result.PriceDetail,
+		"normalized_body": result.NormalizedBody,
 		"pricing_context": result.PricingContext,
 	})
 }
@@ -520,16 +521,17 @@ func generate(ctx context.Context, args GenerateArgs) envelope.Envelope {
 		return envelope.Err(errors.CodeInternal, "submit failed", map[string]any{"error": err.Error()})
 	}
 	output := map[string]any{
-		"submitted":  true,
-		"task_id":    result.TaskID,
-		"status":     result.Status,
-		"preflight":  preflight,
-		"project_id": args.ProjectID,
+		"submitted":       true,
+		"task_id":         result.TaskID,
+		"status":          result.Status,
+		"normalized_body": result.NormalizedBody,
+		"preflight":       preflight,
+		"project_id":      args.ProjectID,
 	}
 	var warnings []string
 	if args.Wait {
 		var failure *envelope.Envelope
-		warnings, failure = addCompletedGenerationArtifacts(ctx, client, output, result.TaskID, args, cid)
+		warnings, failure = addCompletedGenerationArtifacts(ctx, client, output, result.TaskID, args, cid, result.NormalizedBody)
 		if failure != nil {
 			return *failure
 		}
@@ -539,7 +541,7 @@ func generate(ctx context.Context, args GenerateArgs) envelope.Envelope {
 	return env
 }
 
-func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, output map[string]any, taskID string, args GenerateArgs, cid string) ([]string, *envelope.Envelope) {
+func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, output map[string]any, taskID string, args GenerateArgs, cid string, normalizedBody map[string]any) ([]string, *envelope.Envelope) {
 	var warnings []string
 	task, err := generation.Wait(ctx, client, taskID)
 	if err != nil {
@@ -560,6 +562,10 @@ func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, o
 		return warnings, nil
 	}
 	if args.Download {
+		downloadBody := normalizedBody
+		if len(downloadBody) == 0 {
+			downloadBody = args.Body
+		}
 		downloadResult, err := downloads.DownloadArtifacts(ctx, downloads.ArtifactsFromTask(task), downloads.Options{
 			RootDir:      args.DownloadDir,
 			DirTemplate:  args.DownloadDirTemplate,
@@ -568,7 +574,7 @@ func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, o
 			Context: downloads.JobContext{
 				Model: args.Model,
 				Mode:  args.Mode,
-				Body:  args.Body,
+				Body:  downloadBody,
 			},
 		})
 		if err != nil {

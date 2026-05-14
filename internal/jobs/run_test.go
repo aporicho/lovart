@@ -85,6 +85,34 @@ func TestRunPreparedJobsSavesStateAndResumeDoesNotResubmit(t *testing.T) {
 	}
 }
 
+func TestRunPreparedJobsQuotesAndSubmitsNormalizedBody(t *testing.T) {
+	setupRuntimeSchema(t)
+	dir := t.TempDir()
+	path := filepath.Join(dir, "jobs.jsonl")
+	if err := os.WriteFile(path, []byte(`{"job_id":"a","model":"openai/gpt-image-2","body":{"prompt":"test"}}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	opts := JobsOptions{AllowPaid: true, MaxTotalCredits: 10, ProjectID: "project", CID: "cid"}
+	state, validation, err := PrepareRun(path, opts)
+	if err != nil || validation != nil {
+		t.Fatalf("PrepareRun validation=%v err=%v", validation, err)
+	}
+	remote := &fakeRemote{price: 0}
+	if _, err := RunPreparedJobs(context.Background(), remote, state, opts); err != nil {
+		t.Fatal(err)
+	}
+	if len(remote.quotedBodies) != 1 || remote.quotedBodies[0]["resolution"] != "1K" {
+		t.Fatalf("quoted bodies=%#v, want normalized resolution", remote.quotedBodies)
+	}
+	if len(remote.submittedBodies) != 1 || remote.submittedBodies[0]["resolution"] != "1K" {
+		t.Fatalf("submitted bodies=%#v, want normalized resolution", remote.submittedBodies)
+	}
+	request := state.Jobs[0].RemoteRequests[0]
+	if request.NormalizedBody["resolution"] != "1K" {
+		t.Fatalf("state normalized body=%#v", request.NormalizedBody)
+	}
+}
+
 func TestRunPreparedJobsBlocksPaidWithoutAllowance(t *testing.T) {
 	setupRuntimeSchema(t)
 	dir := t.TempDir()
@@ -353,15 +381,19 @@ type fakeRemote struct {
 	canvasSectionImages []int
 	canvasSectionTitles []string
 	submittedOutputs    map[string]int
+	quotedBodies        []map[string]any
+	submittedBodies     []map[string]any
 }
 
 func (f *fakeRemote) Quote(ctx context.Context, model string, body map[string]any, mode string) (*pricing.QuoteResult, error) {
 	f.quotes++
+	f.quotedBodies = append(f.quotedBodies, copyBody(body))
 	return &pricing.QuoteResult{Price: f.price, Balance: 100, PriceDetail: pricing.PriceDetail{UnitPrice: f.price}}, nil
 }
 
 func (f *fakeRemote) Submit(ctx context.Context, model string, body map[string]any, opts generation.Options) (*generation.SubmitResult, error) {
 	f.submits++
+	f.submittedBodies = append(f.submittedBodies, copyBody(body))
 	taskID := fmt.Sprintf("task-%d", f.submits)
 	if f.submittedOutputs == nil {
 		f.submittedOutputs = map[string]int{}

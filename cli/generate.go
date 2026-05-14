@@ -135,11 +135,16 @@ func newGenerateCmd() *cobra.Command {
 			}
 
 			output := map[string]any{
-				"submitted":  true,
-				"task_id":    result.TaskID,
-				"status":     result.Status,
-				"preflight":  preflight,
-				"project_id": projectID,
+				"submitted":       true,
+				"task_id":         result.TaskID,
+				"status":          result.Status,
+				"normalized_body": result.NormalizedBody,
+				"preflight":       preflight,
+				"project_id":      projectID,
+			}
+			downloadBody := result.NormalizedBody
+			if len(downloadBody) == 0 {
+				downloadBody = body
 			}
 
 			// Wait for completion.
@@ -169,7 +174,7 @@ func newGenerateCmd() *cobra.Command {
 							Context: downloads.JobContext{
 								Model: model,
 								Mode:  mode,
-								Body:  body,
+								Body:  downloadBody,
 							},
 						})
 						if err != nil {

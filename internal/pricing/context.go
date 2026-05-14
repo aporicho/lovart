@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/aporicho/lovart/internal/http"
+	"github.com/aporicho/lovart/internal/registry"
 )
 
 const (
@@ -87,11 +88,6 @@ type timeVariantConfig struct {
 	OffPeakEnable    bool   `json:"offPeakEnable"`
 }
 
-type requestFacts struct {
-	quality    string
-	resolution string
-}
-
 // NormalizeMode returns a canonical mode name accepted by pricing/generation.
 func NormalizeMode(mode string) (string, error) {
 	mode = strings.ToLower(strings.TrimSpace(mode))
@@ -113,10 +109,16 @@ func QuoteWithOptions(ctx context.Context, client *http.Client, model string, bo
 		return nil, fmt.Errorf("pricing: %w", err)
 	}
 
-	result, err := baseQuote(ctx, client, model, body)
+	normalizedBody, err := registry.NormalizeRequest(model, body)
+	if err != nil {
+		return nil, fmt.Errorf("pricing: normalize request defaults: %w", err)
+	}
+
+	result, err := baseQuote(ctx, client, model, normalizedBody)
 	if err != nil {
 		return nil, err
 	}
+	result.NormalizedBody = normalizedBody
 
 	now := opts.Now
 	if now.IsZero() {
@@ -147,7 +149,7 @@ func QuoteWithOptions(ctx context.Context, client *http.Client, model string, bo
 		timeVariant = cfg
 	}
 
-	applyModePricing(pc, result, model, body, unlimited, timeVariant, now)
+	applyModePricing(pc, result, model, normalizedBody, unlimited, timeVariant, now)
 	result.Price = pc.EffectivePrice
 	result.PricingContext = pc
 	return result, nil
@@ -248,138 +250,6 @@ func nominalPrice(result *QuoteResult) float64 {
 		return detail.PriceBeforeSurcharge + detail.ImageCountSurcharge
 	}
 	return result.Price
-}
-
-func matchingUnlimited(model string, facts requestFacts, status *unlimitedStatus) (unlimitedItem, bool) {
-	if status == nil || !status.UnlimitedEnable {
-		return unlimitedItem{}, false
-	}
-	for _, item := range status.UnlimitedList {
-		if item.Status != 1 {
-			continue
-		}
-		if !modelMatches(item, model) {
-			continue
-		}
-		if !unlimitedExtraMatches(item.ExtraItem, facts) {
-			continue
-		}
-		return item, true
-	}
-	return unlimitedItem{}, false
-}
-
-func modelMatches(item unlimitedItem, model string) bool {
-	if strings.EqualFold(strings.TrimSpace(item.ModelDisplayName), strings.TrimSpace(model)) {
-		return true
-	}
-	for _, alias := range item.AliasList {
-		if strings.EqualFold(strings.TrimSpace(alias), strings.TrimSpace(model)) {
-			return true
-		}
-	}
-	return false
-}
-
-func unlimitedExtraMatches(extra *string, facts requestFacts) bool {
-	if extra == nil || strings.TrimSpace(*extra) == "" {
-		return true
-	}
-	extraText := normalizeText(*extra)
-
-	if facts.quality != "" {
-		extraQuality := qualityFromText(extraText)
-		if extraQuality != "" && extraQuality != facts.quality {
-			return false
-		}
-	}
-
-	if facts.resolution != "" {
-		extraResolution := resolutionFromText(extraText)
-		if extraResolution != "" && extraResolution != facts.resolution {
-			return false
-		}
-	}
-
-	return true
-}
-
-func requestFactsFor(detail PriceDetail, body map[string]any) requestFacts {
-	args := body
-	if len(detail.InputArgs) > 0 {
-		args = detail.InputArgs
-	}
-	return requestFacts{
-		quality:    qualityFromText(valueString(args["quality"])),
-		resolution: resolutionFromArgs(args),
-	}
-}
-
-func resolutionFromArgs(args map[string]any) string {
-	for _, key := range []string{"resolution", "size"} {
-		if value, ok := args[key]; ok {
-			if resolution := resolutionFromText(valueString(value)); resolution != "" {
-				return resolution
-			}
-		}
-	}
-	return ""
-}
-
-func qualityFromText(value string) string {
-	text := normalizeText(value)
-	for _, token := range []string{"low", "medium", "high"} {
-		if strings.Contains(text, token) {
-			return token
-		}
-	}
-	return ""
-}
-
-func resolutionFromText(value string) string {
-	text := normalizeText(value)
-	if strings.Contains(text, "4k") {
-		return "4k"
-	}
-	if strings.Contains(text, "2k") {
-		return "2k"
-	}
-	if strings.Contains(text, "1k") {
-		return "1k"
-	}
-	if strings.Contains(text, "3840") || strings.Contains(text, "2160") {
-		return "4k"
-	}
-	if strings.Contains(text, "2048") || strings.Contains(text, "1152") {
-		return "2k"
-	}
-	if strings.Contains(text, "1024") || strings.Contains(text, "1536") {
-		return "1k"
-	}
-	return ""
-}
-
-func normalizeText(value string) string {
-	text := strings.ToLower(strings.TrimSpace(value))
-	text = strings.ReplaceAll(text, " ", "")
-	text = strings.ReplaceAll(text, "_", "")
-	text = strings.ReplaceAll(text, "-", "")
-	text = strings.ReplaceAll(text, "x", "*")
-	text = strings.ReplaceAll(text, "×", "*")
-	return text
-}
-
-func valueString(value any) string {
-	switch v := value.(type) {
-	case string:
-		return v
-	case fmt.Stringer:
-		return v.String()
-	case nil:
-		return ""
-	default:
-		return fmt.Sprint(v)
-	}
 }
 
 func activeTimeRate(cfg timeVariantConfig, now time.Time) (float64, string) {

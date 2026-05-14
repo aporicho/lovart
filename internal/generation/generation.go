@@ -15,14 +15,16 @@ type PreflightResult struct {
 	Credits            float64                 `json:"credits"`
 	CreditRisk         bool                    `json:"credit_risk"`
 	PaidRequired       bool                    `json:"paid_required"`
+	NormalizedBody     map[string]any          `json:"normalized_body,omitempty"`
 	PricingContext     *pricing.PricingContext `json:"pricing_context,omitempty"`
 	RecommendedActions []string                `json:"recommended_actions,omitempty"`
 }
 
 // SubmitResult is the response after a successful generation submission.
 type SubmitResult struct {
-	TaskID string `json:"task_id"`
-	Status string `json:"status"`
+	TaskID         string         `json:"task_id"`
+	Status         string         `json:"status"`
+	NormalizedBody map[string]any `json:"normalized_body,omitempty"`
 }
 
 // Options configures a generation request.
@@ -70,6 +72,7 @@ func Preflight(ctx context.Context, client *http.Client, model string, body map[
 		Credits:            credits,
 		CreditRisk:         paidRequired && !opts.AllowPaid,
 		PaidRequired:       paidRequired,
+		NormalizedBody:     quote.NormalizedBody,
 		PricingContext:     quote.PricingContext,
 		RecommendedActions: actions,
 	}, nil
@@ -77,6 +80,11 @@ func Preflight(ctx context.Context, client *http.Client, model string, body map[
 
 // Submit sends a generation request to LGW and returns the task ID.
 func Submit(ctx context.Context, client *http.Client, model string, body map[string]any, opts Options) (*SubmitResult, error) {
+	payload, normalizedBody, err := buildNormalizedTaskPayload(model, body, opts)
+	if err != nil {
+		return nil, fmt.Errorf("generation: submit: normalize request defaults: %w", err)
+	}
+
 	// Set mode.
 	if err := SetMode(ctx, client, opts.CID, opts.Mode); err != nil {
 		return nil, fmt.Errorf("generation: submit: set mode: %w", err)
@@ -85,20 +93,6 @@ func Submit(ctx context.Context, client *http.Client, model string, body map[str
 	// Take slot.
 	if err := TakeSlot(ctx, client, opts.ProjectID, opts.CID); err != nil {
 		return nil, fmt.Errorf("generation: submit: take slot: %w", err)
-	}
-
-	// Build task payload (mirrors v1 task_request_payload).
-	payload := map[string]any{
-		"generator_name": model,
-	}
-	if len(body) > 0 {
-		payload["input_args"] = body
-	}
-	if opts.CID != "" {
-		payload["cid"] = opts.CID
-	}
-	if opts.ProjectID != "" {
-		payload["project_id"] = opts.ProjectID
 	}
 
 	path := "/v1/generator/tasks"
@@ -118,8 +112,9 @@ func Submit(ctx context.Context, client *http.Client, model string, body map[str
 	}
 
 	return &SubmitResult{
-		TaskID: resp.Data.TaskID,
-		Status: "submitted",
+		TaskID:         resp.Data.TaskID,
+		Status:         "submitted",
+		NormalizedBody: normalizedBody,
 	}, nil
 }
 

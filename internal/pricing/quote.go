@@ -12,6 +12,7 @@ type QuoteResult struct {
 	Price          float64         `json:"price"`
 	Balance        float64         `json:"balance"`
 	PriceDetail    PriceDetail     `json:"price_detail"`
+	NormalizedBody map[string]any  `json:"normalized_body,omitempty"`
 	PricingContext *PricingContext `json:"pricing_context,omitempty"`
 }
 

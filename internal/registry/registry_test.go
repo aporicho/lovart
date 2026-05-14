@@ -127,6 +127,7 @@ func setupRegistryMetadata(t *testing.T) {
         "properties": {
           "prompt": {"type": "string"},
           "quality": {"type": "string", "enum": ["low", "high"]},
+          "resolution": {"type": "string", "enum": ["1K", "2K", "4K"], "default": "1K"},
           "n": {"type": "integer", "minimum": 1, "maximum": 10},
           "images": {"type": "array", "minItems": 1, "maxItems": 2, "items": {"type": "string"}},
           "options": {
