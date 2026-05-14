@@ -39,6 +39,10 @@ func modeSchema() map[string]any {
 	return map[string]any{"type": "string", "enum": []string{"auto", "fast", "relax"}}
 }
 
+func artifactDetailSchema() map[string]any {
+	return map[string]any{"type": "string", "enum": []string{"summary", "full"}}
+}
+
 func tool(name, description string, properties map[string]any, required ...string) Tool {
 	if required == nil {
 		required = []string{}
@@ -106,6 +110,39 @@ func Tools() []Tool {
 			"project_id":         stringSchema("Lovart project id"),
 			"confirm_project_id": stringSchema("must exactly match project_id"),
 		}, "project_id", "confirm_project_id"),
+		tool("lovart_task_download", "Download artifacts from a completed Lovart generation task.", map[string]any{
+			"task_id":                stringSchema("Lovart generation task id"),
+			"artifact_index":         numberSchema("optional 1-based artifact index to download"),
+			"download_dir":           stringSchema("artifact download directory"),
+			"download_dir_template":  stringSchema("download subdirectory template"),
+			"download_file_template": stringSchema("download filename template"),
+			"overwrite":              boolSchema("replace existing downloaded files"),
+			"detail":                 artifactDetailSchema(),
+		}, "task_id"),
+		tool("lovart_canvas_artifacts", "List downloadable image artifacts on a Lovart project canvas.", map[string]any{
+			"project_id": stringSchema("optional project id; defaults to current project"),
+			"task_id":    stringSchema("filter artifacts by generation task id"),
+			"limit":      numberSchema("maximum number of artifacts to return"),
+			"offset":     numberSchema("number of artifacts to skip"),
+			"detail":     artifactDetailSchema(),
+		}),
+		tool("lovart_canvas_artifact", "Return details for one downloadable canvas image artifact.", map[string]any{
+			"project_id":  stringSchema("optional project id; defaults to current project"),
+			"artifact_id": stringSchema("canvas artifact id"),
+			"include_raw": boolSchema("include raw canvas shape JSON"),
+		}, "artifact_id"),
+		tool("lovart_canvas_download", "Download image artifacts from a Lovart project canvas.", map[string]any{
+			"project_id":             stringSchema("optional project id; defaults to current project"),
+			"artifact_id":            stringSchema("download one canvas artifact by artifact_id"),
+			"artifact_index":         numberSchema("download one canvas artifact by 1-based list index"),
+			"task_id":                stringSchema("download artifacts associated with a generation task id"),
+			"all":                    boolSchema("download all canvas image artifacts"),
+			"original":               boolSchema("prefer originalUrl when available"),
+			"download_dir":           stringSchema("artifact download directory"),
+			"download_dir_template":  stringSchema("download subdirectory template"),
+			"download_file_template": stringSchema("download filename template"),
+			"overwrite":              boolSchema("replace existing downloaded files"),
+		}),
 		tool("lovart_quote", "Fetch an exact Lovart credit quote for a model request.", map[string]any{
 			"model": stringSchema("Lovart generator model name"),
 			"body":  map[string]any{"type": "object"},

@@ -23,6 +23,10 @@ type fakeExecutor struct {
 	projectOpen      ProjectOpenArgs
 	projectRename    ProjectRenameArgs
 	projectDelete    ProjectDeleteArgs
+	taskDownload     TaskDownloadArgs
+	canvasArtifacts  CanvasArtifactsArgs
+	canvasArtifact   CanvasArtifactArgs
+	canvasDownload   CanvasDownloadArgs
 	generate         GenerateArgs
 	jobsRun          JobsRunArgs
 	jobsStatus       JobsStatusArgs
@@ -107,6 +111,26 @@ func (f *fakeExecutor) ProjectDelete(ctx context.Context, args ProjectDeleteArgs
 	return okSubmit(map[string]any{"operation": "project_delete", "project_id": args.ProjectID}, true)
 }
 
+func (f *fakeExecutor) TaskDownload(ctx context.Context, args TaskDownloadArgs) envelope.Envelope {
+	f.taskDownload = args
+	return okPreflight(map[string]any{"operation": "task_download", "task_id": args.TaskID})
+}
+
+func (f *fakeExecutor) CanvasArtifacts(ctx context.Context, args CanvasArtifactsArgs) envelope.Envelope {
+	f.canvasArtifacts = args
+	return okPreflight(map[string]any{"operation": "canvas_artifacts", "project_id": args.ProjectID})
+}
+
+func (f *fakeExecutor) CanvasArtifact(ctx context.Context, args CanvasArtifactArgs) envelope.Envelope {
+	f.canvasArtifact = args
+	return okPreflight(map[string]any{"operation": "canvas_artifact", "artifact_id": args.ArtifactID})
+}
+
+func (f *fakeExecutor) CanvasDownload(ctx context.Context, args CanvasDownloadArgs) envelope.Envelope {
+	f.canvasDownload = args
+	return okPreflight(map[string]any{"operation": "canvas_download", "project_id": args.ProjectID})
+}
+
 func (f *fakeExecutor) Quote(ctx context.Context, args QuoteArgs) envelope.Envelope {
 	return okPreflight(map[string]any{"operation": "quote"})
 }
@@ -155,8 +179,8 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 		t.Fatalf("tools/list failed: %#v", listResp)
 	}
 	tools := listResp.Result.(map[string]any)["tools"].([]Tool)
-	if len(tools) != 22 {
-		t.Fatalf("expected 22 tools, got %d", len(tools))
+	if len(tools) != 26 {
+		t.Fatalf("expected 26 tools, got %d", len(tools))
 	}
 	for _, tool := range tools {
 		if tool.Name == "lovart_project_repair_canvas" {
@@ -170,6 +194,10 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "cookie", "token", "csrf"})
 		}
 		if strings.HasPrefix(tool.Name, "lovart_project_") {
+			properties := tool.InputSchema["properties"].(map[string]any)
+			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "cookie", "token", "csrf"})
+		}
+		if strings.HasPrefix(tool.Name, "lovart_canvas_") || tool.Name == "lovart_task_download" {
 			properties := tool.InputSchema["properties"].(map[string]any)
 			assertSchemaExcludes(t, tool.Name, properties, []string{"cid", "cookie", "token", "csrf"})
 		}
@@ -377,6 +405,79 @@ func TestProjectDeleteRequiresMatchingConfirmProjectID(t *testing.T) {
 	}
 	if executor.projectDelete.ProjectID != "proj_123" || executor.projectDelete.ConfirmProjectID != "proj_123" {
 		t.Fatalf("project delete args = %#v", executor.projectDelete)
+	}
+}
+
+func TestDownloadToolsParseArgs(t *testing.T) {
+	executor := &fakeExecutor{}
+	server := NewServerWithExecutor(executor)
+
+	env := server.CallTool(context.Background(), "lovart_task_download", map[string]any{
+		"task_id":                "task-123",
+		"artifact_index":         2.0,
+		"download_dir":           "/tmp/images",
+		"download_dir_template":  "{{task.id}}",
+		"download_file_template": "img-{{artifact.index:02}}.{{ext}}",
+		"overwrite":              true,
+		"detail":                 "full",
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.taskDownload.TaskID != "task-123" || executor.taskDownload.ArtifactIndex != 2 || executor.taskDownload.DownloadDir != "/tmp/images" || !executor.taskDownload.Overwrite || executor.taskDownload.Detail != "full" {
+		t.Fatalf("task download args = %#v", executor.taskDownload)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_canvas_artifacts", map[string]any{
+		"project_id": "project-123",
+		"task_id":    "task-123",
+		"limit":      5.0,
+		"offset":     2.0,
+		"detail":     "full",
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.canvasArtifacts.ProjectID != "project-123" || executor.canvasArtifacts.TaskID != "task-123" || executor.canvasArtifacts.Limit != 5 || executor.canvasArtifacts.Offset != 2 || executor.canvasArtifacts.Detail != "full" {
+		t.Fatalf("canvas artifacts args = %#v", executor.canvasArtifacts)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_canvas_artifact", map[string]any{
+		"artifact_id": "shape:one",
+		"include_raw": true,
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.canvasArtifact.ArtifactID != "shape:one" || !executor.canvasArtifact.IncludeRaw {
+		t.Fatalf("canvas artifact args = %#v", executor.canvasArtifact)
+	}
+
+	env = server.CallTool(context.Background(), "lovart_canvas_download", map[string]any{
+		"project_id":     "project-123",
+		"artifact_index": 1.0,
+		"original":       true,
+		"overwrite":      true,
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.canvasDownload.ProjectID != "project-123" || executor.canvasDownload.ArtifactIndex != 1 || !executor.canvasDownload.Original || !executor.canvasDownload.Overwrite {
+		t.Fatalf("canvas download args = %#v", executor.canvasDownload)
+	}
+}
+
+func TestCanvasDownloadRequiresExactlyOneSelector(t *testing.T) {
+	server := NewServerWithExecutor(&fakeExecutor{})
+	for _, args := range []map[string]any{
+		{},
+		{"artifact_id": "shape:one", "all": true},
+		{"artifact_index": -1.0},
+	} {
+		env := server.CallTool(context.Background(), "lovart_canvas_download", args)
+		if env.OK || env.Error == nil || env.Error.Code != "input_error" {
+			t.Fatalf("expected selector input error for %#v, got %#v", args, env)
+		}
 	}
 }
 

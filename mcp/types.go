@@ -96,6 +96,47 @@ type ProjectDeleteArgs struct {
 	ConfirmProjectID string `json:"confirm_project_id"`
 }
 
+// TaskDownloadArgs configures lovart_task_download.
+type TaskDownloadArgs struct {
+	TaskID               string `json:"task_id"`
+	ArtifactIndex        int    `json:"artifact_index"`
+	DownloadDir          string `json:"download_dir"`
+	DownloadDirTemplate  string `json:"download_dir_template"`
+	DownloadFileTemplate string `json:"download_file_template"`
+	Overwrite            bool   `json:"overwrite"`
+	Detail               string `json:"detail"`
+}
+
+// CanvasArtifactsArgs configures lovart_canvas_artifacts.
+type CanvasArtifactsArgs struct {
+	ProjectID string `json:"project_id"`
+	TaskID    string `json:"task_id"`
+	Limit     int    `json:"limit"`
+	Offset    int    `json:"offset"`
+	Detail    string `json:"detail"`
+}
+
+// CanvasArtifactArgs configures lovart_canvas_artifact.
+type CanvasArtifactArgs struct {
+	ProjectID  string `json:"project_id"`
+	ArtifactID string `json:"artifact_id"`
+	IncludeRaw bool   `json:"include_raw"`
+}
+
+// CanvasDownloadArgs configures lovart_canvas_download.
+type CanvasDownloadArgs struct {
+	ProjectID            string `json:"project_id"`
+	ArtifactID           string `json:"artifact_id"`
+	ArtifactIndex        int    `json:"artifact_index"`
+	TaskID               string `json:"task_id"`
+	All                  bool   `json:"all"`
+	Original             bool   `json:"original"`
+	DownloadDir          string `json:"download_dir"`
+	DownloadDirTemplate  string `json:"download_dir_template"`
+	DownloadFileTemplate string `json:"download_file_template"`
+	Overwrite            bool   `json:"overwrite"`
+}
+
 // GenerateArgs configures single generation tools.
 type GenerateArgs struct {
 	Model                string         `json:"model"`
@@ -156,6 +197,10 @@ type Executor interface {
 	ProjectOpen(ctx context.Context, args ProjectOpenArgs) envelope.Envelope
 	ProjectRename(ctx context.Context, args ProjectRenameArgs) envelope.Envelope
 	ProjectDelete(ctx context.Context, args ProjectDeleteArgs) envelope.Envelope
+	TaskDownload(ctx context.Context, args TaskDownloadArgs) envelope.Envelope
+	CanvasArtifacts(ctx context.Context, args CanvasArtifactsArgs) envelope.Envelope
+	CanvasArtifact(ctx context.Context, args CanvasArtifactArgs) envelope.Envelope
+	CanvasDownload(ctx context.Context, args CanvasDownloadArgs) envelope.Envelope
 	Quote(ctx context.Context, args QuoteArgs) envelope.Envelope
 	Generate(ctx context.Context, args GenerateArgs) envelope.Envelope
 	JobsRun(ctx context.Context, args JobsRunArgs) envelope.Envelope

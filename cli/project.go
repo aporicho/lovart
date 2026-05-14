@@ -23,6 +23,8 @@ func newProjectCmd() *cobra.Command {
 	cmd.AddCommand(newProjectCreateCmd())
 	cmd.AddCommand(newProjectSelectCmd())
 	cmd.AddCommand(newProjectShowCmd())
+	cmd.AddCommand(newProjectArtifactsCmd())
+	cmd.AddCommand(newProjectArtifactCmd())
 	cmd.AddCommand(newProjectOpenCmd())
 	cmd.AddCommand(newProjectAdminCmd())
 	return cmd

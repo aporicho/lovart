@@ -12,6 +12,11 @@ func TestProjectCommandMovesAdvancedActionsUnderAdmin(t *testing.T) {
 	if cmd.Commands() == nil {
 		t.Fatalf("project command has no subcommands")
 	}
+	for _, name := range []string{"artifacts", "artifact"} {
+		if found, _, err := cmd.Find([]string{name}); err != nil || found == cmd {
+			t.Fatalf("project command missing %s: found=%v err=%v", name, found, err)
+		}
+	}
 	for _, name := range []string{"rename", "delete"} {
 		if found, _, err := cmd.Find([]string{name}); err == nil && found != cmd {
 			t.Fatalf("project command exposes advanced action at top level: %s", found.CommandPath())

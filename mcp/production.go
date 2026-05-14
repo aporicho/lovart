@@ -355,6 +355,170 @@ func (ProductionExecutor) ProjectDelete(ctx context.Context, args ProjectDeleteA
 	}, true)
 }
 
+// TaskDownload downloads artifacts from a completed Lovart generation task.
+func (ProductionExecutor) TaskDownload(ctx context.Context, args TaskDownloadArgs) envelope.Envelope {
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	task, err := generation.FetchTask(ctx, client, args.TaskID)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "fetch task", map[string]any{"error": err.Error(), "task_id": args.TaskID})
+	}
+	if status, _ := task["status"].(string); status != "completed" {
+		return envelope.Err(errors.CodeInputError, "task is not completed", map[string]any{
+			"task_id": args.TaskID,
+			"status":  status,
+			"recommended_actions": []string{
+				"retry after the task completes",
+			},
+		})
+	}
+	artifacts, env := selectDownloadArtifactIndex(downloads.ArtifactsFromTask(task), args.ArtifactIndex)
+	if env != nil {
+		return *env
+	}
+	result, err := downloads.DownloadArtifacts(ctx, artifacts, downloads.Options{
+		RootDir:      args.DownloadDir,
+		DirTemplate:  args.DownloadDirTemplate,
+		FileTemplate: args.DownloadFileTemplate,
+		TaskID:       args.TaskID,
+		Context: downloads.JobContext{
+			Fields: map[string]any{"source": "task", "task_id": args.TaskID},
+		},
+		Overwrite: args.Overwrite,
+	})
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "download task artifacts", map[string]any{"error": err.Error()})
+	}
+	if downloads.SuccessfulFileCount(result.Files) == 0 {
+		return envelope.Err(errors.CodeInternal, "download task artifacts failed", map[string]any{"files": result.Files})
+	}
+	output := map[string]any{
+		"source": map[string]any{
+			"type":    "task",
+			"task_id": args.TaskID,
+			"status":  task["status"],
+		},
+		"selected_artifacts": len(artifacts),
+		"root_dir":           result.RootDir,
+		"index_path":         result.IndexPath,
+		"files":              result.Files,
+	}
+	if args.Detail == "full" {
+		output["task"] = task
+	}
+	envOut := okPreflight(output)
+	if result.IndexError != "" {
+		output["download_index_error"] = result.IndexError
+		envOut.Warnings = append(envOut.Warnings, "artifacts were downloaded but the download index could not be fully written")
+	}
+	return envOut
+}
+
+// CanvasArtifacts lists downloadable image artifacts on a project canvas.
+func (ProductionExecutor) CanvasArtifacts(ctx context.Context, args CanvasArtifactsArgs) envelope.Envelope {
+	projectID, cid, env := projectIDAndOptionalCID(args.ProjectID)
+	if env != nil {
+		return *env
+	}
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	result, err := project.ListCanvasArtifacts(ctx, client, projectID, cid, project.CanvasArtifactsOptions{
+		TaskID:     args.TaskID,
+		Limit:      args.Limit,
+		Offset:     args.Offset,
+		IncludeRaw: args.Detail == "full",
+	})
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "list canvas artifacts", map[string]any{"error": err.Error()})
+	}
+	return okPreflight(result)
+}
+
+// CanvasArtifact returns one downloadable canvas artifact by id.
+func (ProductionExecutor) CanvasArtifact(ctx context.Context, args CanvasArtifactArgs) envelope.Envelope {
+	projectID, cid, env := projectIDAndOptionalCID(args.ProjectID)
+	if env != nil {
+		return *env
+	}
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	result, err := project.GetCanvasArtifact(ctx, client, projectID, cid, args.ArtifactID, args.IncludeRaw)
+	if err != nil {
+		return envelope.Err(errors.CodeInputError, "canvas artifact not found", map[string]any{
+			"artifact_id": args.ArtifactID,
+			"error":       err.Error(),
+		})
+	}
+	return okPreflight(result)
+}
+
+// CanvasDownload downloads image artifacts from a project canvas.
+func (ProductionExecutor) CanvasDownload(ctx context.Context, args CanvasDownloadArgs) envelope.Envelope {
+	if err := validateCanvasDownloadArgs(args); err != nil {
+		return envelope.Err(errors.CodeInputError, err.Error(), nil)
+	}
+	projectID, cid, env := projectIDAndOptionalCID(args.ProjectID)
+	if env != nil {
+		return *env
+	}
+	client, err := newSignedClient(ctx)
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
+	}
+	list, err := project.ListCanvasArtifacts(ctx, client, projectID, cid, project.CanvasArtifactsOptions{})
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "list canvas artifacts", map[string]any{"error": err.Error()})
+	}
+	selected, env := selectCanvasArtifacts(list.Artifacts, args.ArtifactID, args.ArtifactIndex, args.TaskID, args.All)
+	if env != nil {
+		return *env
+	}
+	result, err := downloads.DownloadArtifacts(ctx, canvasDownloadArtifacts(selected, args.Original), downloads.Options{
+		RootDir:      args.DownloadDir,
+		DirTemplate:  args.DownloadDirTemplate,
+		FileTemplate: args.DownloadFileTemplate,
+		Context: downloads.JobContext{
+			Title: list.ProjectName,
+			Fields: map[string]any{
+				"source":     "canvas",
+				"project_id": projectID,
+			},
+		},
+		Overwrite: args.Overwrite,
+	})
+	if err != nil {
+		return envelope.Err(errors.CodeInternal, "download canvas artifacts", map[string]any{"error": err.Error()})
+	}
+	if downloads.SuccessfulFileCount(result.Files) == 0 {
+		return envelope.Err(errors.CodeInternal, "download canvas artifacts failed", map[string]any{"files": result.Files})
+	}
+	output := map[string]any{
+		"source": map[string]any{
+			"type":         "canvas",
+			"project_id":   projectID,
+			"project_name": list.ProjectName,
+			"canvas_url":   list.CanvasURL,
+		},
+		"selected_artifacts": len(selected),
+		"artifacts":          selected,
+		"root_dir":           result.RootDir,
+		"index_path":         result.IndexPath,
+		"files":              result.Files,
+	}
+	envOut := okPreflight(output)
+	if result.IndexError != "" {
+		output["download_index_error"] = result.IndexError
+		envOut.Warnings = append(envOut.Warnings, "artifacts were downloaded but the download index could not be fully written")
+	}
+	return envOut
+}
+
 // Quote fetches live pricing for a single request.
 func (ProductionExecutor) Quote(ctx context.Context, args QuoteArgs) envelope.Envelope {
 	if validation := registry.ValidateRequest(args.Model, args.Body); !validation.OK {

@@ -198,6 +198,30 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 			return inputErr(fmt.Errorf("confirm_project_id must match project_id"))
 		}
 		return s.executor.ProjectDelete(ctx, ProjectDeleteArgs{ProjectID: projectID, ConfirmProjectID: confirmProjectID})
+	case "lovart_task_download":
+		downloadArgs, err := parseTaskDownloadArgs(args)
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.TaskDownload(ctx, downloadArgs)
+	case "lovart_canvas_artifacts":
+		artifactArgs, err := parseCanvasArtifactsArgs(args)
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.CanvasArtifacts(ctx, artifactArgs)
+	case "lovart_canvas_artifact":
+		artifactArgs, err := parseCanvasArtifactArgs(args)
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.CanvasArtifact(ctx, artifactArgs)
+	case "lovart_canvas_download":
+		downloadArgs, err := parseCanvasDownloadArgs(args)
+		if err != nil {
+			return inputErr(err)
+		}
+		return s.executor.CanvasDownload(ctx, downloadArgs)
 	case "lovart_quote":
 		quoteArgs, err := parseQuoteArgs(args)
 		if err != nil {
@@ -248,6 +272,71 @@ func parseQuoteArgs(args map[string]any) (QuoteArgs, error) {
 		return QuoteArgs{}, err
 	}
 	return QuoteArgs{Model: model, Body: body, Mode: mode}, nil
+}
+
+func parseTaskDownloadArgs(args map[string]any) (TaskDownloadArgs, error) {
+	taskID, err := requiredString(args, "task_id")
+	if err != nil {
+		return TaskDownloadArgs{}, err
+	}
+	detail, err := artifactDetailArg(args, "detail", "summary")
+	if err != nil {
+		return TaskDownloadArgs{}, err
+	}
+	return TaskDownloadArgs{
+		TaskID:               taskID,
+		ArtifactIndex:        intArg(args, "artifact_index", 0),
+		DownloadDir:          stringArg(args, "download_dir", ""),
+		DownloadDirTemplate:  stringArg(args, "download_dir_template", ""),
+		DownloadFileTemplate: stringArg(args, "download_file_template", ""),
+		Overwrite:            boolArg(args, "overwrite", false),
+		Detail:               detail,
+	}, nil
+}
+
+func parseCanvasArtifactsArgs(args map[string]any) (CanvasArtifactsArgs, error) {
+	detail, err := artifactDetailArg(args, "detail", "summary")
+	if err != nil {
+		return CanvasArtifactsArgs{}, err
+	}
+	return CanvasArtifactsArgs{
+		ProjectID: stringArg(args, "project_id", ""),
+		TaskID:    stringArg(args, "task_id", ""),
+		Limit:     intArg(args, "limit", 0),
+		Offset:    intArg(args, "offset", 0),
+		Detail:    detail,
+	}, nil
+}
+
+func parseCanvasArtifactArgs(args map[string]any) (CanvasArtifactArgs, error) {
+	artifactID, err := requiredString(args, "artifact_id")
+	if err != nil {
+		return CanvasArtifactArgs{}, err
+	}
+	return CanvasArtifactArgs{
+		ProjectID:  stringArg(args, "project_id", ""),
+		ArtifactID: artifactID,
+		IncludeRaw: boolArg(args, "include_raw", false),
+	}, nil
+}
+
+func parseCanvasDownloadArgs(args map[string]any) (CanvasDownloadArgs, error) {
+	parsed := CanvasDownloadArgs{
+		ProjectID:            stringArg(args, "project_id", ""),
+		ArtifactID:           stringArg(args, "artifact_id", ""),
+		ArtifactIndex:        intArg(args, "artifact_index", 0),
+		TaskID:               stringArg(args, "task_id", ""),
+		All:                  boolArg(args, "all", false),
+		Original:             boolArg(args, "original", false),
+		DownloadDir:          stringArg(args, "download_dir", ""),
+		DownloadDirTemplate:  stringArg(args, "download_dir_template", ""),
+		DownloadFileTemplate: stringArg(args, "download_file_template", ""),
+		Overwrite:            boolArg(args, "overwrite", false),
+	}
+	if err := validateCanvasDownloadArgs(parsed); err != nil {
+		return CanvasDownloadArgs{}, err
+	}
+	return parsed, nil
 }
 
 func parseGenerateArgs(args map[string]any) (GenerateArgs, error) {
@@ -396,6 +485,10 @@ func numberArg(args map[string]any, key string, fallback float64) float64 {
 	}
 }
 
+func intArg(args map[string]any, key string, fallback int) int {
+	return int(numberArg(args, key, float64(fallback)))
+}
+
 func modeArg(args map[string]any, key string, fallback string) (string, error) {
 	mode := stringArg(args, key, fallback)
 	switch mode {
@@ -403,6 +496,16 @@ func modeArg(args map[string]any, key string, fallback string) (string, error) {
 		return mode, nil
 	default:
 		return "", fmt.Errorf("%s must be one of auto, fast, relax", key)
+	}
+}
+
+func artifactDetailArg(args map[string]any, key string, fallback string) (string, error) {
+	detail := stringArg(args, key, fallback)
+	switch detail {
+	case "summary", "full":
+		return detail, nil
+	default:
+		return "", fmt.Errorf("%s must be one of summary, full", key)
 	}
 }
 
@@ -414,6 +517,29 @@ func detailArg(args map[string]any, key string, fallback string) (string, error)
 	default:
 		return "", fmt.Errorf("%s must be one of summary, requests, full", key)
 	}
+}
+
+func validateCanvasDownloadArgs(args CanvasDownloadArgs) error {
+	count := 0
+	if args.ArtifactID != "" {
+		count++
+	}
+	if args.ArtifactIndex != 0 {
+		count++
+	}
+	if args.TaskID != "" {
+		count++
+	}
+	if args.All {
+		count++
+	}
+	if count != 1 {
+		return fmt.Errorf("choose exactly one canvas selector: artifact_id, artifact_index, task_id, or all")
+	}
+	if args.ArtifactIndex < 0 {
+		return fmt.Errorf("artifact_index must be greater than zero")
+	}
+	return nil
 }
 
 func normalizePostprocess(wait, download, canvas *bool) {
