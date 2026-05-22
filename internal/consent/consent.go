@@ -24,6 +24,29 @@ const (
 	CodeStructuredConsentOutputLimitExceeded DenialCode = "structured_consent_output_limit_exceeded"
 	CodeStructuredConsentRemoteLimitExceeded DenialCode = "structured_consent_remote_limit_exceeded"
 	CodeStructuredConsentActiveTaskExceeded  DenialCode = "structured_consent_active_task_limit_exceeded"
+
+	CodeStructuredConsentProjectIDMissing          DenialCode = "structured_consent_project_id_missing"
+	CodeStructuredConsentProjectIDMismatch         DenialCode = "structured_consent_project_id_mismatch"
+	CodeStructuredConsentTaskIDsMissing            DenialCode = "structured_consent_task_ids_missing"
+	CodeStructuredConsentTaskIDsMismatch           DenialCode = "structured_consent_task_ids_mismatch"
+	CodeStructuredConsentNewNameMissing            DenialCode = "structured_consent_new_name_missing"
+	CodeStructuredConsentNewNameMismatch           DenialCode = "structured_consent_new_name_mismatch"
+	CodeStructuredConsentCurrentProjectMissing     DenialCode = "structured_consent_current_project_missing"
+	CodeStructuredConsentProjectNameMissing        DenialCode = "structured_consent_project_name_missing"
+	CodeStructuredConsentProjectNameMismatch       DenialCode = "structured_consent_project_name_mismatch"
+	CodeStructuredConsentSelectAfterCreateMissing  DenialCode = "structured_consent_select_after_create_missing"
+	CodeStructuredConsentSelectAfterCreateMismatch DenialCode = "structured_consent_select_after_create_mismatch"
+	CodeStructuredConsentCanonicalPathMissing      DenialCode = "structured_consent_canonical_path_missing"
+	CodeStructuredConsentCanonicalPathMismatch     DenialCode = "structured_consent_canonical_path_mismatch"
+	CodeStructuredConsentOverwriteMissing          DenialCode = "structured_consent_overwrite_missing"
+	CodeStructuredConsentOutsideRootMissing        DenialCode = "structured_consent_outside_default_root_missing"
+	CodeStructuredConsentFileCountMissing          DenialCode = "structured_consent_file_count_missing"
+	CodeStructuredConsentFileCountMismatch         DenialCode = "structured_consent_file_count_mismatch"
+	CodeStructuredConsentCanvasWriteMissing        DenialCode = "structured_consent_canvas_write_missing"
+	CodeStructuredConsentCanvasShapeIDsMissing     DenialCode = "structured_consent_canvas_shape_ids_missing"
+	CodeStructuredConsentCanvasShapeIDsMismatch    DenialCode = "structured_consent_canvas_shape_ids_mismatch"
+	CodeStructuredConsentCanvasLayoutMissing       DenialCode = "structured_consent_canvas_layout_missing"
+	CodeStructuredConsentCanvasLayoutMismatch      DenialCode = "structured_consent_canvas_layout_mismatch"
 )
 
 // PaidConsent is the caller-provided structured confirmation for a paid action.
@@ -87,6 +110,230 @@ func ValidatePaidConsent(consent PaidConsent, scope PaidScope) ValidationResult 
 		return denyValidation(CodeStructuredConsentActiveTaskExceeded, fmt.Sprintf("max active tasks %d exceed confirmed_max_active_tasks %d", scope.MaxActiveTasks, consent.ConfirmedMaxActiveTasks))
 	}
 	return ValidationResult{Allowed: true}
+}
+
+// DestructiveConsent is the caller-provided object confirmation for destructive
+// or destructive-like remote mutations such as project delete/rename and task
+// cancel. Empty fields are treated as missing when the matching scope field is
+// required.
+type DestructiveConsent struct {
+	ConfirmProjectID string   `json:"confirm_project_id,omitempty"`
+	ConfirmTaskIDs   []string `json:"confirm_task_ids,omitempty"`
+	ConfirmNewName   string   `json:"confirm_new_name,omitempty"`
+}
+
+// DestructiveScope describes the actual destructive object mutation.
+type DestructiveScope struct {
+	ProjectID string   `json:"project_id,omitempty"`
+	TaskIDs   []string `json:"task_ids,omitempty"`
+	NewName   string   `json:"new_name,omitempty"`
+}
+
+func ValidateDestructiveConsent(consent DestructiveConsent, scope DestructiveScope) ValidationResult {
+	if scope.ProjectID != "" {
+		if consent.ConfirmProjectID == "" {
+			return denyValidation(CodeStructuredConsentProjectIDMissing, "confirm_project_id is required for destructive project mutation")
+		}
+		if consent.ConfirmProjectID != scope.ProjectID {
+			return denyValidation(CodeStructuredConsentProjectIDMismatch, fmt.Sprintf("confirm_project_id %q does not match project_id %q", consent.ConfirmProjectID, scope.ProjectID))
+		}
+	}
+	if len(scope.TaskIDs) > 0 {
+		if len(consent.ConfirmTaskIDs) == 0 {
+			return denyValidation(CodeStructuredConsentTaskIDsMissing, "confirm_task_ids is required for destructive task mutation")
+		}
+		if !sameStringSet(consent.ConfirmTaskIDs, scope.TaskIDs) {
+			return denyValidation(CodeStructuredConsentTaskIDsMismatch, "confirm_task_ids must match the target task_ids set")
+		}
+	}
+	if scope.NewName != "" {
+		if consent.ConfirmNewName == "" {
+			return denyValidation(CodeStructuredConsentNewNameMissing, "confirm_new_name is required for destructive rename mutation")
+		}
+		if consent.ConfirmNewName != scope.NewName {
+			return denyValidation(CodeStructuredConsentNewNameMismatch, fmt.Sprintf("confirm_new_name %q does not match new_name %q", consent.ConfirmNewName, scope.NewName))
+		}
+	}
+	return ValidationResult{Allowed: true}
+}
+
+// RemoteWriteConsent is the caller-provided confirmation for non-paid,
+// non-destructive writes to Lovart remote state.
+type RemoteWriteConsent struct {
+	ConfirmedProjectID         string `json:"confirmed_project_id,omitempty"`
+	ConfirmCurrentProject      bool   `json:"confirm_current_project,omitempty"`
+	ConfirmedProjectName       string `json:"confirmed_project_name,omitempty"`
+	ConfirmedSelectAfterCreate *bool  `json:"confirmed_select_after_create,omitempty"`
+	ConfirmedCanvasWrite       bool   `json:"confirmed_canvas_write,omitempty"`
+}
+
+// RemoteWriteScope describes the actual remote write target. ProjectID means an
+// explicit target project and takes precedence over ConfirmCurrentProject.
+type RemoteWriteScope struct {
+	ProjectID         string `json:"project_id,omitempty"`
+	CurrentProjectID  string `json:"current_project_id,omitempty"`
+	ProjectName       string `json:"project_name,omitempty"`
+	SelectAfterCreate *bool  `json:"select_after_create,omitempty"`
+	CanvasWrite       bool   `json:"canvas_write,omitempty"`
+}
+
+func ValidateRemoteWriteConsent(consent RemoteWriteConsent, scope RemoteWriteScope) ValidationResult {
+	if scope.ProjectID != "" {
+		if consent.ConfirmedProjectID == "" {
+			return denyValidation(CodeStructuredConsentProjectIDMissing, "confirmed_project_id is required for explicit remote project write")
+		}
+		if consent.ConfirmedProjectID != scope.ProjectID {
+			return denyValidation(CodeStructuredConsentProjectIDMismatch, fmt.Sprintf("confirmed_project_id %q does not match project_id %q", consent.ConfirmedProjectID, scope.ProjectID))
+		}
+	} else if scope.CurrentProjectID != "" {
+		if consent.ConfirmedProjectID != "" {
+			if consent.ConfirmedProjectID != scope.CurrentProjectID {
+				return denyValidation(CodeStructuredConsentProjectIDMismatch, fmt.Sprintf("confirmed_project_id %q does not match current project_id %q", consent.ConfirmedProjectID, scope.CurrentProjectID))
+			}
+		} else if !consent.ConfirmCurrentProject {
+			return denyValidation(CodeStructuredConsentCurrentProjectMissing, "confirm_current_project or matching confirmed_project_id is required for current-project remote write")
+		}
+	}
+	if scope.ProjectName != "" {
+		if consent.ConfirmedProjectName == "" {
+			return denyValidation(CodeStructuredConsentProjectNameMissing, "confirmed_project_name is required for remote project name write")
+		}
+		if consent.ConfirmedProjectName != scope.ProjectName {
+			return denyValidation(CodeStructuredConsentProjectNameMismatch, fmt.Sprintf("confirmed_project_name %q does not match project_name %q", consent.ConfirmedProjectName, scope.ProjectName))
+		}
+	}
+	if scope.SelectAfterCreate != nil {
+		if consent.ConfirmedSelectAfterCreate == nil {
+			return denyValidation(CodeStructuredConsentSelectAfterCreateMissing, "confirmed_select_after_create is required for project create selection write")
+		}
+		if *consent.ConfirmedSelectAfterCreate != *scope.SelectAfterCreate {
+			return denyValidation(CodeStructuredConsentSelectAfterCreateMismatch, "confirmed_select_after_create does not match select_after_create")
+		}
+	}
+	if scope.CanvasWrite && !consent.ConfirmedCanvasWrite {
+		return denyValidation(CodeStructuredConsentCanvasWriteMissing, "confirmed_canvas_write must be true for remote canvas write")
+	}
+	return ValidationResult{Allowed: true}
+}
+
+// LocalWriteConsent is the caller-provided confirmation for local filesystem
+// writes. ConfirmedCanonicalPath must already be the normalized absolute path
+// used by the caller; this package performs comparison only and no I/O.
+type LocalWriteConsent struct {
+	ConfirmedCanonicalPath    string `json:"confirmed_canonical_path,omitempty"`
+	ConfirmOverwrite          bool   `json:"confirm_overwrite,omitempty"`
+	ConfirmOutsideDefaultRoot bool   `json:"confirm_outside_default_root,omitempty"`
+	ConfirmedFileCount        int    `json:"confirmed_file_count,omitempty"`
+}
+
+// LocalWriteScope describes the actual local write target.
+type LocalWriteScope struct {
+	CanonicalPath      string `json:"canonical_path,omitempty"`
+	Overwrite          bool   `json:"overwrite,omitempty"`
+	OutsideDefaultRoot bool   `json:"outside_default_root,omitempty"`
+	FileCount          int    `json:"file_count,omitempty"`
+	RequireFileCount   bool   `json:"require_file_count,omitempty"`
+}
+
+func ValidateLocalWriteConsent(consent LocalWriteConsent, scope LocalWriteScope) ValidationResult {
+	if scope.CanonicalPath != "" {
+		if consent.ConfirmedCanonicalPath == "" {
+			return denyValidation(CodeStructuredConsentCanonicalPathMissing, "confirmed_canonical_path is required for local write")
+		}
+		if consent.ConfirmedCanonicalPath != scope.CanonicalPath {
+			return denyValidation(CodeStructuredConsentCanonicalPathMismatch, fmt.Sprintf("confirmed_canonical_path %q does not match canonical_path %q", consent.ConfirmedCanonicalPath, scope.CanonicalPath))
+		}
+	}
+	if scope.Overwrite && !consent.ConfirmOverwrite {
+		return denyValidation(CodeStructuredConsentOverwriteMissing, "confirm_overwrite must be true for overwrite local write")
+	}
+	if scope.OutsideDefaultRoot && !consent.ConfirmOutsideDefaultRoot {
+		return denyValidation(CodeStructuredConsentOutsideRootMissing, "confirm_outside_default_root must be true for writes outside the default root")
+	}
+	if scope.RequireFileCount {
+		if consent.ConfirmedFileCount == 0 {
+			return denyValidation(CodeStructuredConsentFileCountMissing, "confirmed_file_count is required for this local write")
+		}
+		if consent.ConfirmedFileCount != scope.FileCount {
+			return denyValidation(CodeStructuredConsentFileCountMismatch, fmt.Sprintf("confirmed_file_count %d does not match file_count %d", consent.ConfirmedFileCount, scope.FileCount))
+		}
+	}
+	return ValidationResult{Allowed: true}
+}
+
+// CanvasConsent is the caller-provided confirmation for canvas writes and
+// canvas object mutations.
+type CanvasConsent struct {
+	ConfirmedProjectID    string   `json:"confirmed_project_id,omitempty"`
+	ConfirmCurrentProject bool     `json:"confirm_current_project,omitempty"`
+	ConfirmCanvasWrite    bool     `json:"confirm_canvas_write,omitempty"`
+	ConfirmCanvasShapeIDs []string `json:"confirm_canvas_shape_ids,omitempty"`
+	ConfirmedCanvasLayout string   `json:"confirmed_canvas_layout,omitempty"`
+}
+
+// CanvasScope describes the actual canvas mutation target.
+type CanvasScope struct {
+	ProjectID        string   `json:"project_id,omitempty"`
+	CurrentProjectID string   `json:"current_project_id,omitempty"`
+	CanvasWrite      bool     `json:"canvas_write,omitempty"`
+	CanvasShapeIDs   []string `json:"canvas_shape_ids,omitempty"`
+	CanvasLayout     string   `json:"canvas_layout,omitempty"`
+}
+
+func ValidateCanvasConsent(consent CanvasConsent, scope CanvasScope) ValidationResult {
+	if scope.ProjectID != "" {
+		if consent.ConfirmedProjectID == "" {
+			return denyValidation(CodeStructuredConsentProjectIDMissing, "confirmed_project_id is required for explicit canvas project write")
+		}
+		if consent.ConfirmedProjectID != scope.ProjectID {
+			return denyValidation(CodeStructuredConsentProjectIDMismatch, fmt.Sprintf("confirmed_project_id %q does not match project_id %q", consent.ConfirmedProjectID, scope.ProjectID))
+		}
+	} else if scope.CurrentProjectID != "" {
+		if consent.ConfirmedProjectID != "" {
+			if consent.ConfirmedProjectID != scope.CurrentProjectID {
+				return denyValidation(CodeStructuredConsentProjectIDMismatch, fmt.Sprintf("confirmed_project_id %q does not match current project_id %q", consent.ConfirmedProjectID, scope.CurrentProjectID))
+			}
+		} else if !consent.ConfirmCurrentProject {
+			return denyValidation(CodeStructuredConsentCurrentProjectMissing, "confirm_current_project or matching confirmed_project_id is required for current-project canvas write")
+		}
+	}
+	if scope.CanvasWrite && !consent.ConfirmCanvasWrite {
+		return denyValidation(CodeStructuredConsentCanvasWriteMissing, "confirm_canvas_write must be true for canvas write")
+	}
+	if len(scope.CanvasShapeIDs) > 0 {
+		if len(consent.ConfirmCanvasShapeIDs) == 0 {
+			return denyValidation(CodeStructuredConsentCanvasShapeIDsMissing, "confirm_canvas_shape_ids is required for canvas object mutation")
+		}
+		if !sameStringSet(consent.ConfirmCanvasShapeIDs, scope.CanvasShapeIDs) {
+			return denyValidation(CodeStructuredConsentCanvasShapeIDsMismatch, "confirm_canvas_shape_ids must match the target canvas_shape_ids set")
+		}
+	}
+	if scope.CanvasLayout != "" {
+		if consent.ConfirmedCanvasLayout == "" {
+			return denyValidation(CodeStructuredConsentCanvasLayoutMissing, "confirmed_canvas_layout is required for canvas layout write")
+		}
+		if consent.ConfirmedCanvasLayout != scope.CanvasLayout {
+			return denyValidation(CodeStructuredConsentCanvasLayoutMismatch, "confirmed_canvas_layout does not match canvas_layout")
+		}
+	}
+	return ValidationResult{Allowed: true}
+}
+
+func sameStringSet(left, right []string) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	counts := make(map[string]int, len(left))
+	for _, value := range left {
+		counts[value]++
+	}
+	for _, value := range right {
+		counts[value]--
+		if counts[value] < 0 {
+			return false
+		}
+	}
+	return true
 }
 
 func denyValidation(code DenialCode, message string) ValidationResult {
