@@ -5,6 +5,8 @@ type Tool struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	InputSchema map[string]any `json:"inputSchema"`
+	Capability  ToolCapability `json:"capability"`
+	Annotations map[string]any `json:"annotations,omitempty"`
 }
 
 func stringSchema(description string) map[string]any {
@@ -58,6 +60,7 @@ func tool(name, description string, properties map[string]any, required ...strin
 	if required == nil {
 		required = []string{}
 	}
+	capability := capabilityForTool(name)
 	return Tool{
 		Name:        name,
 		Description: description,
@@ -66,6 +69,17 @@ func tool(name, description string, properties map[string]any, required ...strin
 			"properties":           properties,
 			"required":             required,
 			"additionalProperties": false,
+		},
+		Capability: capability,
+		Annotations: map[string]any{
+			"execution_class":            capability.ExecutionClass,
+			"network_required":           capability.NetworkRequired,
+			"remote_write":               capability.RemoteWrite,
+			"paid_possible":              capability.PaidPossible,
+			"destructive":                capability.Destructive,
+			"local_filesystem_write":     capability.LocalFilesystemWrite,
+			"idempotent":                 capability.Idempotent,
+			"requires_user_confirmation": capability.RequiresUserConfirmation,
 		},
 	}
 }
