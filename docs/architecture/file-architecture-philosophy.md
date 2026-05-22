@@ -69,6 +69,19 @@ Status: Architecture Principle
 
 如果确实需要共享能力，文件名必须说明共享的领域概念，而不是说明它是“工具”。
 
+## Architecture gate baseline 与不得恶化策略
+
+`scripts/check_architecture.sh` 是该文件架构原则的自动化守门脚本。它不只保护
+`internal/`，也覆盖 `mcp/`、`cli/`、`cmd/` 中的 Go 代码：
+
+- 禁止新增 `utils`、`helpers`、`misc`、`common`、`glue`、`compat`、`legacy` 等模糊命名文件或路径段。
+- 非测试 Go 文件的目标上限是 500 行；新增超过该上限的非测试文件必须失败。
+- 历史上已经超过 500 行的文件可以进入脚本内显式 baseline。baseline 是临时债务清单，不是新的目标值。
+- baseline 文件在未超过记录行数时只输出 `WARN`/`INFO`，用于提醒拆分债务但不阻塞 CI。
+- baseline 文件一旦超过记录行数，视为架构恶化并失败；减少行数后应同步降低或删除 baseline。
+
+这意味着迁移期间允许先守住现状，但不允许通过新增大文件、扩大旧大文件或引入模糊命名来把架构债务继续放大。
+
 ## GUI 目录示例
 
 ```text

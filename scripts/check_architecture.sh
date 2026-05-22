@@ -9,23 +9,37 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 red()  { echo -e "\033[31m$1\033[0m"; }
 green(){ echo -e "\033[32m$1\033[0m"; }
+yellow(){ echo -e "\033[33m$1\033[0m"; }
 
 pass() { green "  PASS $1"; PASS=$((PASS+1)); }
 fail() { red "  FAIL $1"; FAIL=$((FAIL+1)); }
+warn() { yellow "  WARN $1"; }
+info() { echo "  INFO $1"; }
 
 # ---- 1. Forbidden file names ----
 echo "==> Checking forbidden file names..."
 cd "$ROOT"
 IFS=$'\n'
+forbidden_bad=0
 for f in $(find . -name '*.go' -type f | grep -v '/vendor/'); do
     base=$(basename "$f")
+    rel="${f#./}"
     case "$base" in
         utils.go|helpers.go|misc.go|common.go|legacy.go|compat.go|glue.go)
             fail "forbidden file: $f"
+            forbidden_bad=$((forbidden_bad+1))
+            ;;
+    esac
+    case "$rel" in
+        */utils/*|*/helpers/*|*/misc/*|*/common/*|*/legacy/*|*/compat/*|*/glue/*|utils/*|helpers/*|misc/*|common/*|legacy/*|compat/*|glue/*)
+            fail "forbidden fuzzy path segment: $f"
+            forbidden_bad=$((forbidden_bad+1))
             ;;
     esac
 done
-pass "no forbidden file names"
+if [ "$forbidden_bad" -eq 0 ]; then
+    pass "no forbidden file names or fuzzy path segments"
+fi
 
 # ---- 2. Command entrypoint hygiene ----
 echo "==> Checking cmd/lovart entrypoints..."
@@ -78,17 +92,45 @@ fi
 # ---- 5. File size check ----
 echo "==> Checking file sizes..."
 large=0
+
+# Baseline thresholds are an explicit non-regression contract for files that
+# already exceeded the architectural target when this gate was expanded beyond
+# internal/. They are allowed to remain temporarily, but they must not grow.
+declare -A size_baseline=(
+    ["mcp/configure.go"]=632
+    ["mcp/production.go"]=1082
+    ["mcp/server.go"]=756
+    ["mcp/smoke.go"]=651
+)
+
 while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    rel="${f#./}"
     lines=$(wc -l < "$f")
-    if [ "$lines" -gt 500 ]; then
-        echo "  WARN $f ($lines lines)"
+    if [ "$lines" -le 500 ]; then
+        continue
+    fi
+
+    if [[ "$rel" == *_test.go ]]; then
+        info "$rel ($lines lines, test file; non-blocking)"
+        continue
+    fi
+
+    baseline="${size_baseline[$rel]:-}"
+    if [ -n "$baseline" ]; then
+        if [ "$lines" -le "$baseline" ]; then
+            warn "$rel ($lines lines, baseline $baseline; do not grow)"
+        else
+            fail "$rel grew past baseline ($lines lines > $baseline)"
+            large=$((large+1))
+        fi
+    else
+        fail "$rel ($lines lines > 500; new oversized non-test Go file)"
         large=$((large+1))
     fi
-done < <(find internal/ -name '*.go' -type f)
+done < <(find internal/ mcp/ cli/ cmd/ -name '*.go' -type f 2>/dev/null)
 if [ "$large" -eq 0 ]; then
-    pass "no files over 500 lines"
-else
-    fail "$large file(s) over 500 lines"
+    pass "no new oversized non-test Go files in internal/mcp/cli/cmd"
 fi
 
 # ---- 6. TODO/FIXME/HACK in internal/ ----
