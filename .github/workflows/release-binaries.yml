@@ -67,7 +67,7 @@ jobs:
           "${{ matrix.binary_path }}" --version
           "${{ matrix.binary_path }}" self-test
           "${{ matrix.binary_path }}" config openai/gpt-image-2
-          printf '{"jsonrpc":"2.0","id":1,"method":"tools/list"}\n' | "${{ matrix.binary_path }}" mcp
+          bash scripts/check_mcp_tools_consistency.sh "${{ matrix.binary_path }}"
 
       - name: Prepare asset
         shell: bash
@@ -112,7 +112,7 @@ jobs:
           chmod +x release-assets/lovart-linux-x64
           release-assets/lovart-linux-x64 --version
           release-assets/lovart-linux-x64 self-test
-          printf '{"jsonrpc":"2.0","id":1,"method":"tools/list"}\n' | release-assets/lovart-linux-x64 mcp
+          bash scripts/check_mcp_tools_consistency.sh release-assets/lovart-linux-x64
 
       - uses: actions/upload-artifact@v4
         with:

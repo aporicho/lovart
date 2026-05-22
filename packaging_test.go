@@ -16,13 +16,13 @@ func TestReleaseWorkflowBuildsGoBinaries(t *testing.T) {
 		"go-version-file: go.mod",
 		"go test ./...",
 		"go build -trimpath",
+		"scripts/check_mcp_tools_consistency.sh",
 		"lovart-macos-arm64",
 		"lovart-linux-x64",
 		"lovart-windows-x64.exe",
 		"install.sh",
 		"install.ps1",
 		"SHA256SUMS",
-		`method":"tools/list`,
 		"softprops/action-gh-release@v2",
 	} {
 		if !strings.Contains(text, want) {
