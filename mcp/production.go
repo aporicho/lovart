@@ -697,23 +697,7 @@ func (ProductionExecutor) Generate(ctx context.Context, args GenerateArgs) envel
 
 // JobsRun runs a complete batch.
 func (executor ProductionExecutor) JobsRun(ctx context.Context, args JobsRunArgs) envelope.Envelope {
-	opts := defaultMCPBatchOptions()
-	opts.AuditLogger = executor.AuditLogger
-	opts.AllowPaid = args.AllowPaid
-	opts.MaxTotalCredits = args.MaxTotalCredits
-	opts.ConfirmPaid = args.ConfirmPaid
-	opts.ConfirmedMaxTotalCredits = args.ConfirmedMaxTotalCredits
-	opts.ConfirmedRemoteRequests = args.ConfirmedRemoteRequests
-	opts.ConfirmedMaxActiveTasks = args.ConfirmedMaxActiveTasks
-	opts.ConfirmedModel = args.ConfirmedModel
-	opts.ConfirmedMode = args.ConfirmedMode
-	opts.ConfirmedOutputs = args.ConfirmedOutputs
-	opts.ConfirmedMaxCredits = args.ConfirmedMaxCredits
-	opts.ProjectID = args.ProjectID
-	opts.DownloadDir = args.DownloadDir
-	opts.SubmitIntervalSeconds = args.SubmitIntervalSeconds
-	opts.SubmitLimit = args.SubmitLimit
-	opts.MaxActiveTasks = args.MaxActiveTasks
+	opts := jobsRunOptions(args, executor.AuditLogger)
 	applyProjectContext(&opts)
 	state, validationErr, err := jobs.PrepareRun(args.JobsFile, opts)
 	if err != nil {
@@ -767,23 +751,7 @@ func (executor ProductionExecutor) JobsStatus(ctx context.Context, args JobsStat
 
 // JobsResume resumes a saved batch state.
 func (executor ProductionExecutor) JobsResume(ctx context.Context, args JobsResumeArgs) envelope.Envelope {
-	opts := defaultMCPBatchOptions()
-	opts.AuditLogger = executor.AuditLogger
-	opts.AllowPaid = args.AllowPaid
-	opts.MaxTotalCredits = args.MaxTotalCredits
-	opts.ConfirmPaid = args.ConfirmPaid
-	opts.ConfirmedMaxTotalCredits = args.ConfirmedMaxTotalCredits
-	opts.ConfirmedRemoteRequests = args.ConfirmedRemoteRequests
-	opts.ConfirmedMaxActiveTasks = args.ConfirmedMaxActiveTasks
-	opts.ConfirmedModel = args.ConfirmedModel
-	opts.ConfirmedMode = args.ConfirmedMode
-	opts.ConfirmedOutputs = args.ConfirmedOutputs
-	opts.ConfirmedMaxCredits = args.ConfirmedMaxCredits
-	opts.DownloadDir = args.DownloadDir
-	opts.RetryFailed = args.RetryFailed
-	opts.SubmitIntervalSeconds = args.SubmitIntervalSeconds
-	opts.SubmitLimit = args.SubmitLimit
-	opts.MaxActiveTasks = args.MaxActiveTasks
+	opts := jobsResumeOptions(args, executor.AuditLogger)
 	applyProjectContext(&opts)
 	remote, env := newJobsRemote(ctx)
 	if env != nil {
@@ -836,20 +804,6 @@ func (executor ProductionExecutor) JobsFinalize(ctx context.Context, args JobsFi
 	})
 }
 
-func defaultMCPBatchOptions() jobs.JobsOptions {
-	return jobs.JobsOptions{
-		Wait:                  false,
-		Download:              false,
-		Canvas:                false,
-		CanvasLayout:          jobs.CanvasLayoutFrame,
-		TimeoutSeconds:        MCPWaitTimeoutSeconds,
-		PollInterval:          5,
-		SubmitIntervalSeconds: 2,
-		MaxActiveTasks:        10,
-		Detail:                "summary",
-	}
-}
-
 func generate(ctx context.Context, args GenerateArgs) envelope.Envelope {
 	if validation := registry.ValidateRequest(args.Model, args.Body); !validation.OK {
 		return envelope.Err(sharedvalidation.RequestErrorCode(validation), "request body failed schema validation", map[string]any{
@@ -879,21 +833,7 @@ func generate(ctx context.Context, args GenerateArgs) envelope.Envelope {
 	if err != nil {
 		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
 	}
-	opts := generation.Options{
-		Mode:                    args.Mode,
-		AllowPaid:               args.AllowPaid,
-		MaxCredits:              args.MaxCredits,
-		ConfirmPaid:             args.ConfirmPaid,
-		ConfirmedMaxCredits:     args.ConfirmedMaxCredits,
-		ConfirmedModel:          args.ConfirmedModel,
-		ConfirmedMode:           args.ConfirmedMode,
-		ConfirmedOutputs:        args.ConfirmedOutputs,
-		ConfirmedRemoteRequests: args.ConfirmedRemoteRequests,
-		ProjectID:               args.ProjectID,
-		CID:                     cid,
-		Wait:                    args.Wait,
-		Download:                args.Download,
-	}
+	opts := generationOptions(args, cid)
 	preflight, err := generation.Preflight(ctx, client, args.Model, args.Body, opts)
 	if err != nil {
 		return envelope.Err(errors.CodeInternal, "preflight error", map[string]any{"error": err.Error()})
