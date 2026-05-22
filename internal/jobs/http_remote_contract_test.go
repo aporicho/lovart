@@ -139,6 +139,7 @@ func TestHTTPRemoteContractSubmitReturnsTaskAndResumeDoesNotResubmit(t *testing.
 	remote := newHTTPContractRemote(t, cs)
 	state := newContractRunState(t, 1)
 	opts := JobsOptions{AllowPaid: true, MaxTotalCredits: 20, ProjectID: "project-1", CID: "cid-1"}
+	setValidPaidConsent(&opts, 12.5, 1, 0)
 
 	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
 	if err != nil {
@@ -212,6 +213,7 @@ func TestHTTPRemoteContractListRunningTasksDefersAtActiveCap(t *testing.T) {
 	remote := newHTTPContractRemote(t, cs)
 	state := newContractRunState(t, 1)
 	opts := JobsOptions{AllowPaid: true, MaxTotalCredits: 20, ProjectID: "project-1", CID: "cid-1", MaxActiveTasks: 2}
+	setValidPaidConsent(&opts, 12.5, 1, 2)
 
 	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
 	if err != nil {
@@ -235,6 +237,7 @@ func TestHTTPRemoteContract429SubmitDefersAsTransient(t *testing.T) {
 	remote := newHTTPContractRemote(t, cs)
 	state := newContractRunState(t, 1)
 	opts := JobsOptions{AllowPaid: true, MaxTotalCredits: 20, ProjectID: "project-1", CID: "cid-1"}
+	setValidPaidConsent(&opts, 12.5, 1, 0)
 
 	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
 	if err != nil {
@@ -256,6 +259,7 @@ func TestHTTPRemoteContractConcurrencyLimitDefersAsActiveLimit(t *testing.T) {
 	remote := newHTTPContractRemote(t, cs)
 	state := newContractRunState(t, 1)
 	opts := JobsOptions{AllowPaid: true, MaxTotalCredits: 20, ProjectID: "project-1", CID: "cid-1"}
+	setValidPaidConsent(&opts, 12.5, 1, 0)
 
 	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
 	if err != nil {

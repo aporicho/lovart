@@ -1,19 +1,24 @@
 package jobs
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/aporicho/lovart/internal/consent"
+)
 
 // BatchGate is the aggregate safety decision before batch submission.
 type BatchGate struct {
-	Allowed                  bool     `json:"allowed"`
-	AllowPaid                bool     `json:"allow_paid"`
-	MaxTotalCredits          float64  `json:"max_total_credits,omitempty"`
-	TotalCredits             float64  `json:"total_credits"`
-	SelectedRemoteRequests   int      `json:"selected_remote_requests"`
-	PaidRequestIDs           []string `json:"paid_request_ids,omitempty"`
-	UnknownPricingRequestIDs []string `json:"unknown_pricing_request_ids,omitempty"`
-	FailedRequestIDs         []string `json:"failed_request_ids,omitempty"`
-	BlockingRequestIDs       []string `json:"blocking_request_ids,omitempty"`
-	RecommendedActions       []string `json:"recommended_actions,omitempty"`
+	Allowed                  bool             `json:"allowed"`
+	AllowPaid                bool             `json:"allow_paid"`
+	MaxTotalCredits          float64          `json:"max_total_credits,omitempty"`
+	TotalCredits             float64          `json:"total_credits"`
+	SelectedRemoteRequests   int              `json:"selected_remote_requests"`
+	StructuredConsentOutcome *consent.Outcome `json:"structured_consent,omitempty"`
+	PaidRequestIDs           []string         `json:"paid_request_ids,omitempty"`
+	UnknownPricingRequestIDs []string         `json:"unknown_pricing_request_ids,omitempty"`
+	FailedRequestIDs         []string         `json:"failed_request_ids,omitempty"`
+	BlockingRequestIDs       []string         `json:"blocking_request_ids,omitempty"`
+	RecommendedActions       []string         `json:"recommended_actions,omitempty"`
 }
 
 // GateError reports a batch gate failure.
@@ -89,6 +94,9 @@ func hasBlockingRequestErrors(request RemoteRequest) bool {
 }
 
 func gateErrorCode(gate *BatchGate) string {
+	if gate.StructuredConsentOutcome != nil && gate.StructuredConsentOutcome.Code != "" {
+		return gate.StructuredConsentOutcome.Code
+	}
 	if len(gate.UnknownPricingRequestIDs) > 0 {
 		return "unknown_pricing"
 	}
@@ -98,8 +106,50 @@ func gateErrorCode(gate *BatchGate) string {
 	return "credit_risk"
 }
 
+func structuredConsentAction(code string, gate *BatchGate, opts JobsOptions) string {
+	switch code {
+	case "structured_consent_missing_confirm_paid", "structured_consent_confirm_paid_mismatch":
+		return "pass structured paid consent `confirm_paid=true` for this paid batch"
+	case "structured_consent_missing_max_total_credits", "structured_consent_max_total_credits_mismatch":
+		return fmt.Sprintf("pass `confirmed_max_total_credits` of at least %.0f for this paid batch", gate.TotalCredits)
+	case "structured_consent_missing_remote_requests", "structured_consent_remote_requests_mismatch":
+		return fmt.Sprintf("pass `confirmed_remote_requests=%d` for this paid batch", gate.SelectedRemoteRequests)
+	case "structured_consent_missing_max_active_tasks", "structured_consent_max_active_tasks_mismatch":
+		return fmt.Sprintf("pass `confirmed_max_active_tasks=%d` for this paid batch", normalizedMaxActiveTasks(opts))
+	default:
+		return "pass matching structured paid consent fields before submitting this paid batch"
+	}
+}
+
+func applyStructuredPaidConsent(gate *BatchGate, opts JobsOptions) {
+	if len(gate.PaidRequestIDs) == 0 || !opts.AllowPaid || !gate.Allowed {
+		return
+	}
+	outcome := consent.VerifyPaid(consent.PaidPlan{
+		Required:       true,
+		TotalCredits:   gate.TotalCredits,
+		RemoteRequests: gate.SelectedRemoteRequests,
+		MaxActiveTasks: normalizedMaxActiveTasks(opts),
+	}, consent.PaidConfirmation{
+		ConfirmPaid:              opts.ConfirmPaid,
+		ConfirmedMaxTotalCredits: opts.ConfirmedMaxTotalCredits,
+		ConfirmedRemoteRequests:  opts.ConfirmedRemoteRequests,
+		ConfirmedMaxActiveTasks:  opts.ConfirmedMaxActiveTasks,
+		ConfirmedModel:           opts.ConfirmedModel,
+		ConfirmedMode:            opts.ConfirmedMode,
+		ConfirmedOutputs:         opts.ConfirmedOutputs,
+		ConfirmedMaxCredits:      opts.ConfirmedMaxCredits,
+	})
+	gate.StructuredConsentOutcome = &outcome
+	if !outcome.Allowed {
+		gate.Allowed = false
+		gate.RecommendedActions = append(gate.RecommendedActions, structuredConsentAction(outcome.Code, gate, opts))
+	}
+}
+
 func ensureGateAllowed(state *RunState, opts JobsOptions, statuses map[string]bool) error {
 	gate := evaluateGate(state, opts, statuses)
+	applyStructuredPaidConsent(gate, opts)
 	state.BatchGate = gate
 	if gate.Allowed {
 		return nil
