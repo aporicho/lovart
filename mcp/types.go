@@ -170,30 +170,44 @@ type CanvasDownloadArgs struct {
 
 // GenerateArgs configures single generation tools.
 type GenerateArgs struct {
-	Model                string         `json:"model"`
-	Body                 map[string]any `json:"body"`
-	Mode                 string         `json:"mode"`
-	AllowPaid            bool           `json:"allow_paid"`
-	MaxCredits           float64        `json:"max_credits"`
-	ProjectID            string         `json:"project_id"`
-	Wait                 bool           `json:"wait"`
-	Download             bool           `json:"download"`
-	Canvas               bool           `json:"canvas"`
-	DownloadDir          string         `json:"download_dir"`
-	DownloadDirTemplate  string         `json:"download_dir_template"`
-	DownloadFileTemplate string         `json:"download_file_template"`
+	Model                   string         `json:"model"`
+	Body                    map[string]any `json:"body"`
+	Mode                    string         `json:"mode"`
+	AllowPaid               bool           `json:"allow_paid"`
+	MaxCredits              float64        `json:"max_credits"`
+	ConfirmPaid             bool           `json:"confirm_paid"`
+	ConfirmedMaxCredits     float64        `json:"confirmed_max_credits"`
+	ConfirmedModel          string         `json:"confirmed_model"`
+	ConfirmedMode           string         `json:"confirmed_mode"`
+	ConfirmedOutputs        int            `json:"confirmed_outputs"`
+	ConfirmedRemoteRequests int            `json:"confirmed_remote_requests"`
+	ProjectID               string         `json:"project_id"`
+	Wait                    bool           `json:"wait"`
+	Download                bool           `json:"download"`
+	Canvas                  bool           `json:"canvas"`
+	DownloadDir             string         `json:"download_dir"`
+	DownloadDirTemplate     string         `json:"download_dir_template"`
+	DownloadFileTemplate    string         `json:"download_file_template"`
 }
 
 // JobsRunArgs configures lovart_jobs_run.
 type JobsRunArgs struct {
-	JobsFile              string  `json:"jobs_file"`
-	AllowPaid             bool    `json:"allow_paid"`
-	MaxTotalCredits       float64 `json:"max_total_credits"`
-	ProjectID             string  `json:"project_id"`
-	DownloadDir           string  `json:"download_dir"`
-	SubmitIntervalSeconds float64 `json:"submit_interval_seconds"`
-	SubmitLimit           int     `json:"submit_limit"`
-	MaxActiveTasks        int     `json:"max_active_tasks"`
+	JobsFile                 string  `json:"jobs_file"`
+	AllowPaid                bool    `json:"allow_paid"`
+	MaxTotalCredits          float64 `json:"max_total_credits"`
+	ConfirmPaid              bool    `json:"confirm_paid"`
+	ConfirmedMaxTotalCredits float64 `json:"confirmed_max_total_credits"`
+	ConfirmedRemoteRequests  int     `json:"confirmed_remote_requests"`
+	ConfirmedMaxActiveTasks  int     `json:"confirmed_max_active_tasks"`
+	ConfirmedModel           string  `json:"confirmed_model"`
+	ConfirmedMode            string  `json:"confirmed_mode"`
+	ConfirmedOutputs         int     `json:"confirmed_outputs"`
+	ConfirmedMaxCredits      float64 `json:"confirmed_max_credits"`
+	ProjectID                string  `json:"project_id"`
+	DownloadDir              string  `json:"download_dir"`
+	SubmitIntervalSeconds    float64 `json:"submit_interval_seconds"`
+	SubmitLimit              int     `json:"submit_limit"`
+	MaxActiveTasks           int     `json:"max_active_tasks"`
 }
 
 // JobsStatusArgs configures lovart_jobs_status.
@@ -205,14 +219,22 @@ type JobsStatusArgs struct {
 
 // JobsResumeArgs configures lovart_jobs_resume.
 type JobsResumeArgs struct {
-	RunDir                string  `json:"run_dir"`
-	AllowPaid             bool    `json:"allow_paid"`
-	MaxTotalCredits       float64 `json:"max_total_credits"`
-	DownloadDir           string  `json:"download_dir"`
-	RetryFailed           bool    `json:"retry_failed"`
-	SubmitIntervalSeconds float64 `json:"submit_interval_seconds"`
-	SubmitLimit           int     `json:"submit_limit"`
-	MaxActiveTasks        int     `json:"max_active_tasks"`
+	RunDir                   string  `json:"run_dir"`
+	AllowPaid                bool    `json:"allow_paid"`
+	MaxTotalCredits          float64 `json:"max_total_credits"`
+	ConfirmPaid              bool    `json:"confirm_paid"`
+	ConfirmedMaxTotalCredits float64 `json:"confirmed_max_total_credits"`
+	ConfirmedRemoteRequests  int     `json:"confirmed_remote_requests"`
+	ConfirmedMaxActiveTasks  int     `json:"confirmed_max_active_tasks"`
+	ConfirmedModel           string  `json:"confirmed_model"`
+	ConfirmedMode            string  `json:"confirmed_mode"`
+	ConfirmedOutputs         int     `json:"confirmed_outputs"`
+	ConfirmedMaxCredits      float64 `json:"confirmed_max_credits"`
+	DownloadDir              string  `json:"download_dir"`
+	RetryFailed              bool    `json:"retry_failed"`
+	SubmitIntervalSeconds    float64 `json:"submit_interval_seconds"`
+	SubmitLimit              int     `json:"submit_limit"`
+	MaxActiveTasks           int     `json:"max_active_tasks"`
 }
 
 // JobsFinalizeArgs configures lovart_jobs_finalize.

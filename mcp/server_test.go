@@ -260,7 +260,7 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 
 func TestPaidToolSchemasExposeStructuredConsentFields(t *testing.T) {
 	byName := toolsByName(Tools())
-	for _, toolName := range []string{"lovart_generate", "lovart_jobs_run"} {
+	for _, toolName := range []string{"lovart_generate", "lovart_jobs_run", "lovart_jobs_resume"} {
 		tool, ok := byName[toolName]
 		if !ok {
 			t.Fatalf("missing tool %s", toolName)
@@ -767,24 +767,56 @@ func TestGenerateDefaultsToAsyncPostprocess(t *testing.T) {
 	}
 }
 
-func TestJobsRunArgsExposeUserSurface(t *testing.T) {
+func TestGenerateStructuredPaidConsentArgsArePreserved(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
-	env := server.CallTool(context.Background(), "lovart_jobs_run", map[string]any{
-		"jobs_file":               "runs/x/jobs.jsonl",
-		"allow_paid":              true,
-		"max_total_credits":       12.0,
-		"project_id":              "proj_123",
-		"download_dir":            "runs/x/images",
-		"submit_interval_seconds": 1.5,
-		"submit_limit":            7.0,
-		"max_active_tasks":        9.0,
-		"confirm_policy":          true,
+	env := server.CallTool(context.Background(), "lovart_generate", map[string]any{
+		"model":                     "openai/gpt-image-2",
+		"body":                      map[string]any{"prompt": "test"},
+		"allow_paid":                true,
+		"max_credits":               12.0,
+		"confirm_paid":              true,
+		"confirmed_max_credits":     12.0,
+		"confirmed_model":           "openai/gpt-image-2",
+		"confirmed_mode":            "auto",
+		"confirmed_outputs":         2.0,
+		"confirmed_remote_requests": 1.0,
+		"confirm_policy":            true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.jobsRun.JobsFile != "runs/x/jobs.jsonl" || !executor.jobsRun.AllowPaid || executor.jobsRun.MaxTotalCredits != 12 || executor.jobsRun.ProjectID != "proj_123" || executor.jobsRun.DownloadDir != "runs/x/images" || executor.jobsRun.SubmitIntervalSeconds != 1.5 || executor.jobsRun.SubmitLimit != 7 || executor.jobsRun.MaxActiveTasks != 9 {
+	if !executor.generate.ConfirmPaid || executor.generate.ConfirmedMaxCredits != 12 || executor.generate.ConfirmedModel != "openai/gpt-image-2" || executor.generate.ConfirmedMode != "auto" || executor.generate.ConfirmedOutputs != 2 || executor.generate.ConfirmedRemoteRequests != 1 {
+		t.Fatalf("generate structured consent args = %#v", executor.generate)
+	}
+}
+
+func TestJobsRunArgsExposeUserSurface(t *testing.T) {
+	executor := &fakeExecutor{}
+	server := NewServerWithExecutor(executor)
+	env := server.CallTool(context.Background(), "lovart_jobs_run", map[string]any{
+		"jobs_file":                   "runs/x/jobs.jsonl",
+		"allow_paid":                  true,
+		"max_total_credits":           12.0,
+		"confirm_paid":                true,
+		"confirmed_max_total_credits": 12.0,
+		"confirmed_remote_requests":   7.0,
+		"confirmed_max_active_tasks":  9.0,
+		"confirmed_model":             "openai/gpt-image-2",
+		"confirmed_mode":              "auto",
+		"confirmed_outputs":           7.0,
+		"confirmed_max_credits":       3.0,
+		"project_id":                  "proj_123",
+		"download_dir":                "runs/x/images",
+		"submit_interval_seconds":     1.5,
+		"submit_limit":                7.0,
+		"max_active_tasks":            9.0,
+		"confirm_policy":              true,
+	})
+	if !env.OK {
+		t.Fatalf("unexpected envelope: %#v", env)
+	}
+	if executor.jobsRun.JobsFile != "runs/x/jobs.jsonl" || !executor.jobsRun.AllowPaid || executor.jobsRun.MaxTotalCredits != 12 || !executor.jobsRun.ConfirmPaid || executor.jobsRun.ConfirmedMaxTotalCredits != 12 || executor.jobsRun.ConfirmedRemoteRequests != 7 || executor.jobsRun.ConfirmedMaxActiveTasks != 9 || executor.jobsRun.ConfirmedModel != "openai/gpt-image-2" || executor.jobsRun.ConfirmedMode != "auto" || executor.jobsRun.ConfirmedOutputs != 7 || executor.jobsRun.ConfirmedMaxCredits != 3 || executor.jobsRun.ProjectID != "proj_123" || executor.jobsRun.DownloadDir != "runs/x/images" || executor.jobsRun.SubmitIntervalSeconds != 1.5 || executor.jobsRun.SubmitLimit != 7 || executor.jobsRun.MaxActiveTasks != 9 {
 		t.Fatalf("jobs run args = %#v", executor.jobsRun)
 	}
 }
@@ -818,20 +850,28 @@ func TestJobsResumeArgsExposeUserSurface(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_jobs_resume", map[string]any{
-		"run_dir":                 "runs/x",
-		"allow_paid":              true,
-		"max_total_credits":       24.0,
-		"download_dir":            "runs/x/images",
-		"retry_failed":            true,
-		"submit_interval_seconds": 3.0,
-		"submit_limit":            5.0,
-		"max_active_tasks":        8.0,
-		"confirm_policy":          true,
+		"run_dir":                     "runs/x",
+		"allow_paid":                  true,
+		"max_total_credits":           24.0,
+		"confirm_paid":                true,
+		"confirmed_max_total_credits": 24.0,
+		"confirmed_remote_requests":   5.0,
+		"confirmed_max_active_tasks":  8.0,
+		"confirmed_model":             "openai/gpt-image-2",
+		"confirmed_mode":              "fast",
+		"confirmed_outputs":           5.0,
+		"confirmed_max_credits":       4.0,
+		"download_dir":                "runs/x/images",
+		"retry_failed":                true,
+		"submit_interval_seconds":     3.0,
+		"submit_limit":                5.0,
+		"max_active_tasks":            8.0,
+		"confirm_policy":              true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.jobsResume.RunDir != "runs/x" || !executor.jobsResume.AllowPaid || executor.jobsResume.MaxTotalCredits != 24 || executor.jobsResume.DownloadDir != "runs/x/images" || !executor.jobsResume.RetryFailed || executor.jobsResume.SubmitIntervalSeconds != 3 || executor.jobsResume.SubmitLimit != 5 || executor.jobsResume.MaxActiveTasks != 8 {
+	if executor.jobsResume.RunDir != "runs/x" || !executor.jobsResume.AllowPaid || executor.jobsResume.MaxTotalCredits != 24 || !executor.jobsResume.ConfirmPaid || executor.jobsResume.ConfirmedMaxTotalCredits != 24 || executor.jobsResume.ConfirmedRemoteRequests != 5 || executor.jobsResume.ConfirmedMaxActiveTasks != 8 || executor.jobsResume.ConfirmedModel != "openai/gpt-image-2" || executor.jobsResume.ConfirmedMode != "fast" || executor.jobsResume.ConfirmedOutputs != 5 || executor.jobsResume.ConfirmedMaxCredits != 4 || executor.jobsResume.DownloadDir != "runs/x/images" || !executor.jobsResume.RetryFailed || executor.jobsResume.SubmitIntervalSeconds != 3 || executor.jobsResume.SubmitLimit != 5 || executor.jobsResume.MaxActiveTasks != 8 {
 		t.Fatalf("jobs resume args = %#v", executor.jobsResume)
 	}
 }

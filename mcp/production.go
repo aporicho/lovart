@@ -701,6 +701,14 @@ func (executor ProductionExecutor) JobsRun(ctx context.Context, args JobsRunArgs
 	opts.AuditLogger = executor.AuditLogger
 	opts.AllowPaid = args.AllowPaid
 	opts.MaxTotalCredits = args.MaxTotalCredits
+	opts.ConfirmPaid = args.ConfirmPaid
+	opts.ConfirmedMaxTotalCredits = args.ConfirmedMaxTotalCredits
+	opts.ConfirmedRemoteRequests = args.ConfirmedRemoteRequests
+	opts.ConfirmedMaxActiveTasks = args.ConfirmedMaxActiveTasks
+	opts.ConfirmedModel = args.ConfirmedModel
+	opts.ConfirmedMode = args.ConfirmedMode
+	opts.ConfirmedOutputs = args.ConfirmedOutputs
+	opts.ConfirmedMaxCredits = args.ConfirmedMaxCredits
 	opts.ProjectID = args.ProjectID
 	opts.DownloadDir = args.DownloadDir
 	opts.SubmitIntervalSeconds = args.SubmitIntervalSeconds
@@ -763,6 +771,14 @@ func (executor ProductionExecutor) JobsResume(ctx context.Context, args JobsResu
 	opts.AuditLogger = executor.AuditLogger
 	opts.AllowPaid = args.AllowPaid
 	opts.MaxTotalCredits = args.MaxTotalCredits
+	opts.ConfirmPaid = args.ConfirmPaid
+	opts.ConfirmedMaxTotalCredits = args.ConfirmedMaxTotalCredits
+	opts.ConfirmedRemoteRequests = args.ConfirmedRemoteRequests
+	opts.ConfirmedMaxActiveTasks = args.ConfirmedMaxActiveTasks
+	opts.ConfirmedModel = args.ConfirmedModel
+	opts.ConfirmedMode = args.ConfirmedMode
+	opts.ConfirmedOutputs = args.ConfirmedOutputs
+	opts.ConfirmedMaxCredits = args.ConfirmedMaxCredits
 	opts.DownloadDir = args.DownloadDir
 	opts.RetryFailed = args.RetryFailed
 	opts.SubmitIntervalSeconds = args.SubmitIntervalSeconds
@@ -864,13 +880,19 @@ func generate(ctx context.Context, args GenerateArgs) envelope.Envelope {
 		return envelope.Err(errors.CodeInternal, "setup client", map[string]any{"error": err.Error()})
 	}
 	opts := generation.Options{
-		Mode:       args.Mode,
-		AllowPaid:  args.AllowPaid,
-		MaxCredits: args.MaxCredits,
-		ProjectID:  args.ProjectID,
-		CID:        cid,
-		Wait:       args.Wait,
-		Download:   args.Download,
+		Mode:                    args.Mode,
+		AllowPaid:               args.AllowPaid,
+		MaxCredits:              args.MaxCredits,
+		ConfirmPaid:             args.ConfirmPaid,
+		ConfirmedMaxCredits:     args.ConfirmedMaxCredits,
+		ConfirmedModel:          args.ConfirmedModel,
+		ConfirmedMode:           args.ConfirmedMode,
+		ConfirmedOutputs:        args.ConfirmedOutputs,
+		ConfirmedRemoteRequests: args.ConfirmedRemoteRequests,
+		ProjectID:               args.ProjectID,
+		CID:                     cid,
+		Wait:                    args.Wait,
+		Download:                args.Download,
 	}
 	preflight, err := generation.Preflight(ctx, client, args.Model, args.Body, opts)
 	if err != nil {
