@@ -497,7 +497,11 @@ structured paid consent 字段：`confirm_paid`、`confirmed_model`、`confirmed
 `confirmed_remote_requests` 和 `confirmed_max_active_tasks`。`confirm_policy` 只通过
 MCP policy gate；付费工具仍然需要 `allow_paid` 与相应 max credits 限制。structured
 字段用于把用户确认绑定到这一次精确的付费 scope，本层仅暴露 schema，不替代后续
-jobs/generate 执行侧校验。
+jobs/generate 执行侧校验。jobs Phase 1 当前只 enforce batch-level
+`confirm_paid`、`confirmed_max_total_credits`、`confirmed_remote_requests` 和
+`confirmed_max_active_tasks`；不 enforce per-request `confirmed_model`、
+`confirmed_mode`、`confirmed_outputs` 或 `confirmed_max_credits`。jobs 的
+`confirmed_remote_requests` 表示本次 invocation 计划提交数，受 `submit_limit` 限制。
 
 如果远端任务因审核/策略拒绝失败，状态响应中的 `failure.code` 会是
 `content_policy_rejected`。

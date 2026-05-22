@@ -105,6 +105,7 @@ func jobsAuditMetadata(state *RunState, opts JobsOptions) map[string]any {
 		metadata["gate_allowed"] = state.BatchGate.Allowed
 		metadata["total_credits"] = state.BatchGate.TotalCredits
 		metadata["selected_remote_requests"] = state.BatchGate.SelectedRemoteRequests
+		metadata["planned_remote_requests"] = state.BatchGate.PlannedRemoteRequests
 		if state.BatchGate.StructuredConsentOutcome != nil {
 			metadata["structured_consent"] = state.BatchGate.StructuredConsentOutcome.Summary()
 		}

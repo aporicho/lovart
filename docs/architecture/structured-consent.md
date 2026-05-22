@@ -38,15 +38,15 @@ Lovart 现有 MCP 安全层包含：
 字段：
 
 - `confirm_paid`：布尔值。用户明确允许本次请求可能扣 credits。
-- `confirmed_max_credits`：数字。必须等于将用于 gate 的 credit 上限：单次生成对应 `max_credits`，batch 对应 `max_total_credits`。没有上限时不得通过 paid 确认。
-- `confirmed_model`：字符串。必须等于规范化后的 generator model 名称。
-- `confirmed_mode`：字符串。必须等于规范化后的 mode（`auto`、`fast`、`relax`）。未传 mode 时应先解析默认值，再要求确认解析后的值。
-- `confirmed_outputs`：数字或结构化摘要。确认本次计划生成的输出数量、任务数量或 batch 行数等本地可预估输出规模。
-- `confirmed_remote_requests`：数字。确认本次会向 Lovart 发起的远端 submit 请求数。单次生成通常为 `1`；jobs run/resume 为本次调用计划提交的未完成 job 数或 `submit_limit` 后的实际提交上限。
+- `confirmed_max_credits`：数字。必须等于将用于 gate 的 credit 上限：单次生成对应 `max_credits`；batch jobs Phase 1 使用 `confirmed_max_total_credits` / `max_total_credits`，不按单个 request enforce `confirmed_max_credits`。
+- `confirmed_model`：字符串。单次生成必须等于规范化后的 generator model 名称；batch jobs Phase 1 不 enforce 该 per-request 字段。
+- `confirmed_mode`：字符串。单次生成必须等于规范化后的 mode（`auto`、`fast`、`relax`）；batch jobs Phase 1 不 enforce 该 per-request 字段。
+- `confirmed_outputs`：数字或结构化摘要。单次生成确认本次计划生成的输出数量；batch jobs Phase 1 不 enforce 该 per-request 字段，因为 batch 内 model/mode/outputs 可能不唯一。
+- `confirmed_remote_requests`：数字。确认本次会向 Lovart 发起的远端 submit 请求数。单次生成通常为 `1`；jobs run/resume 为本次 invocation 计划提交的未完成 request 数，若设置 `submit_limit > 0`，则为 pending/quoted request 数与 `submit_limit` 的较小值。
 
 匹配要求：
 
-- `confirm_paid=true` 是必要条件，但不是充分条件；必须同时匹配 model、mode、credit 上限、输出规模/远端请求数。
+- `confirm_paid=true` 是必要条件，但不是充分条件；必须同时匹配 credit 上限和远端请求数。单次生成还必须匹配 model、mode、输出规模；batch jobs Phase 1 仅 enforce batch-level `confirm_paid` / `confirmed_max_total_credits` / `confirmed_remote_requests` / `confirmed_max_active_tasks`，当前不 enforce per-request model/mode/outputs。
 - 若 quote 结果显示 zero-credit，可不要求 `confirm_paid`，但仍应保留 remote_write/project/local_write 的确认要求。
 - 若实际 quote 大于 `confirmed_max_credits` 或业务上限，应在 submit 前停止。
 - jobs resume 必须确认“本次可能新增提交”的请求数，不应把已经有 task id 的历史请求重复计入。
