@@ -537,7 +537,8 @@ internal packages 按领域拆分：
 
 架构变更应遵循 `docs/architecture/file-architecture-philosophy.md`；
 MCP/CLI 高风险操作的结构化确认设计见
-`docs/architecture/structured-consent.md`；`scripts/check_architecture.sh` 会检查命名、
+`docs/architecture/structured-consent.md`，review/test matrix 见
+`docs/architecture/structured-consent-test-matrix.md`；`scripts/check_architecture.sh` 会检查命名、
 依赖方向、generated-file pollution 和 build health。
 
 ## 开发
