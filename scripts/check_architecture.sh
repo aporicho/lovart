@@ -103,6 +103,14 @@ else
 fi
 
 # ---- 7. Go build ----
+echo "==> Checking capture governance..."
+if bash scripts/check_captures.sh; then
+    pass "capture governance"
+else
+    fail "capture governance"
+fi
+
+# ---- 8. Go build ----
 echo "==> Checking go build..."
 if go build -o /dev/null ./cmd/lovart 2>/dev/null; then
     pass "go build ./cmd/lovart"

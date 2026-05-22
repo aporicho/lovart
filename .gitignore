@@ -19,6 +19,12 @@ extension/*.zip
 .lovart-chrome-profile/
 .mitmproxy/
 
+# Local capture debugging artifacts. Existing tracked captures remain tracked.
+/captures/*
+/captures_backup/*
+!/captures/.gitkeep
+!/captures_backup/.gitkeep
+
 # OS
 .DS_Store
 .env
