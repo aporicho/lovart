@@ -268,6 +268,7 @@ func addJobsSubmitFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 	cmd.Flags().Float64Var(&opts.SubmitIntervalSeconds, "submit-interval-seconds", opts.SubmitIntervalSeconds, "seconds to wait between batch task submissions")
 	cmd.Flags().IntVar(&opts.SubmitLimit, "submit-limit", 0, "maximum submit attempts in this command invocation; 0 means unlimited")
 	cmd.Flags().IntVar(&opts.MaxActiveTasks, "max-active-tasks", opts.MaxActiveTasks, "maximum active Lovart remote tasks allowed before deferring; this counts returned task_id values, not JSONL lines or output images; values above 10 are capped at 10; 0 disables this gate")
+	cmd.Flags().StringVar(&opts.ConfirmedProjectID, "confirmed-project-id", "", "structured consent: confirmed target project ID for remote task submission")
 }
 
 func newJobsRemote() (jobs.RemoteClient, bool) {

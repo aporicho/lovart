@@ -34,7 +34,11 @@ func jobsRunOptions(args JobsRunArgs, logger *audit.Logger) jobs.JobsOptions {
 	opts.ConfirmedOutputs = args.ConfirmedOutputs
 	opts.ConfirmedMaxCredits = args.ConfirmedMaxCredits
 	opts.ProjectID = args.ProjectID
+	opts.ConfirmedProjectID = args.ConfirmedProjectID
 	opts.DownloadDir = args.DownloadDir
+	opts.ConfirmedCanonicalPath = args.ConfirmedCanonicalPath
+	opts.ConfirmOverwrite = args.ConfirmOverwrite
+	opts.ConfirmOutsideDefaultRoot = args.ConfirmOutsideDefaultRoot
 	opts.SubmitIntervalSeconds = args.SubmitIntervalSeconds
 	opts.SubmitLimit = args.SubmitLimit
 	opts.MaxActiveTasks = args.MaxActiveTasks
@@ -54,7 +58,11 @@ func jobsResumeOptions(args JobsResumeArgs, logger *audit.Logger) jobs.JobsOptio
 	opts.ConfirmedMode = args.ConfirmedMode
 	opts.ConfirmedOutputs = args.ConfirmedOutputs
 	opts.ConfirmedMaxCredits = args.ConfirmedMaxCredits
+	opts.ConfirmedProjectID = args.ConfirmedProjectID
 	opts.DownloadDir = args.DownloadDir
+	opts.ConfirmedCanonicalPath = args.ConfirmedCanonicalPath
+	opts.ConfirmOverwrite = args.ConfirmOverwrite
+	opts.ConfirmOutsideDefaultRoot = args.ConfirmOutsideDefaultRoot
 	opts.RetryFailed = args.RetryFailed
 	opts.SubmitIntervalSeconds = args.SubmitIntervalSeconds
 	opts.SubmitLimit = args.SubmitLimit

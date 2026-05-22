@@ -17,12 +17,12 @@ func TestJobsRunAndResumeExposeUserCapabilityFlags(t *testing.T) {
 	}{
 		{
 			cmd:       newJobsRunCmd(),
-			allowed:   []string{"allow-paid", "max-total-credits", "confirm-paid", "confirmed-max-total-credits", "confirmed-remote-requests", "confirmed-max-active-tasks", "download-dir", "project-id", "submit-interval-seconds", "submit-limit", "max-active-tasks", "wait", "download", "canvas"},
+			allowed:   []string{"allow-paid", "max-total-credits", "confirm-paid", "confirmed-max-total-credits", "confirmed-remote-requests", "confirmed-max-active-tasks", "download-dir", "project-id", "confirmed-project-id", "submit-interval-seconds", "submit-limit", "max-active-tasks", "wait", "download", "canvas"},
 			forbidden: []string{"out-dir", "detail", "no-wait", "no-download", "no-canvas", "canvas-layout", "download-dir-template", "download-file-template", "timeout-seconds", "poll-interval", "cid", "retry-failed"},
 		},
 		{
 			cmd:       newJobsResumeCmd(),
-			allowed:   []string{"allow-paid", "max-total-credits", "confirm-paid", "confirmed-max-total-credits", "confirmed-remote-requests", "confirmed-max-active-tasks", "download-dir", "retry-failed", "submit-interval-seconds", "submit-limit", "max-active-tasks"},
+			allowed:   []string{"allow-paid", "max-total-credits", "confirm-paid", "confirmed-max-total-credits", "confirmed-remote-requests", "confirmed-max-active-tasks", "download-dir", "confirmed-project-id", "retry-failed", "submit-interval-seconds", "submit-limit", "max-active-tasks"},
 			forbidden: []string{"out-dir", "detail", "wait", "download", "canvas", "no-wait", "no-download", "no-canvas", "canvas-layout", "download-dir-template", "download-file-template", "timeout-seconds", "poll-interval", "project-id", "cid"},
 		},
 	}
