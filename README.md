@@ -533,8 +533,9 @@ internal packages 按领域拆分：
 | `internal/selfmanage` | upgrade 和 uninstall flows |
 
 架构变更应遵循 `docs/architecture/file-architecture-philosophy.md`；
-`scripts/check_architecture.sh` 会检查命名、依赖方向、generated-file pollution 和
-build health。
+MCP/CLI 高风险操作的结构化确认设计见
+`docs/architecture/structured-consent.md`；`scripts/check_architecture.sh` 会检查命名、
+依赖方向、generated-file pollution 和 build health。
 
 ## 开发
 
