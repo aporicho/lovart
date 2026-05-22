@@ -25,6 +25,14 @@ func numberSchema(description string) map[string]any {
 	return schema
 }
 
+func integerSchema(description string) map[string]any {
+	schema := map[string]any{"type": "integer"}
+	if description != "" {
+		schema["description"] = description
+	}
+	return schema
+}
+
 func boolSchema(description string) map[string]any {
 	schema := map[string]any{"type": "boolean"}
 	if description != "" {
@@ -56,14 +64,29 @@ func artifactDetailSchema() map[string]any {
 	return map[string]any{"type": "string", "enum": []string{"summary", "full"}}
 }
 
+func addStructuredPaidConsentFields(properties map[string]any) {
+	const consentDescription = "structured paid consent field; bind the user's confirmation to this exact paid scope. confirm_policy only passes the MCP policy gate; paid tools still require allow_paid and max credit limits."
+	properties["confirm_paid"] = boolSchema(consentDescription)
+	properties["confirmed_model"] = stringSchema(consentDescription)
+	properties["confirmed_mode"] = stringSchema(consentDescription)
+	properties["confirmed_max_credits"] = numberSchema(consentDescription)
+	properties["confirmed_max_total_credits"] = numberSchema(consentDescription)
+	properties["confirmed_outputs"] = integerSchema(consentDescription)
+	properties["confirmed_remote_requests"] = integerSchema(consentDescription)
+	properties["confirmed_max_active_tasks"] = integerSchema(consentDescription)
+}
+
 func tool(name, description string, properties map[string]any, required ...string) Tool {
 	if required == nil {
 		required = []string{}
 	}
 	capability := capabilityForTool(name)
 	if requiresPolicyConfirmation(capability) {
-		properties["confirm_policy"] = boolSchema("explicitly confirm MCP policy-gated side effects before execution")
+		properties["confirm_policy"] = boolSchema("explicitly confirm MCP policy-gated side effects before execution; this only passes the MCP policy gate and does not authorize paid spend by itself")
 		properties["confirm"] = boolSchema("alias for confirm_policy")
+	}
+	if capability.PaidPossible {
+		addStructuredPaidConsentFields(properties)
 	}
 	return Tool{
 		Name:        name,

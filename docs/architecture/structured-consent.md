@@ -230,6 +230,9 @@ structured consent 是业务确认：它回答“用户批准的是哪个对象�
 范围：`lovart_generate`、`lovart_jobs_run`、`lovart_jobs_resume`。
 
 - 在 MCP schema 和 CLI flags/options 加 paid 字段。
+- CLI Phase 1 flags：
+  - `lovart generate`：`--confirm-paid`、`--confirmed-max-credits`、`--confirmed-model`、`--confirmed-mode`、`--confirmed-outputs`、`--confirmed-remote-requests`。
+  - `lovart jobs run|resume`：`--confirm-paid`、`--confirmed-max-total-credits`、`--confirmed-remote-requests`、`--confirmed-max-active-tasks`。
 - 在 quote/gate 后、submit 前做 paid consent 比对。
 - jobs 使用“本次新增 submit 请求数”和 total credits 上限。
 - audit 写入 quote/gate/submit/finish 的 correlation chain。

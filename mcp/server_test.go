@@ -258,6 +258,37 @@ func TestHandleInitializeAndListTools(t *testing.T) {
 	}
 }
 
+func TestPaidToolSchemasExposeStructuredConsentFields(t *testing.T) {
+	byName := toolsByName(Tools())
+	for _, toolName := range []string{"lovart_generate", "lovart_jobs_run"} {
+		tool, ok := byName[toolName]
+		if !ok {
+			t.Fatalf("missing tool %s", toolName)
+		}
+		properties := tool.InputSchema["properties"].(map[string]any)
+		assertSchemaIncludesTypes(t, toolName, properties, map[string]string{
+			"confirm_paid":                "boolean",
+			"confirmed_model":             "string",
+			"confirmed_mode":              "string",
+			"confirmed_max_credits":       "number",
+			"confirmed_max_total_credits": "number",
+			"confirmed_outputs":           "integer",
+			"confirmed_remote_requests":   "integer",
+			"confirmed_max_active_tasks":  "integer",
+		})
+		confirmPolicy := properties["confirm_policy"].(map[string]any)
+		description, _ := confirmPolicy["description"].(string)
+		if !strings.Contains(description, "only passes the MCP policy gate") {
+			t.Fatalf("%s confirm_policy description missing policy-gate scope: %q", toolName, description)
+		}
+		confirmPaid := properties["confirm_paid"].(map[string]any)
+		description, _ = confirmPaid["description"].(string)
+		if !strings.Contains(description, "paid tools still require allow_paid") || !strings.Contains(description, "exact paid scope") {
+			t.Fatalf("%s confirm_paid description missing paid scope: %q", toolName, description)
+		}
+	}
+}
+
 func TestToolsCallReturnsEnvelopeText(t *testing.T) {
 	server := NewServerWithExecutor(&fakeExecutor{})
 	resp := server.HandleMessage(context.Background(), map[string]any{
@@ -836,6 +867,19 @@ func assertSchemaExcludes(t *testing.T, toolName string, properties map[string]a
 	for _, name := range names {
 		if _, ok := properties[name]; ok {
 			t.Fatalf("%s exposes internal property %q: %#v", toolName, name, properties)
+		}
+	}
+}
+
+func assertSchemaIncludesTypes(t *testing.T, toolName string, properties map[string]any, expected map[string]string) {
+	t.Helper()
+	for name, expectedType := range expected {
+		schema, ok := properties[name].(map[string]any)
+		if !ok {
+			t.Fatalf("%s missing schema property %q: %#v", toolName, name, properties)
+		}
+		if schema["type"] != expectedType {
+			t.Fatalf("%s property %q type: got %#v want %q", toolName, name, schema["type"], expectedType)
 		}
 	}
 }

@@ -29,13 +29,19 @@ type SubmitResult struct {
 
 // Options configures a generation request.
 type Options struct {
-	Mode       string
-	AllowPaid  bool
-	MaxCredits float64
-	ProjectID  string
-	CID        string
-	Wait       bool
-	Download   bool
+	Mode                    string
+	AllowPaid               bool
+	MaxCredits              float64
+	ConfirmPaid             bool
+	ConfirmedMaxCredits     float64
+	ConfirmedModel          string
+	ConfirmedMode           string
+	ConfirmedOutputs        int
+	ConfirmedRemoteRequests int
+	ProjectID               string
+	CID                     string
+	Wait                    bool
+	Download                bool
 }
 
 // WaitOptions configures task polling.

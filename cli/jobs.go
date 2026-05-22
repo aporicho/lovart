@@ -236,6 +236,10 @@ func defaultBatchOptions() jobs.JobsOptions {
 func addJobsGateFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {
 	cmd.Flags().BoolVar(&opts.AllowPaid, "allow-paid", false, "allow paid batch generation")
 	cmd.Flags().Float64Var(&opts.MaxTotalCredits, "max-total-credits", 0, "max total credits allowed with --allow-paid")
+	cmd.Flags().BoolVar(&opts.ConfirmPaid, "confirm-paid", false, "structured consent: confirm this batch may spend credits")
+	cmd.Flags().Float64Var(&opts.ConfirmedMaxTotalCredits, "confirmed-max-total-credits", 0, "structured consent: confirmed max total credits for this batch")
+	cmd.Flags().IntVar(&opts.ConfirmedRemoteRequests, "confirmed-remote-requests", 0, "structured consent: confirmed number of remote submit requests for this invocation")
+	cmd.Flags().IntVar(&opts.ConfirmedMaxActiveTasks, "confirmed-max-active-tasks", 0, "structured consent: confirmed active remote task limit")
 }
 
 func addJobsRunFlags(cmd *cobra.Command, opts *jobs.JobsOptions) {

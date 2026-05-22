@@ -252,7 +252,13 @@ lovart quote openai/gpt-image-2 --body-file request.json --mode relax
 单次生成：
 
 ```sh
-lovart generate openai/gpt-image-2 --body-file request.json --allow-paid --max-credits 20
+lovart generate openai/gpt-image-2 --body-file request.json \
+  --allow-paid --max-credits 20 \
+  --confirm-paid --confirmed-max-credits 20 \
+  --confirmed-model openai/gpt-image-2 \
+  --confirmed-mode auto \
+  --confirmed-outputs 1 \
+  --confirmed-remote-requests 1
 lovart task wait <task_id>
 lovart download task <task_id>
 lovart task canvas <task_id>
@@ -307,9 +313,20 @@ object，会先根据 cached model schema 校验，再发起签名网络请求�
 
 ```sh
 lovart quote openai/gpt-image-2 --body-file request.json
-lovart generate openai/gpt-image-2 --body-file request.json --allow-paid --max-credits 20
+lovart generate openai/gpt-image-2 --body-file request.json \
+  --allow-paid --max-credits 20 \
+  --confirm-paid --confirmed-max-credits 20 \
+  --confirmed-model openai/gpt-image-2 \
+  --confirmed-mode auto \
+  --confirmed-outputs 1 \
+  --confirmed-remote-requests 1
 lovart task wait <task_id>
 ```
+
+`--allow-paid`/`--max-credits` 是执行门禁；`--confirm-paid` 和 `--confirmed-*`
+是 structured paid consent Phase 1 字段，用来记录操作者确认的模型、mode、输出数、
+远端 submit 数和 credit 上限。它们当前作为可选 flags 传入内部 options/audit，供迁移期
+审计和后续严格比对使用。
 
 ## Batch Jobs
 
@@ -323,8 +340,17 @@ batch jobs 使用 newline-delimited JSON。每一行描述一个用户级 job：
 运行、恢复和查看：
 
 ```sh
-lovart jobs run jobs.jsonl --allow-paid --max-total-credits 100
-lovart jobs resume ~/.lovart/runs/jobs-<hash> --retry-failed
+lovart jobs run jobs.jsonl \
+  --allow-paid --max-total-credits 100 \
+  --confirm-paid --confirmed-max-total-credits 100 \
+  --confirmed-remote-requests 2 \
+  --confirmed-max-active-tasks 10
+lovart jobs resume ~/.lovart/runs/jobs-<hash> \
+  --allow-paid --max-total-credits 100 \
+  --confirm-paid --confirmed-max-total-credits 100 \
+  --confirmed-remote-requests 1 \
+  --confirmed-max-active-tasks 10 \
+  --retry-failed
 lovart jobs status ~/.lovart/runs/jobs-<hash>
 lovart jobs status ~/.lovart/runs/jobs-<hash> --refresh --detail full
 lovart jobs finalize ~/.lovart/runs/jobs-<hash> --download --canvas
@@ -351,6 +377,13 @@ lovart jobs finalize ~/.lovart/runs/jobs-<hash> --download --canvas
 `--submit-interval-seconds N`；需要调整 active task 上限时使用
 `--max-active-tasks N`，`0` 表示关闭这个门禁。
 
+付费 batch submit 除了 `--allow-paid --max-total-credits N`，还可以带 structured paid
+consent flags：`--confirm-paid`、`--confirmed-max-total-credits N`、
+`--confirmed-remote-requests N`、`--confirmed-max-active-tasks N`。其中
+`confirmed-remote-requests` 表示本次命令可能新增提交的 remote request 数（resume 不重复
+计算已有 task id 的历史请求），`confirmed-max-active-tasks` 应等于本次使用的
+`--max-active-tasks`。
+
 默认值：
 
 - `mode` 默认是 `auto`。
@@ -371,7 +404,7 @@ lovart jobs finalize ~/.lovart/runs/jobs-<hash> --download --canvas
 下载的 PNG、JPEG、WebP 和 GIF 文件在格式支持时会写入 Lovart effect metadata。
 
 真实远端 batch scheduler 验证请使用分级 runbook：
-[docs/operations/remote-batch-verification.md](docs/operations/remote-batch-verification.md)。Level 0/1 不提交任务，Level 2 需要明确小预算和 `--allow-paid` opt-in。
+[docs/operations/remote-batch-verification.md](docs/operations/remote-batch-verification.md)。Level 0/1 不提交任务，Level 2 需要明确小预算、`--allow-paid` opt-in 和 structured paid consent flags。
 
 ## MCP Server
 
@@ -457,6 +490,15 @@ lovart_jobs_finalize
 串行提交，并支持 `submit_interval_seconds`、`submit_limit` 与 `max_active_tasks`
 控制提交节奏和 active task 门禁。达到并发上限时，先用 `lovart_task_list` 查看当前
 占用任务；只有用户明确要求停止任务时再调用 `lovart_task_cancel`。
+
+`lovart_generate`、`lovart_jobs_run` 和 `lovart_jobs_resume` 的 MCP schema 暴露
+structured paid consent 字段：`confirm_paid`、`confirmed_model`、`confirmed_mode`、
+`confirmed_max_credits`、`confirmed_max_total_credits`、`confirmed_outputs`、
+`confirmed_remote_requests` 和 `confirmed_max_active_tasks`。`confirm_policy` 只通过
+MCP policy gate；付费工具仍然需要 `allow_paid` 与相应 max credits 限制。structured
+字段用于把用户确认绑定到这一次精确的付费 scope，本层仅暴露 schema，不替代后续
+jobs/generate 执行侧校验。
+
 如果远端任务因审核/策略拒绝失败，状态响应中的 `failure.code` 会是
 `content_policy_rejected`。
 
@@ -537,7 +579,8 @@ internal packages 按领域拆分：
 
 架构变更应遵循 `docs/architecture/file-architecture-philosophy.md`；
 MCP/CLI 高风险操作的结构化确认设计见
-`docs/architecture/structured-consent.md`；`scripts/check_architecture.sh` 会检查命名、
+`docs/architecture/structured-consent.md`，review/test matrix 见
+`docs/architecture/structured-consent-test-matrix.md`；`scripts/check_architecture.sh` 会检查命名、
 依赖方向、generated-file pollution 和 build health。
 
 ## 开发

@@ -65,9 +65,15 @@ func submitOne(ctx context.Context, remote RemoteClient, state *RunState, opts J
 	request.Attempts++
 	summary.AttemptedCount++
 	result, err := remote.Submit(ctx, request.Model, body, generation.Options{
-		Mode:      request.Mode,
-		ProjectID: projectID,
-		CID:       cid,
+		Mode:                    request.Mode,
+		ConfirmPaid:             opts.ConfirmPaid,
+		ConfirmedMaxCredits:     opts.ConfirmedMaxTotalCredits,
+		ConfirmedModel:          request.Model,
+		ConfirmedMode:           request.Mode,
+		ConfirmedOutputs:        1,
+		ConfirmedRemoteRequests: opts.ConfirmedRemoteRequests,
+		ProjectID:               projectID,
+		CID:                     cid,
 	})
 	if err != nil {
 		auditJobsSubmit(opts, state, request, "", err)
