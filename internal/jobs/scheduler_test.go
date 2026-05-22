@@ -24,20 +24,24 @@ func TestRunPreparedJobsWaitSchedulesRemoteTasksInBatches(t *testing.T) {
 		t.Fatal(err)
 	}
 	opts := JobsOptions{
-		AllowPaid:       true,
-		MaxTotalCredits: 10,
-		ProjectID:       "project",
-		CID:             "cid",
-		Wait:            true,
-		MaxActiveTasks:  99,
-		PollInterval:    0.01,
-		TimeoutSeconds:  2,
+		AllowPaid:                true,
+		MaxTotalCredits:          30,
+		ConfirmPaid:              true,
+		ConfirmedMaxTotalCredits: 30,
+		ConfirmedRemoteRequests:  25,
+		ConfirmedMaxActiveTasks:  10,
+		ProjectID:                "project",
+		CID:                      "cid",
+		Wait:                     true,
+		MaxActiveTasks:           99,
+		PollInterval:             0.01,
+		TimeoutSeconds:           2,
 	}
 	state, validation, err := PrepareRun(path, opts)
 	if err != nil || validation != nil {
 		t.Fatalf("PrepareRun validation=%v err=%v", validation, err)
 	}
-	remote := &fakeRemote{price: 0, trackActive: true, completeOnFetch: true}
+	remote := &fakeRemote{price: 1, trackActive: true, completeOnFetch: true}
 	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
 	if err != nil {
 		t.Fatal(err)

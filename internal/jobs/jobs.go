@@ -61,6 +61,10 @@ type JobsOptions struct {
 	ConfirmedMaxTotalCredits float64
 	ConfirmedRemoteRequests  int
 	ConfirmedMaxActiveTasks  int
+	ConfirmedModel           string
+	ConfirmedMode            string
+	ConfirmedOutputs         int
+	ConfirmedMaxCredits      float64
 	SubmitIntervalSeconds    float64
 	SubmitLimit              int
 	MaxActiveTasks           int
