@@ -370,6 +370,9 @@ lovart jobs finalize ~/.lovart/runs/jobs-<hash> --download --canvas
 
 下载的 PNG、JPEG、WebP 和 GIF 文件在格式支持时会写入 Lovart effect metadata。
 
+真实远端 batch scheduler 验证请使用分级 runbook：
+[docs/operations/remote-batch-verification.md](docs/operations/remote-batch-verification.md)。Level 0/1 不提交任务，Level 2 需要明确小预算和 `--allow-paid` opt-in。
+
 ## MCP Server
 
 运行 stdio MCP server：
