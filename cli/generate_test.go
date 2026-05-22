@@ -13,7 +13,7 @@ import (
 func TestGenerateCommandExposesProjectOverrides(t *testing.T) {
 	cmd := newGenerateCmd()
 
-	for _, name := range []string{"project-id", "body-file", "prompt", "wait", "download", "canvas", "confirm-paid", "confirmed-max-credits", "confirmed-model", "confirmed-mode", "confirmed-outputs", "confirmed-remote-requests"} {
+	for _, name := range []string{"project-id", "body-file", "prompt", "wait", "download", "canvas", "confirm-paid", "confirmed-max-credits", "confirmed-model", "confirmed-mode", "confirmed-outputs", "confirmed-remote-requests", "confirmed-project-id", "overwrite", "confirmed-canonical-path", "confirm-overwrite", "confirm-outside-default-root", "canvas-layout", "confirm-canvas-write", "confirmed-canvas-layout"} {
 		if cmd.Flags().Lookup(name) == nil {
 			t.Fatalf("generate command missing --%s flag", name)
 		}

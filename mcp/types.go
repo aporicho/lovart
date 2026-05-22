@@ -204,9 +204,11 @@ type GenerateArgs struct {
 	DownloadDir               string         `json:"download_dir"`
 	DownloadDirTemplate       string         `json:"download_dir_template"`
 	DownloadFileTemplate      string         `json:"download_file_template"`
+	Overwrite                 bool           `json:"overwrite"`
 	ConfirmedCanonicalPath    string         `json:"confirmed_canonical_path"`
 	ConfirmOverwrite          bool           `json:"confirm_overwrite"`
 	ConfirmOutsideDefaultRoot bool           `json:"confirm_outside_default_root"`
+	CanvasLayout              string         `json:"canvas_layout"`
 	ConfirmCanvasWrite        bool           `json:"confirm_canvas_write"`
 	ConfirmedCanvasLayout     string         `json:"confirmed_canvas_layout"`
 }

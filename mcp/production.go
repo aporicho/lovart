@@ -891,29 +891,36 @@ func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, o
 		return warnings, nil
 	}
 	if args.Download {
-		downloadBody := normalizedBody
-		if len(downloadBody) == 0 {
-			downloadBody = args.Body
-		}
-		downloadResult, err := downloads.DownloadArtifacts(ctx, downloads.ArtifactsFromTask(task), downloads.Options{
-			RootDir:      args.DownloadDir,
-			DirTemplate:  args.DownloadDirTemplate,
-			FileTemplate: args.DownloadFileTemplate,
-			TaskID:       taskID,
-			Context: downloads.JobContext{
-				Model: args.Model,
-				Mode:  args.Mode,
-				Body:  downloadBody,
-			},
-		})
-		if err != nil {
+		opts := generationOptions(args, cid)
+		if _, err := generation.EnforceDownloadConsent(opts); err != nil {
 			output["download_error"] = err.Error()
-			warnings = append(warnings, "artifacts were generated but download failed; retry artifact download when available")
+			warnings = append(warnings, "artifacts were generated but download consent was denied")
 		} else {
-			output["downloads"] = downloadResult.Files
-			if downloadResult.IndexError != "" {
-				output["download_index_error"] = downloadResult.IndexError
-				warnings = append(warnings, "artifacts were downloaded but the download index could not be fully written")
+			downloadBody := normalizedBody
+			if len(downloadBody) == 0 {
+				downloadBody = args.Body
+			}
+			downloadResult, err := downloads.DownloadArtifacts(ctx, downloads.ArtifactsFromTask(task), downloads.Options{
+				RootDir:      args.DownloadDir,
+				DirTemplate:  args.DownloadDirTemplate,
+				FileTemplate: args.DownloadFileTemplate,
+				TaskID:       taskID,
+				Overwrite:    args.Overwrite,
+				Context: downloads.JobContext{
+					Model: args.Model,
+					Mode:  args.Mode,
+					Body:  downloadBody,
+				},
+			})
+			if err != nil {
+				output["download_error"] = err.Error()
+				warnings = append(warnings, "artifacts were generated but download failed; retry artifact download when available")
+			} else {
+				output["downloads"] = downloadResult.Files
+				if downloadResult.IndexError != "" {
+					output["download_index_error"] = downloadResult.IndexError
+					warnings = append(warnings, "artifacts were downloaded but the download index could not be fully written")
+				}
 			}
 		}
 	}
@@ -922,7 +929,11 @@ func addCompletedGenerationArtifacts(ctx context.Context, client *http.Client, o
 		if len(images) == 0 {
 			return warnings, nil
 		}
-		if err := project.AddToCanvas(ctx, client, args.ProjectID, cid, images); err != nil {
+		opts := generationOptions(args, cid)
+		if err := generation.EnforceCanvasConsent(opts); err != nil {
+			output["canvas_error"] = err.Error()
+			warnings = append(warnings, "artifacts were generated but canvas consent was denied")
+		} else if err := project.AddToCanvas(ctx, client, args.ProjectID, cid, images); err != nil {
 			output["canvas_error"] = err.Error()
 			warnings = append(warnings, "artifacts were generated but project canvas writeback failed")
 		} else {

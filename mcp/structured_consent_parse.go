@@ -36,9 +36,11 @@ func parseGenerateArgs(args map[string]any) (GenerateArgs, error) {
 		DownloadDir:               stringArg(args, "download_dir", ""),
 		DownloadDirTemplate:       stringArg(args, "download_dir_template", ""),
 		DownloadFileTemplate:      stringArg(args, "download_file_template", ""),
+		Overwrite:                 boolArg(args, "overwrite", false),
 		ConfirmedCanonicalPath:    stringArg(args, "confirmed_canonical_path", ""),
 		ConfirmOverwrite:          boolArg(args, "confirm_overwrite", false),
 		ConfirmOutsideDefaultRoot: boolArg(args, "confirm_outside_default_root", false),
+		CanvasLayout:              stringArg(args, "canvas_layout", "frame"),
 		ConfirmCanvasWrite:        boolArg(args, "confirm_canvas_write", false),
 		ConfirmedCanvasLayout:     stringArg(args, "confirmed_canvas_layout", ""),
 	}, nil

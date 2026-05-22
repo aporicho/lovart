@@ -16,24 +16,32 @@ import (
 
 func newGenerateCmd() *cobra.Command {
 	var (
-		bodyFile                string
-		prompt                  string
-		mode                    string
-		projectID               string
-		allowPaid               bool
-		maxCredits              float64
-		confirmPaid             bool
-		confirmedMaxCredits     float64
-		confirmedModel          string
-		confirmedMode           string
-		confirmedOutputs        int
-		confirmedRemoteRequests int
-		wait                    bool
-		download                bool
-		canvas                  bool
-		downloadDir             string
-		downloadDirTemplate     string
-		downloadFileTemplate    string
+		bodyFile                  string
+		prompt                    string
+		mode                      string
+		projectID                 string
+		allowPaid                 bool
+		maxCredits                float64
+		confirmPaid               bool
+		confirmedMaxCredits       float64
+		confirmedModel            string
+		confirmedMode             string
+		confirmedOutputs          int
+		confirmedRemoteRequests   int
+		confirmedProjectID        string
+		wait                      bool
+		download                  bool
+		canvas                    bool
+		downloadDir               string
+		downloadDirTemplate       string
+		downloadFileTemplate      string
+		overwrite                 bool
+		confirmedCanonicalPath    string
+		confirmOverwrite          bool
+		confirmOutsideDefaultRoot bool
+		canvasLayout              string
+		confirmCanvasWrite        bool
+		confirmedCanvasLayout     string
 	)
 
 	cmd := &cobra.Command{
@@ -94,19 +102,29 @@ func newGenerateCmd() *cobra.Command {
 			}
 
 			opts := generation.Options{
-				Mode:                    mode,
-				AllowPaid:               allowPaid,
-				MaxCredits:              maxCredits,
-				ConfirmPaid:             confirmPaid,
-				ConfirmedMaxCredits:     confirmedMaxCredits,
-				ConfirmedModel:          confirmedModel,
-				ConfirmedMode:           confirmedMode,
-				ConfirmedOutputs:        confirmedOutputs,
-				ConfirmedRemoteRequests: confirmedRemoteRequests,
-				ProjectID:               projectID,
-				CID:                     cid,
-				Wait:                    wait,
-				Download:                download,
+				Mode:                      mode,
+				AllowPaid:                 allowPaid,
+				MaxCredits:                maxCredits,
+				ConfirmPaid:               confirmPaid,
+				ConfirmedMaxCredits:       confirmedMaxCredits,
+				ConfirmedModel:            confirmedModel,
+				ConfirmedMode:             confirmedMode,
+				ConfirmedOutputs:          confirmedOutputs,
+				ConfirmedRemoteRequests:   confirmedRemoteRequests,
+				ProjectID:                 projectID,
+				ConfirmedProjectID:        confirmedProjectID,
+				CID:                       cid,
+				Wait:                      wait,
+				Download:                  download,
+				DownloadDir:               downloadDir,
+				Overwrite:                 overwrite,
+				ConfirmedCanonicalPath:    confirmedCanonicalPath,
+				ConfirmOverwrite:          confirmOverwrite,
+				ConfirmOutsideDefaultRoot: confirmOutsideDefaultRoot,
+				Canvas:                    canvas,
+				CanvasLayout:              canvasLayout,
+				ConfirmCanvasWrite:        confirmCanvasWrite,
+				ConfirmedCanvasLayout:     confirmedCanvasLayout,
 			}
 
 			// Preflight.
@@ -160,25 +178,31 @@ func newGenerateCmd() *cobra.Command {
 					}
 
 					if normalizedStatus == generation.TaskStatusCompleted && download {
-						downloadResult, err := downloads.DownloadArtifacts(ctx, downloads.ArtifactsFromTask(task), downloads.Options{
-							RootDir:      downloadDir,
-							DirTemplate:  downloadDirTemplate,
-							FileTemplate: downloadFileTemplate,
-							TaskID:       result.TaskID,
-							Context: downloads.JobContext{
-								Model: model,
-								Mode:  mode,
-								Body:  downloadBody,
-							},
-						})
-						if err != nil {
+						if _, err := generation.EnforceDownloadConsent(opts); err != nil {
 							output["download_error"] = err.Error()
-							warnings = append(warnings, "artifacts were generated but download failed; rerun generation with downloads disabled or retry artifact download when available")
+							warnings = append(warnings, "artifacts were generated but download consent was denied")
 						} else {
-							output["downloads"] = downloadResult.Files
-							if downloadResult.IndexError != "" {
-								output["download_index_error"] = downloadResult.IndexError
-								warnings = append(warnings, "artifacts were downloaded but the download index could not be fully written")
+							downloadResult, err := downloads.DownloadArtifacts(ctx, downloads.ArtifactsFromTask(task), downloads.Options{
+								RootDir:      downloadDir,
+								DirTemplate:  downloadDirTemplate,
+								FileTemplate: downloadFileTemplate,
+								TaskID:       result.TaskID,
+								Overwrite:    overwrite,
+								Context: downloads.JobContext{
+									Model: model,
+									Mode:  mode,
+									Body:  downloadBody,
+								},
+							})
+							if err != nil {
+								output["download_error"] = err.Error()
+								warnings = append(warnings, "artifacts were generated but download failed; rerun generation with downloads disabled or retry artifact download when available")
+							} else {
+								output["downloads"] = downloadResult.Files
+								if downloadResult.IndexError != "" {
+									output["download_index_error"] = downloadResult.IndexError
+									warnings = append(warnings, "artifacts were downloaded but the download index could not be fully written")
+								}
 							}
 						}
 					}
@@ -187,7 +211,10 @@ func newGenerateCmd() *cobra.Command {
 					if normalizedStatus == generation.TaskStatusCompleted && canvas && projectID != "" && cid != "" {
 						images := project.CanvasImagesFromTask(result.TaskID, task)
 						if len(images) > 0 {
-							if err := project.AddToCanvas(ctx, client, projectID, cid, images); err != nil {
+							if err := generation.EnforceCanvasConsent(opts); err != nil {
+								output["canvas_error"] = err.Error()
+								warnings = append(warnings, "artifacts were generated but canvas consent was denied")
+							} else if err := project.AddToCanvas(ctx, client, projectID, cid, images); err != nil {
 								output["canvas_error"] = err.Error()
 								warnings = append(warnings, "artifacts were generated but project canvas writeback failed")
 							} else {
@@ -217,11 +244,19 @@ func newGenerateCmd() *cobra.Command {
 	cmd.Flags().StringVar(&confirmedMode, "confirmed-mode", "", "structured consent: confirmed normalized mode")
 	cmd.Flags().IntVar(&confirmedOutputs, "confirmed-outputs", 0, "structured consent: confirmed output count")
 	cmd.Flags().IntVar(&confirmedRemoteRequests, "confirmed-remote-requests", 0, "structured consent: confirmed number of remote submit requests")
+	cmd.Flags().StringVar(&confirmedProjectID, "confirmed-project-id", "", "Phase 2 consent: confirmed target project ID for generation submit/canvas write")
 	cmd.Flags().BoolVar(&wait, "wait", false, "wait for task completion")
 	cmd.Flags().BoolVar(&download, "download", false, "download artifacts after completion")
 	cmd.Flags().BoolVar(&canvas, "canvas", false, "add completed artifacts to the project canvas")
 	cmd.Flags().StringVar(&downloadDir, "download-dir", "", "directory for downloaded artifacts")
 	cmd.Flags().StringVar(&downloadDirTemplate, "download-dir-template", "", "download subdirectory template")
 	cmd.Flags().StringVar(&downloadFileTemplate, "download-file-template", "", "download filename template")
+	cmd.Flags().BoolVar(&overwrite, "overwrite", false, "replace existing downloaded files")
+	cmd.Flags().StringVar(&confirmedCanonicalPath, "confirmed-canonical-path", "", "Phase 2 consent: confirmed resolved download root")
+	cmd.Flags().BoolVar(&confirmOverwrite, "confirm-overwrite", false, "Phase 2 consent: confirm overwriting existing download files")
+	cmd.Flags().BoolVar(&confirmOutsideDefaultRoot, "confirm-outside-default-root", false, "Phase 2 consent: confirm writing downloads outside the default root")
+	cmd.Flags().StringVar(&canvasLayout, "canvas-layout", "frame", "canvas layout for consent binding")
+	cmd.Flags().BoolVar(&confirmCanvasWrite, "confirm-canvas-write", false, "Phase 2 consent: confirm generation canvas writeback")
+	cmd.Flags().StringVar(&confirmedCanvasLayout, "confirmed-canvas-layout", "", "Phase 2 consent: confirmed canvas layout")
 	return cmd
 }
