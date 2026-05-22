@@ -1,7 +1,6 @@
 package jobs
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -187,7 +186,7 @@ func NewRunState(jobsFile string, lines []JobLine, opts JobsOptions) (*RunState,
 	}
 	now := time.Now().UTC()
 	state := &RunState{
-		Version:      1,
+		Version:      currentRunStateVersion,
 		JobsFile:     jobsFile,
 		JobsFileHash: hash,
 		RunDir:       runDir,
@@ -292,6 +291,7 @@ func intValue(value any) (int, bool) {
 
 // SaveState writes the state atomically.
 func SaveState(state *RunState) error {
+	prepareRunStateForSave(state)
 	state.UpdatedAt = time.Now().UTC()
 	return metadata.WriteJSONAtomic(state.StateFile, state, 0644)
 }
@@ -302,17 +302,7 @@ func LoadState(runDir string) (*RunState, error) {
 	if err != nil {
 		return nil, fmt.Errorf("jobs: read state: %w", err)
 	}
-	var state RunState
-	if err := json.Unmarshal(data, &state); err != nil {
-		return nil, fmt.Errorf("jobs: parse state: %w", err)
-	}
-	if state.RunDir == "" {
-		state.RunDir = runDir
-	}
-	if state.StateFile == "" {
-		state.StateFile = filepath.Join(runDir, stateFileName)
-	}
-	return &state, nil
+	return decodeRunState(data, runDir)
 }
 
 // ExistingStateHasRemoteTasks reports whether a run dir contains submitted tasks.
