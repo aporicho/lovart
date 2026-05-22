@@ -76,6 +76,25 @@ func addStructuredPaidConsentFields(properties map[string]any) {
 	properties["confirmed_max_active_tasks"] = integerSchema(consentDescription)
 }
 
+func addProjectBindingConsentFields(properties map[string]any) {
+	properties["confirmed_project_id"] = stringSchema("structured consent field binding this remote write to the exact Lovart project id")
+}
+
+func addDestructiveProjectConsentFields(properties map[string]any) {
+	properties["confirm_project_id"] = stringSchema("structured consent field; must exactly match project_id for destructive or project mutation calls")
+}
+
+func addLocalWriteConsentFields(properties map[string]any) {
+	properties["confirmed_canonical_path"] = stringSchema("structured consent field binding this local filesystem write to the canonical destination path")
+	properties["confirm_overwrite"] = boolSchema("structured consent field confirming overwrite of existing local files")
+	properties["confirm_outside_default_root"] = boolSchema("structured consent field confirming a local write outside the default Lovart download root")
+}
+
+func addCanvasWriteConsentFields(properties map[string]any) {
+	properties["confirm_canvas_write"] = boolSchema("structured consent field confirming a write to the Lovart project canvas")
+	properties["confirmed_canvas_layout"] = stringSchema("structured consent field binding the confirmed canvas layout, such as frame or plain")
+}
+
 func tool(name, description string, properties map[string]any, required ...string) Tool {
 	if required == nil {
 		required = []string{}
@@ -87,6 +106,33 @@ func tool(name, description string, properties map[string]any, required ...strin
 	}
 	if capability.PaidPossible {
 		addStructuredPaidConsentFields(properties)
+	}
+	switch name {
+	case "lovart_project_rename":
+		addProjectBindingConsentFields(properties)
+		addDestructiveProjectConsentFields(properties)
+		properties["confirm_new_name"] = stringSchema("structured consent field; must exactly match new_name for project rename")
+	case "lovart_project_delete":
+		addProjectBindingConsentFields(properties)
+		addDestructiveProjectConsentFields(properties)
+	case "lovart_task_cancel":
+		properties["confirm_task_ids"] = stringArraySchema("structured consent field; must exactly match task_ids for destructive task cancellation")
+	case "lovart_task_canvas":
+		addProjectBindingConsentFields(properties)
+		addCanvasWriteConsentFields(properties)
+	case "lovart_task_download", "lovart_canvas_download":
+		addLocalWriteConsentFields(properties)
+	case "lovart_generate":
+		addProjectBindingConsentFields(properties)
+		addLocalWriteConsentFields(properties)
+		addCanvasWriteConsentFields(properties)
+	case "lovart_jobs_run", "lovart_jobs_resume":
+		addProjectBindingConsentFields(properties)
+		addLocalWriteConsentFields(properties)
+	case "lovart_jobs_finalize":
+		addProjectBindingConsentFields(properties)
+		addLocalWriteConsentFields(properties)
+		addCanvasWriteConsentFields(properties)
 	}
 	return Tool{
 		Name:        name,

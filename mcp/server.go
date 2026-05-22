@@ -212,7 +212,13 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 		if err != nil {
 			return inputErr(err)
 		}
-		return s.executor.ProjectRename(ctx, ProjectRenameArgs{ProjectID: projectID, NewName: newName})
+		return s.executor.ProjectRename(ctx, ProjectRenameArgs{
+			ProjectID:          projectID,
+			NewName:            newName,
+			ConfirmedProjectID: stringArg(args, "confirmed_project_id", ""),
+			ConfirmProjectID:   stringArg(args, "confirm_project_id", ""),
+			ConfirmNewName:     stringArg(args, "confirm_new_name", ""),
+		})
 	case "lovart_project_delete":
 		projectID, err := requiredString(args, "project_id")
 		if err != nil {
@@ -225,7 +231,7 @@ func (s *Server) CallTool(ctx context.Context, name string, args map[string]any)
 		if confirmProjectID != projectID {
 			return inputErr(fmt.Errorf("confirm_project_id must match project_id"))
 		}
-		return s.executor.ProjectDelete(ctx, ProjectDeleteArgs{ProjectID: projectID, ConfirmProjectID: confirmProjectID})
+		return s.executor.ProjectDelete(ctx, ProjectDeleteArgs{ProjectID: projectID, ConfirmProjectID: confirmProjectID, ConfirmedProjectID: stringArg(args, "confirmed_project_id", "")})
 	case "lovart_task_list":
 		listArgs, err := parseTaskListArgs(args)
 		if err != nil {
@@ -380,9 +386,12 @@ func parseTaskCanvasArgs(args map[string]any) (TaskCanvasArgs, error) {
 		return TaskCanvasArgs{}, err
 	}
 	return TaskCanvasArgs{
-		TaskID:    taskID,
-		ProjectID: stringArg(args, "project_id", ""),
-		Detail:    detail,
+		TaskID:                taskID,
+		ProjectID:             stringArg(args, "project_id", ""),
+		ConfirmedProjectID:    stringArg(args, "confirmed_project_id", ""),
+		ConfirmCanvasWrite:    boolArg(args, "confirm_canvas_write", false),
+		ConfirmedCanvasLayout: stringArg(args, "confirmed_canvas_layout", ""),
+		Detail:                detail,
 	}, nil
 }
 
@@ -396,13 +405,16 @@ func parseTaskDownloadArgs(args map[string]any) (TaskDownloadArgs, error) {
 		return TaskDownloadArgs{}, err
 	}
 	return TaskDownloadArgs{
-		TaskID:               taskID,
-		ArtifactIndex:        intArg(args, "artifact_index", 0),
-		DownloadDir:          stringArg(args, "download_dir", ""),
-		DownloadDirTemplate:  stringArg(args, "download_dir_template", ""),
-		DownloadFileTemplate: stringArg(args, "download_file_template", ""),
-		Overwrite:            boolArg(args, "overwrite", false),
-		Detail:               detail,
+		TaskID:                    taskID,
+		ArtifactIndex:             intArg(args, "artifact_index", 0),
+		DownloadDir:               stringArg(args, "download_dir", ""),
+		DownloadDirTemplate:       stringArg(args, "download_dir_template", ""),
+		DownloadFileTemplate:      stringArg(args, "download_file_template", ""),
+		Overwrite:                 boolArg(args, "overwrite", false),
+		ConfirmedCanonicalPath:    stringArg(args, "confirmed_canonical_path", ""),
+		ConfirmOverwrite:          boolArg(args, "confirm_overwrite", false),
+		ConfirmOutsideDefaultRoot: boolArg(args, "confirm_outside_default_root", false),
+		Detail:                    detail,
 	}, nil
 }
 
@@ -415,7 +427,11 @@ func parseTaskCancelArgs(args map[string]any) (TaskCancelArgs, error) {
 	if err != nil {
 		return TaskCancelArgs{}, err
 	}
-	return TaskCancelArgs{TaskIDs: taskIDs}, nil
+	confirmTaskIDs, err := optionalStringSlice(args, "confirm_task_ids")
+	if err != nil {
+		return TaskCancelArgs{}, err
+	}
+	return TaskCancelArgs{TaskIDs: taskIDs, ConfirmTaskIDs: confirmTaskIDs}, nil
 }
 
 func parseCanvasArtifactsArgs(args map[string]any) (CanvasArtifactsArgs, error) {
@@ -446,16 +462,20 @@ func parseCanvasArtifactArgs(args map[string]any) (CanvasArtifactArgs, error) {
 
 func parseCanvasDownloadArgs(args map[string]any) (CanvasDownloadArgs, error) {
 	parsed := CanvasDownloadArgs{
-		ProjectID:            stringArg(args, "project_id", ""),
-		ArtifactID:           stringArg(args, "artifact_id", ""),
-		ArtifactIndex:        intArg(args, "artifact_index", 0),
-		TaskID:               stringArg(args, "task_id", ""),
-		All:                  boolArg(args, "all", false),
-		Original:             boolArg(args, "original", false),
-		DownloadDir:          stringArg(args, "download_dir", ""),
-		DownloadDirTemplate:  stringArg(args, "download_dir_template", ""),
-		DownloadFileTemplate: stringArg(args, "download_file_template", ""),
-		Overwrite:            boolArg(args, "overwrite", false),
+		ProjectID:                 stringArg(args, "project_id", ""),
+		ConfirmedProjectID:        stringArg(args, "confirmed_project_id", ""),
+		ArtifactID:                stringArg(args, "artifact_id", ""),
+		ArtifactIndex:             intArg(args, "artifact_index", 0),
+		TaskID:                    stringArg(args, "task_id", ""),
+		All:                       boolArg(args, "all", false),
+		Original:                  boolArg(args, "original", false),
+		DownloadDir:               stringArg(args, "download_dir", ""),
+		DownloadDirTemplate:       stringArg(args, "download_dir_template", ""),
+		DownloadFileTemplate:      stringArg(args, "download_file_template", ""),
+		Overwrite:                 boolArg(args, "overwrite", false),
+		ConfirmedCanonicalPath:    stringArg(args, "confirmed_canonical_path", ""),
+		ConfirmOverwrite:          boolArg(args, "confirm_overwrite", false),
+		ConfirmOutsideDefaultRoot: boolArg(args, "confirm_outside_default_root", false),
 	}
 	if err := validateCanvasDownloadArgs(parsed); err != nil {
 		return CanvasDownloadArgs{}, err
@@ -489,13 +509,19 @@ func parseJobsFinalizeArgs(args map[string]any) (JobsFinalizeArgs, error) {
 		return JobsFinalizeArgs{}, err
 	}
 	parsed := JobsFinalizeArgs{
-		RunDir:       runDir,
-		Download:     boolArg(args, "download", false),
-		Canvas:       boolArg(args, "canvas", false),
-		ProjectID:    stringArg(args, "project_id", ""),
-		DownloadDir:  stringArg(args, "download_dir", ""),
-		Detail:       detail,
-		CanvasLayout: stringArg(args, "canvas_layout", jobs.CanvasLayoutFrame),
+		RunDir:                    runDir,
+		Download:                  boolArg(args, "download", false),
+		Canvas:                    boolArg(args, "canvas", false),
+		ProjectID:                 stringArg(args, "project_id", ""),
+		ConfirmedProjectID:        stringArg(args, "confirmed_project_id", ""),
+		DownloadDir:               stringArg(args, "download_dir", ""),
+		ConfirmedCanonicalPath:    stringArg(args, "confirmed_canonical_path", ""),
+		ConfirmOverwrite:          boolArg(args, "confirm_overwrite", false),
+		ConfirmOutsideDefaultRoot: boolArg(args, "confirm_outside_default_root", false),
+		Detail:                    detail,
+		CanvasLayout:              stringArg(args, "canvas_layout", jobs.CanvasLayoutFrame),
+		ConfirmCanvasWrite:        boolArg(args, "confirm_canvas_write", false),
+		ConfirmedCanvasLayout:     stringArg(args, "confirmed_canvas_layout", ""),
 	}
 	if !parsed.Download && !parsed.Canvas {
 		return JobsFinalizeArgs{}, fmt.Errorf("choose at least one finalization action: download or canvas")
@@ -527,9 +553,27 @@ func requiredBody(args map[string]any) (map[string]any, error) {
 }
 
 func requiredStringSlice(args map[string]any, key string) ([]string, error) {
+	out, err := parseStringSlice(args, key, true)
+	if err != nil {
+		return nil, err
+	}
+	if len(out) == 0 {
+		return nil, fmt.Errorf("%s must contain at least one task id", key)
+	}
+	return out, nil
+}
+
+func optionalStringSlice(args map[string]any, key string) ([]string, error) {
+	return parseStringSlice(args, key, false)
+}
+
+func parseStringSlice(args map[string]any, key string, required bool) ([]string, error) {
 	raw, ok := args[key]
 	if !ok || raw == nil {
-		return nil, fmt.Errorf("%s is required", key)
+		if required {
+			return nil, fmt.Errorf("%s is required", key)
+		}
+		return nil, nil
 	}
 	values, ok := raw.([]any)
 	if !ok {
@@ -551,9 +595,6 @@ func requiredStringSlice(args map[string]any, key string) ([]string, error) {
 		if text != "" {
 			out = append(out, text)
 		}
-	}
-	if len(out) == 0 {
-		return nil, fmt.Errorf("%s must contain at least one task id", key)
 	}
 	return out, nil
 }

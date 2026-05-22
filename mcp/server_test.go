@@ -289,6 +289,32 @@ func TestPaidToolSchemasExposeStructuredConsentFields(t *testing.T) {
 	}
 }
 
+func TestPhase2ConsentSchemasExposeStructuredFields(t *testing.T) {
+	byName := toolsByName(Tools())
+	assertSchemaIncludesTypes(t, "lovart_project_rename", byName["lovart_project_rename"].InputSchema["properties"].(map[string]any), map[string]string{
+		"confirmed_project_id": "string",
+		"confirm_project_id":   "string",
+		"confirm_new_name":     "string",
+	})
+	assertSchemaIncludesTypes(t, "lovart_task_cancel", byName["lovart_task_cancel"].InputSchema["properties"].(map[string]any), map[string]string{
+		"confirm_task_ids": "array",
+	})
+	for _, toolName := range []string{"lovart_task_download", "lovart_canvas_download", "lovart_generate", "lovart_jobs_run", "lovart_jobs_resume", "lovart_jobs_finalize"} {
+		assertSchemaIncludesTypes(t, toolName, byName[toolName].InputSchema["properties"].(map[string]any), map[string]string{
+			"confirmed_canonical_path":     "string",
+			"confirm_overwrite":            "boolean",
+			"confirm_outside_default_root": "boolean",
+		})
+	}
+	for _, toolName := range []string{"lovart_task_canvas", "lovart_generate", "lovart_jobs_finalize"} {
+		assertSchemaIncludesTypes(t, toolName, byName[toolName].InputSchema["properties"].(map[string]any), map[string]string{
+			"confirmed_project_id":    "string",
+			"confirm_canvas_write":    "boolean",
+			"confirmed_canvas_layout": "string",
+		})
+	}
+}
+
 func TestToolsCallReturnsEnvelopeText(t *testing.T) {
 	server := NewServerWithExecutor(&fakeExecutor{})
 	resp := server.HandleMessage(context.Background(), map[string]any{
@@ -451,11 +477,11 @@ func TestProjectRenameRequiresInputs(t *testing.T) {
 		t.Fatalf("expected missing new_name error")
 	}
 
-	env = server.CallTool(context.Background(), "lovart_project_rename", map[string]any{"project_id": "proj_123", "new_name": "New name", "confirm_policy": true})
+	env = server.CallTool(context.Background(), "lovart_project_rename", map[string]any{"project_id": "proj_123", "new_name": "New name", "confirmed_project_id": "proj_123", "confirm_project_id": "proj_123", "confirm_new_name": "New name", "confirm_policy": true})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.projectRename.ProjectID != "proj_123" || executor.projectRename.NewName != "New name" {
+	if executor.projectRename.ProjectID != "proj_123" || executor.projectRename.NewName != "New name" || executor.projectRename.ConfirmedProjectID != "proj_123" || executor.projectRename.ConfirmProjectID != "proj_123" || executor.projectRename.ConfirmNewName != "New name" {
 		t.Fatalf("project rename args = %#v", executor.projectRename)
 	}
 }
@@ -473,11 +499,11 @@ func TestProjectDeleteRequiresMatchingConfirmProjectID(t *testing.T) {
 		t.Fatalf("expected mismatched confirm_project_id error")
 	}
 
-	env = server.CallTool(context.Background(), "lovart_project_delete", map[string]any{"project_id": "proj_123", "confirm_project_id": "proj_123"})
+	env = server.CallTool(context.Background(), "lovart_project_delete", map[string]any{"project_id": "proj_123", "confirm_project_id": "proj_123", "confirmed_project_id": "proj_123"})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.projectDelete.ProjectID != "proj_123" || executor.projectDelete.ConfirmProjectID != "proj_123" {
+	if executor.projectDelete.ProjectID != "proj_123" || executor.projectDelete.ConfirmProjectID != "proj_123" || executor.projectDelete.ConfirmedProjectID != "proj_123" {
 		t.Fatalf("project delete args = %#v", executor.projectDelete)
 	}
 }
@@ -497,13 +523,14 @@ func TestDownloadToolsParseArgs(t *testing.T) {
 	}
 
 	env = server.CallTool(context.Background(), "lovart_task_cancel", map[string]any{
-		"task_ids":       []any{"task-a", "task-b"},
-		"confirm_policy": true,
+		"task_ids":         []any{"task-a", "task-b"},
+		"confirm_task_ids": []any{"task-a", "task-b"},
+		"confirm_policy":   true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if len(executor.taskCancel.TaskIDs) != 2 || executor.taskCancel.TaskIDs[0] != "task-a" || executor.taskCancel.TaskIDs[1] != "task-b" {
+	if len(executor.taskCancel.TaskIDs) != 2 || executor.taskCancel.TaskIDs[0] != "task-a" || executor.taskCancel.TaskIDs[1] != "task-b" || len(executor.taskCancel.ConfirmTaskIDs) != 2 || executor.taskCancel.ConfirmTaskIDs[0] != "task-a" {
 		t.Fatalf("task cancel args = %#v", executor.taskCancel)
 	}
 
@@ -532,32 +559,38 @@ func TestDownloadToolsParseArgs(t *testing.T) {
 	}
 
 	env = server.CallTool(context.Background(), "lovart_task_canvas", map[string]any{
-		"task_id":        "task-123",
-		"project_id":     "project-123",
-		"detail":         "full",
-		"confirm_policy": true,
+		"task_id":                 "task-123",
+		"project_id":              "project-123",
+		"confirmed_project_id":    "project-123",
+		"confirm_canvas_write":    true,
+		"confirmed_canvas_layout": "plain",
+		"detail":                  "full",
+		"confirm_policy":          true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.taskCanvas.TaskID != "task-123" || executor.taskCanvas.ProjectID != "project-123" || executor.taskCanvas.Detail != "full" {
+	if executor.taskCanvas.TaskID != "task-123" || executor.taskCanvas.ProjectID != "project-123" || executor.taskCanvas.ConfirmedProjectID != "project-123" || !executor.taskCanvas.ConfirmCanvasWrite || executor.taskCanvas.ConfirmedCanvasLayout != "plain" || executor.taskCanvas.Detail != "full" {
 		t.Fatalf("task canvas args = %#v", executor.taskCanvas)
 	}
 
 	env = server.CallTool(context.Background(), "lovart_task_download", map[string]any{
-		"task_id":                "task-123",
-		"artifact_index":         2.0,
-		"download_dir":           "/tmp/images",
-		"download_dir_template":  "{{task.id}}",
-		"download_file_template": "img-{{artifact.index:02}}.{{ext}}",
-		"overwrite":              true,
-		"detail":                 "full",
-		"confirm_policy":         true,
+		"task_id":                      "task-123",
+		"artifact_index":               2.0,
+		"download_dir":                 "/tmp/images",
+		"download_dir_template":        "{{task.id}}",
+		"download_file_template":       "img-{{artifact.index:02}}.{{ext}}",
+		"overwrite":                    true,
+		"confirmed_canonical_path":     "/tmp/images/task-123/img-02.png",
+		"confirm_overwrite":            true,
+		"confirm_outside_default_root": true,
+		"detail":                       "full",
+		"confirm_policy":               true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.taskDownload.TaskID != "task-123" || executor.taskDownload.ArtifactIndex != 2 || executor.taskDownload.DownloadDir != "/tmp/images" || !executor.taskDownload.Overwrite || executor.taskDownload.Detail != "full" {
+	if executor.taskDownload.TaskID != "task-123" || executor.taskDownload.ArtifactIndex != 2 || executor.taskDownload.DownloadDir != "/tmp/images" || !executor.taskDownload.Overwrite || executor.taskDownload.ConfirmedCanonicalPath != "/tmp/images/task-123/img-02.png" || !executor.taskDownload.ConfirmOverwrite || !executor.taskDownload.ConfirmOutsideDefaultRoot || executor.taskDownload.Detail != "full" {
 		t.Fatalf("task download args = %#v", executor.taskDownload)
 	}
 
@@ -587,16 +620,20 @@ func TestDownloadToolsParseArgs(t *testing.T) {
 	}
 
 	env = server.CallTool(context.Background(), "lovart_canvas_download", map[string]any{
-		"project_id":     "project-123",
-		"artifact_index": 1.0,
-		"original":       true,
-		"overwrite":      true,
-		"confirm_policy": true,
+		"project_id":                   "project-123",
+		"confirmed_project_id":         "project-123",
+		"artifact_index":               1.0,
+		"original":                     true,
+		"overwrite":                    true,
+		"confirmed_canonical_path":     "/tmp/canvas/one.png",
+		"confirm_overwrite":            true,
+		"confirm_outside_default_root": true,
+		"confirm_policy":               true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.canvasDownload.ProjectID != "project-123" || executor.canvasDownload.ArtifactIndex != 1 || !executor.canvasDownload.Original || !executor.canvasDownload.Overwrite {
+	if executor.canvasDownload.ProjectID != "project-123" || executor.canvasDownload.ConfirmedProjectID != "project-123" || executor.canvasDownload.ArtifactIndex != 1 || !executor.canvasDownload.Original || !executor.canvasDownload.Overwrite || executor.canvasDownload.ConfirmedCanonicalPath != "/tmp/canvas/one.png" || !executor.canvasDownload.ConfirmOverwrite || !executor.canvasDownload.ConfirmOutsideDefaultRoot {
 		t.Fatalf("canvas download args = %#v", executor.canvasDownload)
 	}
 }
@@ -771,22 +808,29 @@ func TestGenerateStructuredPaidConsentArgsArePreserved(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_generate", map[string]any{
-		"model":                     "openai/gpt-image-2",
-		"body":                      map[string]any{"prompt": "test"},
-		"allow_paid":                true,
-		"max_credits":               12.0,
-		"confirm_paid":              true,
-		"confirmed_max_credits":     12.0,
-		"confirmed_model":           "openai/gpt-image-2",
-		"confirmed_mode":            "auto",
-		"confirmed_outputs":         2.0,
-		"confirmed_remote_requests": 1.0,
-		"confirm_policy":            true,
+		"model":                        "openai/gpt-image-2",
+		"body":                         map[string]any{"prompt": "test"},
+		"allow_paid":                   true,
+		"max_credits":                  12.0,
+		"confirm_paid":                 true,
+		"confirmed_max_credits":        12.0,
+		"confirmed_model":              "openai/gpt-image-2",
+		"confirmed_mode":               "auto",
+		"confirmed_outputs":            2.0,
+		"confirmed_remote_requests":    1.0,
+		"project_id":                   "proj_123",
+		"confirmed_project_id":         "proj_123",
+		"confirmed_canonical_path":     "/tmp/lovart/task-123/img.png",
+		"confirm_overwrite":            true,
+		"confirm_outside_default_root": true,
+		"confirm_canvas_write":         true,
+		"confirmed_canvas_layout":      "frame",
+		"confirm_policy":               true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if !executor.generate.ConfirmPaid || executor.generate.ConfirmedMaxCredits != 12 || executor.generate.ConfirmedModel != "openai/gpt-image-2" || executor.generate.ConfirmedMode != "auto" || executor.generate.ConfirmedOutputs != 2 || executor.generate.ConfirmedRemoteRequests != 1 {
+	if !executor.generate.ConfirmPaid || executor.generate.ConfirmedMaxCredits != 12 || executor.generate.ConfirmedModel != "openai/gpt-image-2" || executor.generate.ConfirmedMode != "auto" || executor.generate.ConfirmedOutputs != 2 || executor.generate.ConfirmedRemoteRequests != 1 || executor.generate.ProjectID != "proj_123" || executor.generate.ConfirmedProjectID != "proj_123" || executor.generate.ConfirmedCanonicalPath != "/tmp/lovart/task-123/img.png" || !executor.generate.ConfirmOverwrite || !executor.generate.ConfirmOutsideDefaultRoot || !executor.generate.ConfirmCanvasWrite || executor.generate.ConfirmedCanvasLayout != "frame" {
 		t.Fatalf("generate structured consent args = %#v", executor.generate)
 	}
 }
@@ -795,28 +839,32 @@ func TestJobsRunArgsExposeUserSurface(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_jobs_run", map[string]any{
-		"jobs_file":                   "runs/x/jobs.jsonl",
-		"allow_paid":                  true,
-		"max_total_credits":           12.0,
-		"confirm_paid":                true,
-		"confirmed_max_total_credits": 12.0,
-		"confirmed_remote_requests":   7.0,
-		"confirmed_max_active_tasks":  9.0,
-		"confirmed_model":             "openai/gpt-image-2",
-		"confirmed_mode":              "auto",
-		"confirmed_outputs":           7.0,
-		"confirmed_max_credits":       3.0,
-		"project_id":                  "proj_123",
-		"download_dir":                "runs/x/images",
-		"submit_interval_seconds":     1.5,
-		"submit_limit":                7.0,
-		"max_active_tasks":            9.0,
-		"confirm_policy":              true,
+		"jobs_file":                    "runs/x/jobs.jsonl",
+		"allow_paid":                   true,
+		"max_total_credits":            12.0,
+		"confirm_paid":                 true,
+		"confirmed_max_total_credits":  12.0,
+		"confirmed_remote_requests":    7.0,
+		"confirmed_max_active_tasks":   9.0,
+		"confirmed_model":              "openai/gpt-image-2",
+		"confirmed_mode":               "auto",
+		"confirmed_outputs":            7.0,
+		"confirmed_max_credits":        3.0,
+		"project_id":                   "proj_123",
+		"confirmed_project_id":         "proj_123",
+		"download_dir":                 "runs/x/images",
+		"confirmed_canonical_path":     "/tmp/lovart/jobs/x",
+		"confirm_overwrite":            true,
+		"confirm_outside_default_root": true,
+		"submit_interval_seconds":      1.5,
+		"submit_limit":                 7.0,
+		"max_active_tasks":             9.0,
+		"confirm_policy":               true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.jobsRun.JobsFile != "runs/x/jobs.jsonl" || !executor.jobsRun.AllowPaid || executor.jobsRun.MaxTotalCredits != 12 || !executor.jobsRun.ConfirmPaid || executor.jobsRun.ConfirmedMaxTotalCredits != 12 || executor.jobsRun.ConfirmedRemoteRequests != 7 || executor.jobsRun.ConfirmedMaxActiveTasks != 9 || executor.jobsRun.ConfirmedModel != "openai/gpt-image-2" || executor.jobsRun.ConfirmedMode != "auto" || executor.jobsRun.ConfirmedOutputs != 7 || executor.jobsRun.ConfirmedMaxCredits != 3 || executor.jobsRun.ProjectID != "proj_123" || executor.jobsRun.DownloadDir != "runs/x/images" || executor.jobsRun.SubmitIntervalSeconds != 1.5 || executor.jobsRun.SubmitLimit != 7 || executor.jobsRun.MaxActiveTasks != 9 {
+	if executor.jobsRun.JobsFile != "runs/x/jobs.jsonl" || !executor.jobsRun.AllowPaid || executor.jobsRun.MaxTotalCredits != 12 || !executor.jobsRun.ConfirmPaid || executor.jobsRun.ConfirmedMaxTotalCredits != 12 || executor.jobsRun.ConfirmedRemoteRequests != 7 || executor.jobsRun.ConfirmedMaxActiveTasks != 9 || executor.jobsRun.ConfirmedModel != "openai/gpt-image-2" || executor.jobsRun.ConfirmedMode != "auto" || executor.jobsRun.ConfirmedOutputs != 7 || executor.jobsRun.ConfirmedMaxCredits != 3 || executor.jobsRun.ProjectID != "proj_123" || executor.jobsRun.ConfirmedProjectID != "proj_123" || executor.jobsRun.DownloadDir != "runs/x/images" || executor.jobsRun.ConfirmedCanonicalPath != "/tmp/lovart/jobs/x" || !executor.jobsRun.ConfirmOverwrite || !executor.jobsRun.ConfirmOutsideDefaultRoot || executor.jobsRun.SubmitIntervalSeconds != 1.5 || executor.jobsRun.SubmitLimit != 7 || executor.jobsRun.MaxActiveTasks != 9 {
 		t.Fatalf("jobs run args = %#v", executor.jobsRun)
 	}
 }
@@ -850,28 +898,32 @@ func TestJobsResumeArgsExposeUserSurface(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_jobs_resume", map[string]any{
-		"run_dir":                     "runs/x",
-		"allow_paid":                  true,
-		"max_total_credits":           24.0,
-		"confirm_paid":                true,
-		"confirmed_max_total_credits": 24.0,
-		"confirmed_remote_requests":   5.0,
-		"confirmed_max_active_tasks":  8.0,
-		"confirmed_model":             "openai/gpt-image-2",
-		"confirmed_mode":              "fast",
-		"confirmed_outputs":           5.0,
-		"confirmed_max_credits":       4.0,
-		"download_dir":                "runs/x/images",
-		"retry_failed":                true,
-		"submit_interval_seconds":     3.0,
-		"submit_limit":                5.0,
-		"max_active_tasks":            8.0,
-		"confirm_policy":              true,
+		"run_dir":                      "runs/x",
+		"allow_paid":                   true,
+		"max_total_credits":            24.0,
+		"confirm_paid":                 true,
+		"confirmed_max_total_credits":  24.0,
+		"confirmed_remote_requests":    5.0,
+		"confirmed_max_active_tasks":   8.0,
+		"confirmed_model":              "openai/gpt-image-2",
+		"confirmed_mode":               "fast",
+		"confirmed_outputs":            5.0,
+		"confirmed_max_credits":        4.0,
+		"confirmed_project_id":         "proj_resume",
+		"download_dir":                 "runs/x/images",
+		"confirmed_canonical_path":     "/tmp/lovart/resume/x",
+		"confirm_overwrite":            true,
+		"confirm_outside_default_root": true,
+		"retry_failed":                 true,
+		"submit_interval_seconds":      3.0,
+		"submit_limit":                 5.0,
+		"max_active_tasks":             8.0,
+		"confirm_policy":               true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.jobsResume.RunDir != "runs/x" || !executor.jobsResume.AllowPaid || executor.jobsResume.MaxTotalCredits != 24 || !executor.jobsResume.ConfirmPaid || executor.jobsResume.ConfirmedMaxTotalCredits != 24 || executor.jobsResume.ConfirmedRemoteRequests != 5 || executor.jobsResume.ConfirmedMaxActiveTasks != 8 || executor.jobsResume.ConfirmedModel != "openai/gpt-image-2" || executor.jobsResume.ConfirmedMode != "fast" || executor.jobsResume.ConfirmedOutputs != 5 || executor.jobsResume.ConfirmedMaxCredits != 4 || executor.jobsResume.DownloadDir != "runs/x/images" || !executor.jobsResume.RetryFailed || executor.jobsResume.SubmitIntervalSeconds != 3 || executor.jobsResume.SubmitLimit != 5 || executor.jobsResume.MaxActiveTasks != 8 {
+	if executor.jobsResume.RunDir != "runs/x" || !executor.jobsResume.AllowPaid || executor.jobsResume.MaxTotalCredits != 24 || !executor.jobsResume.ConfirmPaid || executor.jobsResume.ConfirmedMaxTotalCredits != 24 || executor.jobsResume.ConfirmedRemoteRequests != 5 || executor.jobsResume.ConfirmedMaxActiveTasks != 8 || executor.jobsResume.ConfirmedModel != "openai/gpt-image-2" || executor.jobsResume.ConfirmedMode != "fast" || executor.jobsResume.ConfirmedOutputs != 5 || executor.jobsResume.ConfirmedMaxCredits != 4 || executor.jobsResume.ConfirmedProjectID != "proj_resume" || executor.jobsResume.DownloadDir != "runs/x/images" || executor.jobsResume.ConfirmedCanonicalPath != "/tmp/lovart/resume/x" || !executor.jobsResume.ConfirmOverwrite || !executor.jobsResume.ConfirmOutsideDefaultRoot || !executor.jobsResume.RetryFailed || executor.jobsResume.SubmitIntervalSeconds != 3 || executor.jobsResume.SubmitLimit != 5 || executor.jobsResume.MaxActiveTasks != 8 {
 		t.Fatalf("jobs resume args = %#v", executor.jobsResume)
 	}
 }
@@ -880,19 +932,25 @@ func TestJobsFinalizeArgsExposeUserSurface(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_jobs_finalize", map[string]any{
-		"run_dir":        "runs/x",
-		"download":       true,
-		"canvas":         true,
-		"project_id":     "proj_123",
-		"download_dir":   "runs/x/images",
-		"detail":         "requests",
-		"canvas_layout":  "plain",
-		"confirm_policy": true,
+		"run_dir":                      "runs/x",
+		"download":                     true,
+		"canvas":                       true,
+		"project_id":                   "proj_123",
+		"confirmed_project_id":         "proj_123",
+		"download_dir":                 "runs/x/images",
+		"confirmed_canonical_path":     "/tmp/lovart/finalize/x",
+		"confirm_overwrite":            true,
+		"confirm_outside_default_root": true,
+		"detail":                       "requests",
+		"canvas_layout":                "plain",
+		"confirm_canvas_write":         true,
+		"confirmed_canvas_layout":      "plain",
+		"confirm_policy":               true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
-	if executor.jobsFinalize.RunDir != "runs/x" || !executor.jobsFinalize.Download || !executor.jobsFinalize.Canvas || executor.jobsFinalize.ProjectID != "proj_123" || executor.jobsFinalize.DownloadDir != "runs/x/images" || executor.jobsFinalize.Detail != "requests" || executor.jobsFinalize.CanvasLayout != "plain" {
+	if executor.jobsFinalize.RunDir != "runs/x" || !executor.jobsFinalize.Download || !executor.jobsFinalize.Canvas || executor.jobsFinalize.ProjectID != "proj_123" || executor.jobsFinalize.ConfirmedProjectID != "proj_123" || executor.jobsFinalize.DownloadDir != "runs/x/images" || executor.jobsFinalize.ConfirmedCanonicalPath != "/tmp/lovart/finalize/x" || !executor.jobsFinalize.ConfirmOverwrite || !executor.jobsFinalize.ConfirmOutsideDefaultRoot || executor.jobsFinalize.Detail != "requests" || executor.jobsFinalize.CanvasLayout != "plain" || !executor.jobsFinalize.ConfirmCanvasWrite || executor.jobsFinalize.ConfirmedCanvasLayout != "plain" {
 		t.Fatalf("jobs finalize args = %#v", executor.jobsFinalize)
 	}
 
