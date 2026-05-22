@@ -1,4 +1,4 @@
-.PHONY: build test lint release
+.PHONY: build test lint architecture release
 
 # ===== Go =====
 GO := go
@@ -13,6 +13,9 @@ test:
 
 lint:
 	$(GO) vet ./...
+
+architecture:
+	bash scripts/check_architecture.sh
 
 release:
 	mkdir -p dist
@@ -36,4 +39,4 @@ ext-build:
 
 # ===== All =====
 all: build
-check: lint test
+check: lint test architecture

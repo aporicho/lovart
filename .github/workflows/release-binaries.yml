@@ -41,9 +41,15 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Test
+      - name: Quality gates
         shell: bash
-        run: go test ./...
+        run: |
+          go vet ./...
+          go test ./...
+          if [ "${{ matrix.goos }}" = "linux" ]; then
+            go test -race -count=1 ./...
+          fi
+          bash scripts/check_architecture.sh
 
       - name: Build binary
         shell: bash
