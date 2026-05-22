@@ -8,12 +8,10 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
-	"unsafe"
 
 	"github.com/aporicho/lovart/internal/auth"
 	lovarthttp "github.com/aporicho/lovart/internal/http"
@@ -281,8 +279,7 @@ func rewriteHTTPClient(t *testing.T, client *lovarthttp.Client, server *httptest
 	}
 	transport := &rewriteTransport{target: target, base: server.Client().Transport}
 	netClient := &http.Client{Transport: transport, Timeout: 5 * time.Second}
-	field := reflect.ValueOf(client).Elem().FieldByName("http")
-	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(netClient))
+	client.SetHTTPClient(netClient)
 }
 
 type rewriteTransport struct {

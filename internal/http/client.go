@@ -31,6 +31,16 @@ func NewClient(creds *auth.Credentials, signer signing.Signer) *Client {
 	}
 }
 
+// SetHTTPClient replaces the underlying HTTP client.
+// It is primarily used by contract tests that must route Lovart API calls to a
+// local httptest server without changing production endpoint constants.
+func (c *Client) SetHTTPClient(httpClient *nethttp.Client) {
+	if c == nil || httpClient == nil {
+		return
+	}
+	c.http = httpClient
+}
+
 // UserUUID returns the Lovart browser webid used by task-pool APIs.
 func (c *Client) UserUUID() string {
 	if c == nil || c.creds == nil {
