@@ -12,7 +12,7 @@ import (
 func TestReleaseWorkflowBuildsGoBinaries(t *testing.T) {
 	text := readRepoFile(t, ".github/workflows/release-binaries.yml")
 	for _, want := range []string{
-		"actions/setup-go@v5",
+		"actions/setup-go@v6",
 		"go-version-file: go.mod",
 		"go test ./...",
 		"go build -trimpath",
