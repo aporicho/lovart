@@ -457,6 +457,15 @@ lovart_jobs_finalize
 串行提交，并支持 `submit_interval_seconds`、`submit_limit` 与 `max_active_tasks`
 控制提交节奏和 active task 门禁。达到并发上限时，先用 `lovart_task_list` 查看当前
 占用任务；只有用户明确要求停止任务时再调用 `lovart_task_cancel`。
+
+`lovart_generate`、`lovart_jobs_run` 和 `lovart_jobs_resume` 的 MCP schema 暴露
+structured paid consent 字段：`confirm_paid`、`confirmed_model`、`confirmed_mode`、
+`confirmed_max_credits`、`confirmed_max_total_credits`、`confirmed_outputs`、
+`confirmed_remote_requests` 和 `confirmed_max_active_tasks`。`confirm_policy` 只通过
+MCP policy gate；付费工具仍然需要 `allow_paid` 与相应 max credits 限制。structured
+字段用于把用户确认绑定到这一次精确的付费 scope，本层仅暴露 schema，不替代后续
+jobs/generate 执行侧校验。
+
 如果远端任务因审核/策略拒绝失败，状态响应中的 `failure.code` 会是
 `content_policy_rejected`。
 
