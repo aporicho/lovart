@@ -16,6 +16,7 @@ import (
 
 	"github.com/aporicho/lovart/internal/auth"
 	lovarthttp "github.com/aporicho/lovart/internal/http"
+	"github.com/aporicho/lovart/internal/paths"
 )
 
 type contractServer struct {
@@ -298,6 +299,7 @@ func cloneBody(body io.ReadCloser) ([]byte, error) {
 
 func newContractRunState(t *testing.T, count int) *RunState {
 	t.Helper()
+	setupHTTPContractRegistryMetadata(t)
 	dir := t.TempDir()
 	jobsFile := filepath.Join(dir, "jobs.jsonl")
 	var b strings.Builder
@@ -319,6 +321,52 @@ func newContractRunState(t *testing.T, count int) *RunState {
 		t.Fatalf("NewRunState: %v", err)
 	}
 	return state
+}
+
+func setupHTTPContractRegistryMetadata(t *testing.T) {
+	t.Helper()
+	t.Cleanup(paths.Reset)
+	dir := t.TempDir()
+	t.Setenv("LOVART_HOME", dir)
+	paths.Reset()
+	if err := os.MkdirAll(paths.MetadataDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	list := []byte(`{"items":[{"name":"openai/gpt-image-2","display_name":"GPT Image 2","type":"image"}]}`)
+	schema := []byte(`{
+  "paths": {
+    "/openai/gpt-image-2": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/GPTImage2Request"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GPTImage2Request": {
+        "required": ["prompt"],
+        "properties": {
+          "prompt": {"type": "string"},
+          "size": {"type": "string", "default": "2048*2048"},
+          "quality": {"type": "string", "default": "low"},
+          "n": {"type": "integer", "default": 1, "minimum": 1, "maximum": 10}
+        }
+      }
+    }
+  }
+}`)
+	if err := os.WriteFile(paths.GeneratorListFile, list, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(paths.GeneratorSchemaFile, schema, 0644); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func newSubmittedContractRunState(t *testing.T, taskID string) *RunState {
