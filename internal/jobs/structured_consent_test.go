@@ -45,6 +45,27 @@ func TestRunPreparedJobsStructuredConsentRemoteRequestMismatchBlocks(t *testing.
 	}
 }
 
+func TestRunPreparedJobsStructuredConsentRemoteRequestsUsesPlannedSubmitLimit(t *testing.T) {
+	state, opts := preparedPaidConsentState(t, 3)
+	opts.SubmitLimit = 2
+	setValidPaidConsent(&opts, 3, 2, 0)
+	remote := &fakeRemote{price: 1}
+
+	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if remote.submits != 2 {
+		t.Fatalf("submits=%d, want 2", remote.submits)
+	}
+	if result.BatchGate == nil || result.BatchGate.SelectedRemoteRequests != 3 || result.BatchGate.PlannedRemoteRequests != 2 {
+		t.Fatalf("batch gate=%#v", result.BatchGate)
+	}
+	if result.Submission == nil || !result.Submission.Deferred || result.Submission.DeferredReason != "submit_limit_reached" {
+		t.Fatalf("submission=%#v", result.Submission)
+	}
+}
+
 func TestRunPreparedJobsStructuredConsentMaxActiveMismatchBlocks(t *testing.T) {
 	state, opts := preparedPaidConsentState(t, 2)
 	opts.MaxActiveTasks = 99

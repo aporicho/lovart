@@ -65,7 +65,7 @@ func artifactDetailSchema() map[string]any {
 }
 
 func addStructuredPaidConsentFields(properties map[string]any) {
-	const consentDescription = "structured paid consent field; bind the user's confirmation to this exact paid scope. confirm_policy only passes the MCP policy gate; paid tools still require allow_paid and max credit limits."
+	const consentDescription = "structured paid consent field; bind the user's confirmation to this exact paid scope. confirm_policy only passes the MCP policy gate; paid tools still require allow_paid and max credit limits. For jobs Phase 1, only batch-level confirm_paid, max_total_credits, remote_requests, and max_active_tasks are enforced; per-request model/mode/outputs fields are currently ignored by jobs."
 	properties["confirm_paid"] = boolSchema(consentDescription)
 	properties["confirmed_model"] = stringSchema(consentDescription)
 	properties["confirmed_mode"] = stringSchema(consentDescription)

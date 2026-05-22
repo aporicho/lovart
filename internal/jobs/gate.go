@@ -13,6 +13,7 @@ type BatchGate struct {
 	MaxTotalCredits          float64          `json:"max_total_credits,omitempty"`
 	TotalCredits             float64          `json:"total_credits"`
 	SelectedRemoteRequests   int              `json:"selected_remote_requests"`
+	PlannedRemoteRequests    int              `json:"planned_remote_requests"`
 	StructuredConsentOutcome *consent.Outcome `json:"structured_consent,omitempty"`
 	PaidRequestIDs           []string         `json:"paid_request_ids,omitempty"`
 	UnknownPricingRequestIDs []string         `json:"unknown_pricing_request_ids,omitempty"`
@@ -61,6 +62,7 @@ func evaluateGate(state *RunState, opts JobsOptions, statuses map[string]bool) *
 			}
 		}
 	}
+	gate.PlannedRemoteRequests = plannedRemoteRequests(gate.SelectedRemoteRequests, opts)
 	if len(gate.UnknownPricingRequestIDs) > 0 {
 		gate.Allowed = false
 		gate.RecommendedActions = append(gate.RecommendedActions, "rerun `lovart jobs run <jobs.jsonl>` or `lovart jobs resume <run_dir>` after network/pricing is available")
@@ -113,7 +115,7 @@ func structuredConsentAction(code string, gate *BatchGate, opts JobsOptions) str
 	case "structured_consent_missing_max_total_credits", "structured_consent_max_total_credits_mismatch":
 		return fmt.Sprintf("pass `confirmed_max_total_credits` of at least %.0f for this paid batch", gate.TotalCredits)
 	case "structured_consent_missing_remote_requests", "structured_consent_remote_requests_mismatch":
-		return fmt.Sprintf("pass `confirmed_remote_requests=%d` for this paid batch", gate.SelectedRemoteRequests)
+		return fmt.Sprintf("pass `confirmed_remote_requests=%d` for this paid batch invocation", gate.PlannedRemoteRequests)
 	case "structured_consent_missing_max_active_tasks", "structured_consent_max_active_tasks_mismatch":
 		return fmt.Sprintf("pass `confirmed_max_active_tasks=%d` for this paid batch", normalizedMaxActiveTasks(opts))
 	default:
@@ -128,17 +130,13 @@ func applyStructuredPaidConsent(gate *BatchGate, opts JobsOptions) {
 	outcome := consent.VerifyPaid(consent.PaidPlan{
 		Required:       true,
 		TotalCredits:   gate.TotalCredits,
-		RemoteRequests: gate.SelectedRemoteRequests,
+		RemoteRequests: gate.PlannedRemoteRequests,
 		MaxActiveTasks: normalizedMaxActiveTasks(opts),
 	}, consent.PaidConfirmation{
 		ConfirmPaid:              boolPtr(opts.ConfirmPaid),
 		ConfirmedMaxTotalCredits: positiveFloatPtr(opts.ConfirmedMaxTotalCredits),
 		ConfirmedRemoteRequests:  positiveIntPtr(opts.ConfirmedRemoteRequests),
 		ConfirmedMaxActiveTasks:  positiveIntPtr(opts.ConfirmedMaxActiveTasks),
-		ConfirmedModel:           nonEmptyStringPtr(opts.ConfirmedModel),
-		ConfirmedMode:            nonEmptyStringPtr(opts.ConfirmedMode),
-		ConfirmedOutputs:         positiveIntPtr(opts.ConfirmedOutputs),
-		ConfirmedMaxCredits:      positiveFloatPtr(opts.ConfirmedMaxCredits),
 	})
 	gate.StructuredConsentOutcome = &outcome
 	if !outcome.Allowed {
@@ -157,6 +155,14 @@ func ensureGateAllowed(state *RunState, opts JobsOptions, statuses map[string]bo
 	return &GateError{Code: gateErrorCode(gate), Gate: gate, RunDir: state.RunDir, StateFile: state.StateFile}
 }
 
+func plannedRemoteRequests(selected int, opts JobsOptions) int {
+	limit := normalizedSubmitLimit(opts)
+	if limit <= 0 || limit > selected {
+		return selected
+	}
+	return limit
+}
+
 func boolPtr(value bool) *bool {
 	if !value {
 		return nil
@@ -173,13 +179,6 @@ func positiveFloatPtr(value float64) *float64 {
 
 func positiveIntPtr(value int) *int {
 	if value <= 0 {
-		return nil
-	}
-	return &value
-}
-
-func nonEmptyStringPtr(value string) *string {
-	if value == "" {
 		return nil
 	}
 	return &value
