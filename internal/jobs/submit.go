@@ -70,6 +70,7 @@ func submitOne(ctx context.Context, remote RemoteClient, state *RunState, opts J
 		CID:       cid,
 	})
 	if err != nil {
+		auditJobsSubmit(opts, state, request, "", err)
 		if generation.IsConcurrencyLimitError(err) {
 			addRequestError(request, "submission_deferred", "batch request submission deferred because the active task limit was reached", map[string]any{"error": err.Error()})
 			RefreshStatuses(state)
@@ -92,6 +93,7 @@ func submitOne(ctx context.Context, remote RemoteClient, state *RunState, opts J
 	clearRequestErrorsByCode(request, "submission_deferred")
 	summary.SubmittedCount++
 	request.TaskID = result.TaskID
+	auditJobsSubmit(opts, state, request, result.TaskID, nil)
 	request.Status = StatusSubmitted
 	if len(result.NormalizedBody) > 0 {
 		request.NormalizedBody = result.NormalizedBody

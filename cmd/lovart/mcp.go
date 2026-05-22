@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/aporicho/lovart/internal/audit"
 	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/errors"
 	"github.com/aporicho/lovart/mcp"
@@ -18,7 +19,12 @@ func newMCPCommand() *cobra.Command {
 		Short: "Run or configure the Lovart MCP server",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return mcp.NewServer().Run(context.Background(), os.Stdin, os.Stdout)
+			logger, err := audit.NewEnvironment()
+			if err != nil {
+				return err
+			}
+			defer logger.Close()
+			return mcp.NewServerWithAudit(logger).Run(context.Background(), os.Stdin, os.Stdout)
 		},
 	}
 	cmd.AddCommand(newMCPStatusCommand())

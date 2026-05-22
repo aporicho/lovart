@@ -4,6 +4,7 @@ import (
 	"context"
 	stderrors "errors"
 
+	"github.com/aporicho/lovart/internal/audit"
 	"github.com/aporicho/lovart/internal/auth"
 	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/errors"
@@ -35,6 +36,11 @@ func newJobsRunCmd() *cobra.Command {
 		Short: "Run a complete batch generation",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			closeAudit, err := attachJobsAuditLogger(&opts)
+			if err != nil {
+				return err
+			}
+			defer closeAudit()
 			jobsFile := args[0]
 			if opts.Download || opts.Canvas {
 				opts.Wait = true
@@ -86,6 +92,11 @@ func newJobsResumeCmd() *cobra.Command {
 		Short: "Resume a batch generation",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			closeAudit, err := attachJobsAuditLogger(&opts)
+			if err != nil {
+				return err
+			}
+			defer closeAudit()
 			runDir := args[0]
 			applyProjectContext(&opts)
 			remote, ok := newJobsRemote()
@@ -109,6 +120,11 @@ func newJobsStatusCmd() *cobra.Command {
 		Short: "Read batch run state",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			closeAudit, err := attachJobsAuditLogger(&opts)
+			if err != nil {
+				return err
+			}
+			defer closeAudit()
 			runDir := args[0]
 			var remote jobs.RemoteClient
 			if opts.Refresh {
@@ -143,6 +159,11 @@ func newJobsFinalizeCmd() *cobra.Command {
 		Short: "Finalize completed batch artifacts",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			closeAudit, err := attachJobsAuditLogger(&opts)
+			if err != nil {
+				return err
+			}
+			defer closeAudit()
 			if !opts.Download && !opts.Canvas {
 				printEnvelope(envelope.Err(errors.CodeInputError, "choose at least one finalization action", map[string]any{
 					"recommended_actions": []string{
@@ -187,6 +208,15 @@ func newJobsFinalizeCmd() *cobra.Command {
 	cmd.Flags().StringVar(&opts.Detail, "detail", "summary", "output detail: summary, requests, full")
 	cmd.Flags().StringVar(&opts.CanvasLayout, "canvas-layout", jobs.CanvasLayoutFrame, "canvas layout: frame, plain")
 	return cmd
+}
+
+func attachJobsAuditLogger(opts *jobs.JobsOptions) (func(), error) {
+	logger, err := audit.NewEnvironment()
+	if err != nil {
+		return func() {}, err
+	}
+	opts.AuditLogger = logger
+	return func() { _ = logger.Close() }, nil
 }
 
 func defaultBatchOptions() jobs.JobsOptions {

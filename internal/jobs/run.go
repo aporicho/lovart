@@ -47,7 +47,9 @@ func RunJobs(ctx context.Context, remote RemoteClient, jobsFile string, opts Job
 }
 
 // RunPreparedJobs submits an already prepared state.
-func RunPreparedJobs(ctx context.Context, remote RemoteClient, state *RunState, opts JobsOptions) (*BatchResult, error) {
+func RunPreparedJobs(ctx context.Context, remote RemoteClient, state *RunState, opts JobsOptions) (result *BatchResult, err error) {
+	auditJobsStart("jobs.run", state, opts)
+	defer func() { auditJobsFinish("jobs.run", state, opts, err) }()
 	if ExistingStateHasRemoteTasks(state.RunDir) {
 		return nil, fmt.Errorf("jobs: existing state has submitted tasks; use `lovart jobs resume %s`", state.RunDir)
 	}
@@ -56,6 +58,7 @@ func RunPreparedJobs(ctx context.Context, remote RemoteClient, state *RunState, 
 	}
 	if err := ensureGateAllowed(state, opts, nil); err != nil {
 		_ = SaveState(state)
+		auditJobsGateDenied("jobs.run", state, opts, err)
 		return nil, err
 	}
 	if err := SaveState(state); err != nil {
@@ -84,11 +87,13 @@ func RunPreparedJobs(ctx context.Context, remote RemoteClient, state *RunState, 
 }
 
 // ResumeJobs resumes a saved run state.
-func ResumeJobs(ctx context.Context, remote RemoteClient, runDir string, opts JobsOptions) (*BatchResult, error) {
+func ResumeJobs(ctx context.Context, remote RemoteClient, runDir string, opts JobsOptions) (result *BatchResult, err error) {
 	state, err := LoadState(runDir)
 	if err != nil {
 		return nil, err
 	}
+	auditJobsStart("jobs.resume", state, opts)
+	defer func() { auditJobsFinish("jobs.resume", state, opts, err) }()
 	if opts.ProjectID != "" && state.ProjectID == "" {
 		state.ProjectID = opts.ProjectID
 	}
@@ -104,6 +109,7 @@ func ResumeJobs(ctx context.Context, remote RemoteClient, runDir string, opts Jo
 	pendingStatuses := map[string]bool{StatusPending: true, StatusQuoted: true}
 	if err := ensureGateAllowed(state, opts, pendingStatuses); err != nil {
 		_ = SaveState(state)
+		auditJobsGateDenied("jobs.resume", state, opts, err)
 		return nil, err
 	}
 	if err := SaveState(state); err != nil {
@@ -132,11 +138,13 @@ func ResumeJobs(ctx context.Context, remote RemoteClient, runDir string, opts Jo
 }
 
 // FinalizeJobs downloads and/or writes already-completed batch artifacts.
-func FinalizeJobs(ctx context.Context, remote RemoteClient, runDir string, opts JobsOptions) (*BatchResult, error) {
+func FinalizeJobs(ctx context.Context, remote RemoteClient, runDir string, opts JobsOptions) (result *BatchResult, err error) {
 	state, err := LoadState(runDir)
 	if err != nil {
 		return nil, err
 	}
+	auditJobsStart("jobs.finalize", state, opts)
+	defer func() { auditJobsFinish("jobs.finalize", state, opts, err) }()
 	changed := false
 	if opts.ProjectID != "" && state.ProjectID == "" {
 		state.ProjectID = opts.ProjectID
@@ -168,11 +176,13 @@ func FinalizeJobs(ctx context.Context, remote RemoteClient, runDir string, opts 
 }
 
 // StatusJobs returns saved state, optionally refreshing active task statuses.
-func StatusJobs(ctx context.Context, remote RemoteClient, runDir string, opts JobsOptions) (*BatchResult, error) {
+func StatusJobs(ctx context.Context, remote RemoteClient, runDir string, opts JobsOptions) (result *BatchResult, err error) {
 	state, err := LoadState(runDir)
 	if err != nil {
 		return nil, err
 	}
+	auditJobsStart("jobs.status", state, opts)
+	defer func() { auditJobsFinish("jobs.status", state, opts, err) }()
 	if opts.Refresh {
 		if err := refreshActiveOnce(ctx, remote, state); err != nil {
 			return nil, err

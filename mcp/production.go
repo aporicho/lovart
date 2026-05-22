@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/aporicho/lovart/internal/audit"
 	"github.com/aporicho/lovart/internal/auth"
 	internalbrowser "github.com/aporicho/lovart/internal/browser"
 	"github.com/aporicho/lovart/internal/config"
@@ -28,7 +29,9 @@ import (
 )
 
 // ProductionExecutor executes MCP tools against the Lovart runtime.
-type ProductionExecutor struct{}
+type ProductionExecutor struct {
+	AuditLogger *audit.Logger
+}
 
 var openAuthURL = internalbrowser.OpenURL
 
@@ -693,8 +696,9 @@ func (ProductionExecutor) Generate(ctx context.Context, args GenerateArgs) envel
 }
 
 // JobsRun runs a complete batch.
-func (ProductionExecutor) JobsRun(ctx context.Context, args JobsRunArgs) envelope.Envelope {
+func (executor ProductionExecutor) JobsRun(ctx context.Context, args JobsRunArgs) envelope.Envelope {
 	opts := defaultMCPBatchOptions()
+	opts.AuditLogger = executor.AuditLogger
 	opts.AllowPaid = args.AllowPaid
 	opts.MaxTotalCredits = args.MaxTotalCredits
 	opts.ProjectID = args.ProjectID
@@ -732,8 +736,8 @@ func (ProductionExecutor) JobsRun(ctx context.Context, args JobsRunArgs) envelop
 }
 
 // JobsStatus reads local batch state, optionally refreshing active tasks.
-func (ProductionExecutor) JobsStatus(ctx context.Context, args JobsStatusArgs) envelope.Envelope {
-	opts := jobs.JobsOptions{Detail: args.Detail, Refresh: args.Refresh}
+func (executor ProductionExecutor) JobsStatus(ctx context.Context, args JobsStatusArgs) envelope.Envelope {
+	opts := jobs.JobsOptions{Detail: args.Detail, Refresh: args.Refresh, AuditLogger: executor.AuditLogger}
 	var remote jobs.RemoteClient
 	if args.Refresh {
 		var env *envelope.Envelope
@@ -754,8 +758,9 @@ func (ProductionExecutor) JobsStatus(ctx context.Context, args JobsStatusArgs) e
 }
 
 // JobsResume resumes a saved batch state.
-func (ProductionExecutor) JobsResume(ctx context.Context, args JobsResumeArgs) envelope.Envelope {
+func (executor ProductionExecutor) JobsResume(ctx context.Context, args JobsResumeArgs) envelope.Envelope {
 	opts := defaultMCPBatchOptions()
+	opts.AuditLogger = executor.AuditLogger
 	opts.AllowPaid = args.AllowPaid
 	opts.MaxTotalCredits = args.MaxTotalCredits
 	opts.DownloadDir = args.DownloadDir
@@ -773,7 +778,7 @@ func (ProductionExecutor) JobsResume(ctx context.Context, args JobsResumeArgs) e
 }
 
 // JobsFinalize downloads and/or writes completed batch artifacts.
-func (ProductionExecutor) JobsFinalize(ctx context.Context, args JobsFinalizeArgs) envelope.Envelope {
+func (executor ProductionExecutor) JobsFinalize(ctx context.Context, args JobsFinalizeArgs) envelope.Envelope {
 	if !args.Download && !args.Canvas {
 		return envelope.Err(errors.CodeInputError, "choose at least one finalization action", map[string]any{
 			"recommended_actions": []string{
@@ -792,6 +797,7 @@ func (ProductionExecutor) JobsFinalize(ctx context.Context, args JobsFinalizeArg
 		DownloadDir:  args.DownloadDir,
 		CanvasLayout: args.CanvasLayout,
 		Detail:       args.Detail,
+		AuditLogger:  executor.AuditLogger,
 	}
 	if opts.CanvasLayout == "" {
 		opts.CanvasLayout = jobs.CanvasLayoutFrame

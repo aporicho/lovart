@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/aporicho/lovart/internal/audit"
 	"github.com/aporicho/lovart/internal/paths"
 )
 
@@ -71,6 +72,7 @@ type JobsOptions struct {
 	Detail                string
 	RetryFailed           bool
 	Refresh               bool
+	AuditLogger           *audit.Logger
 }
 
 // ParseJobsFile reads and validates a jobs.jsonl file.

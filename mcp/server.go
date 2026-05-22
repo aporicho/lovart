@@ -8,6 +8,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/aporicho/lovart/internal/audit"
 	"github.com/aporicho/lovart/internal/envelope"
 	"github.com/aporicho/lovart/internal/errors"
 	"github.com/aporicho/lovart/internal/jobs"
@@ -16,7 +17,8 @@ import (
 
 // Server handles JSON-RPC MCP messages.
 type Server struct {
-	executor Executor
+	executor    Executor
+	auditLogger *audit.Logger
 }
 
 // NewServer returns a production MCP server.
@@ -24,9 +26,22 @@ func NewServer() *Server {
 	return NewServerWithExecutor(ProductionExecutor{})
 }
 
+// NewServerWithAudit returns a production MCP server with audit logging.
+func NewServerWithAudit(logger *audit.Logger) *Server {
+	return NewServerWithExecutorAndAudit(ProductionExecutor{AuditLogger: logger}, logger)
+}
+
 // NewServerWithExecutor returns a server backed by executor.
 func NewServerWithExecutor(executor Executor) *Server {
-	return &Server{executor: executor}
+	return NewServerWithExecutorAndAudit(executor, audit.Disabled())
+}
+
+// NewServerWithExecutorAndAudit returns a server backed by executor and audit logger.
+func NewServerWithExecutorAndAudit(executor Executor, logger *audit.Logger) *Server {
+	if logger == nil {
+		logger = audit.Disabled()
+	}
+	return &Server{executor: executor, auditLogger: logger}
 }
 
 type rpcResponse struct {
@@ -113,9 +128,17 @@ func (s *Server) HandleMessage(ctx context.Context, message map[string]any) *rpc
 }
 
 // CallTool validates policy, applies MCP defaults, and invokes executor.
-func (s *Server) CallTool(ctx context.Context, name string, args map[string]any) envelope.Envelope {
+func (s *Server) CallTool(ctx context.Context, name string, args map[string]any) (result envelope.Envelope) {
+	s.auditToolAttempt(name, args)
+	defer func() {
+		s.auditToolResult(name, result)
+	}()
 	if decision, allowed := gateToolCallPolicy(name, args); !allowed {
-		return policyGateEnvelope(decision)
+		s.auditPolicyDecision(decision)
+		result = policyGateEnvelope(decision)
+		return result
+	} else {
+		s.auditPolicyDecision(decision)
 	}
 
 	switch name {
