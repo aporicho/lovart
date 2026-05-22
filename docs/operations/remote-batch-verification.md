@@ -10,6 +10,15 @@
 - Level 2 只允许极小预算：1-3 条 logical jobs、`--submit-limit 1`、`--max-active-tasks 1` 或 `2`、`--allow-paid`、极小 `--max-total-credits`，并必须带 structured paid consent flags（`--confirm-paid`、`--confirmed-max-total-credits`、`--confirmed-remote-requests`、`--confirmed-max-active-tasks`）。
 - canvas 写回是单独 opt-in；不要把 `--canvas` 混进首次 Level 2 验证。
 
+Phase 2 structured consent 安全说明：
+
+- `lovart generate` / MCP `lovart_generate`：paid submit 使用 `--confirm-paid`、`--confirmed-max-credits`、`--confirmed-model`、`--confirmed-mode`、`--confirmed-outputs`、`--confirmed-remote-requests`；若同时 `--download`，Phase 2 local_write 字段为 `--confirmed-canonical-path`、`--confirm-overwrite`、`--confirm-outside-default-root`、`--confirmed-file-count`；若同时 `--canvas`，还必须有 `--confirmed-project-id` 或 `--confirm-current-project` 以及 `--confirmed-canvas-write`。
+- `lovart jobs run|resume` / MCP `lovart_jobs_run|lovart_jobs_resume`：paid batch submit 使用 `--confirm-paid`、`--confirmed-max-total-credits`、`--confirmed-remote-requests`、`--confirmed-max-active-tasks`；Phase 2 project/local fields（`--confirmed-project-id` / `--confirm-current-project`、`--confirmed-canonical-path` 等）用于绑定 project context 和 run/download path。
+- `lovart jobs finalize --download` / MCP `lovart_jobs_finalize` with `download=true`：不 submit paid jobs，不需要 paid consent；Phase 2 local_write consent 是 `--confirmed-canonical-path`、`--confirm-overwrite`、`--confirm-outside-default-root`、`--confirmed-file-count`。
+- `lovart jobs finalize --canvas` / MCP `lovart_jobs_finalize` with `canvas=true`：不需要 paid consent，但会写远端 project canvas；Phase 2 canvas_write consent 是 `--confirmed-project-id` 或 `--confirm-current-project`，并且 `--confirmed-canvas-write` 必须确认本次写回。
+- download-only 命令（`lovart download task|canvas`、MCP `lovart_task_download` / `lovart_canvas_download`）只应 gate 本地文件写入：`--confirmed-canonical-path`、`--confirm-overwrite`、`--confirm-outside-default-root`、`--confirmed-file-count`。它们不得被文档或 audit 误标为 paid submit。
+- 上述 Phase 2 local/canvas/project flags 在当前 release 若尚未出现在 CLI help 或 MCP schema 中，按 schema/reserved 处理；不要把 reserved 字段当作已经生效的保护。执行真实远端验证时，以当前二进制 help 中已实现且文档明确要求的 flags 为准。
+
 ## 0. 通用准备
 
 ### 0.1 选择隔离 runtime home
