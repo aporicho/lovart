@@ -85,11 +85,12 @@ func TestSubmitStructuredPaidConsentMissingConfirmPaidBlocksBeforeRemoteSubmit(t
 	client := newGenerationConsentClient(server)
 
 	_, err := Submit(context.Background(), client, "openai/gpt-image-2", map[string]any{"prompt": "test"}, Options{
-		Mode:       "auto",
-		AllowPaid:  true,
-		MaxCredits: 20,
-		ProjectID:  "project-1",
-		CID:        "cid-1",
+		Mode:               "auto",
+		AllowPaid:          true,
+		MaxCredits:         20,
+		ProjectID:          "project-1",
+		ConfirmedProjectID: "project-1",
+		CID:                "cid-1",
 	})
 	if err == nil {
 		t.Fatal("Submit succeeded without structured consent")
@@ -112,6 +113,7 @@ func TestSubmitStructuredPaidConsentValidAllowsExistingPath(t *testing.T) {
 
 	result, err := Submit(context.Background(), client, "openai/gpt-image-2", map[string]any{"prompt": "test", "n": 2}, validConsentOptions(func(opts *Options) {
 		opts.ProjectID = "project-1"
+		opts.ConfirmedProjectID = "project-1"
 		opts.CID = "cid-1"
 	}))
 	if err != nil {

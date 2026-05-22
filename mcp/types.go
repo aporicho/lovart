@@ -170,24 +170,32 @@ type CanvasDownloadArgs struct {
 
 // GenerateArgs configures single generation tools.
 type GenerateArgs struct {
-	Model                   string         `json:"model"`
-	Body                    map[string]any `json:"body"`
-	Mode                    string         `json:"mode"`
-	AllowPaid               bool           `json:"allow_paid"`
-	MaxCredits              float64        `json:"max_credits"`
-	ConfirmPaid             bool           `json:"confirm_paid"`
-	ConfirmedMaxCredits     float64        `json:"confirmed_max_credits"`
-	ConfirmedModel          string         `json:"confirmed_model"`
-	ConfirmedMode           string         `json:"confirmed_mode"`
-	ConfirmedOutputs        int            `json:"confirmed_outputs"`
-	ConfirmedRemoteRequests int            `json:"confirmed_remote_requests"`
-	ProjectID               string         `json:"project_id"`
-	Wait                    bool           `json:"wait"`
-	Download                bool           `json:"download"`
-	Canvas                  bool           `json:"canvas"`
-	DownloadDir             string         `json:"download_dir"`
-	DownloadDirTemplate     string         `json:"download_dir_template"`
-	DownloadFileTemplate    string         `json:"download_file_template"`
+	Model                     string         `json:"model"`
+	Body                      map[string]any `json:"body"`
+	Mode                      string         `json:"mode"`
+	AllowPaid                 bool           `json:"allow_paid"`
+	MaxCredits                float64        `json:"max_credits"`
+	ConfirmPaid               bool           `json:"confirm_paid"`
+	ConfirmedMaxCredits       float64        `json:"confirmed_max_credits"`
+	ConfirmedModel            string         `json:"confirmed_model"`
+	ConfirmedMode             string         `json:"confirmed_mode"`
+	ConfirmedOutputs          int            `json:"confirmed_outputs"`
+	ConfirmedRemoteRequests   int            `json:"confirmed_remote_requests"`
+	ProjectID                 string         `json:"project_id"`
+	Wait                      bool           `json:"wait"`
+	Download                  bool           `json:"download"`
+	Canvas                    bool           `json:"canvas"`
+	DownloadDir               string         `json:"download_dir"`
+	DownloadDirTemplate       string         `json:"download_dir_template"`
+	DownloadFileTemplate      string         `json:"download_file_template"`
+	Overwrite                 bool           `json:"overwrite"`
+	ConfirmedProjectID        string         `json:"confirmed_project_id"`
+	ConfirmedCanonicalPath    string         `json:"confirmed_canonical_path"`
+	ConfirmOverwrite          bool           `json:"confirm_overwrite"`
+	ConfirmOutsideDefaultRoot bool           `json:"confirm_outside_default_root"`
+	CanvasLayout              string         `json:"canvas_layout"`
+	ConfirmCanvasWrite        bool           `json:"confirm_canvas_write"`
+	ConfirmedCanvasLayout     string         `json:"confirmed_canvas_layout"`
 }
 
 // JobsRunArgs configures lovart_jobs_run.

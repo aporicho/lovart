@@ -49,19 +49,29 @@ func (e *StructuredConsentError) Error() string {
 
 // Options configures a generation request.
 type Options struct {
-	Mode                    string
-	AllowPaid               bool
-	MaxCredits              float64
-	ConfirmPaid             bool
-	ConfirmedMaxCredits     float64
-	ConfirmedModel          string
-	ConfirmedMode           string
-	ConfirmedOutputs        int
-	ConfirmedRemoteRequests int
-	ProjectID               string
-	CID                     string
-	Wait                    bool
-	Download                bool
+	Mode                      string
+	AllowPaid                 bool
+	MaxCredits                float64
+	ConfirmPaid               bool
+	ConfirmedMaxCredits       float64
+	ConfirmedModel            string
+	ConfirmedMode             string
+	ConfirmedOutputs          int
+	ConfirmedRemoteRequests   int
+	ProjectID                 string
+	ConfirmedProjectID        string
+	CID                       string
+	Wait                      bool
+	Download                  bool
+	DownloadDir               string
+	Overwrite                 bool
+	ConfirmedCanonicalPath    string
+	ConfirmOverwrite          bool
+	ConfirmOutsideDefaultRoot bool
+	Canvas                    bool
+	CanvasLayout              string
+	ConfirmCanvasWrite        bool
+	ConfirmedCanvasLayout     string
 }
 
 // WaitOptions configures task polling.
@@ -122,6 +132,9 @@ func Preflight(ctx context.Context, client *http.Client, model string, body map[
 
 // Submit sends a generation request to LGW and returns the task ID.
 func Submit(ctx context.Context, client *http.Client, model string, body map[string]any, opts Options) (*SubmitResult, error) {
+	if err := EnforceSubmitConsent(opts); err != nil {
+		return nil, err
+	}
 	if opts.AllowPaid {
 		quote, err := pricing.QuoteWithOptions(ctx, client, model, body, pricing.QuoteOptions{Mode: opts.Mode})
 		if err != nil {
