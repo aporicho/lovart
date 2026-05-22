@@ -775,13 +775,19 @@ func (executor ProductionExecutor) JobsFinalize(ctx context.Context, args JobsFi
 		return envelope.Err(errors.CodeInputError, "canvas_layout must be frame or plain", map[string]any{"canvas_layout": args.CanvasLayout})
 	}
 	opts := jobs.JobsOptions{
-		ProjectID:    args.ProjectID,
-		Download:     args.Download,
-		Canvas:       args.Canvas,
-		DownloadDir:  args.DownloadDir,
-		CanvasLayout: args.CanvasLayout,
-		Detail:       args.Detail,
-		AuditLogger:  executor.AuditLogger,
+		ProjectID:                 args.ProjectID,
+		Download:                  args.Download,
+		Canvas:                    args.Canvas,
+		DownloadDir:               args.DownloadDir,
+		CanvasLayout:              args.CanvasLayout,
+		Detail:                    args.Detail,
+		ConfirmedCanonicalPath:    args.ConfirmedCanonicalPath,
+		ConfirmOverwrite:          args.ConfirmOverwrite,
+		ConfirmOutsideDefaultRoot: args.ConfirmOutsideDefaultRoot,
+		ConfirmCanvasWrite:        args.ConfirmCanvasWrite,
+		ConfirmedCanvasLayout:     args.ConfirmedCanvasLayout,
+		ConfirmedProjectID:        args.ConfirmedProjectID,
+		AuditLogger:               executor.AuditLogger,
 	}
 	if opts.CanvasLayout == "" {
 		opts.CanvasLayout = jobs.CanvasLayoutFrame

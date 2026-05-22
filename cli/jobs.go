@@ -204,9 +204,15 @@ func newJobsFinalizeCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&opts.Download, "download", false, "download completed artifacts")
 	cmd.Flags().BoolVar(&opts.Canvas, "canvas", false, "write completed artifacts to the project canvas")
 	cmd.Flags().StringVar(&opts.DownloadDir, "download-dir", "", "directory for downloaded artifacts")
+	cmd.Flags().StringVar(&opts.ConfirmedCanonicalPath, "confirmed-canonical-path", "", "structured consent: confirmed canonical local download target path")
+	cmd.Flags().BoolVar(&opts.ConfirmOverwrite, "confirm-overwrite", false, "structured consent: confirm local writes may overwrite existing files")
+	cmd.Flags().BoolVar(&opts.ConfirmOutsideDefaultRoot, "confirm-outside-default-root", false, "structured consent: confirm local download target is outside the default run downloads root")
 	cmd.Flags().StringVar(&opts.ProjectID, "project-id", "", "target project ID")
 	cmd.Flags().StringVar(&opts.Detail, "detail", "summary", "output detail: summary, requests, full")
 	cmd.Flags().StringVar(&opts.CanvasLayout, "canvas-layout", jobs.CanvasLayoutFrame, "canvas layout: frame, plain")
+	cmd.Flags().BoolVar(&opts.ConfirmCanvasWrite, "confirm-canvas-write", false, "structured consent: confirm writing completed artifacts to canvas")
+	cmd.Flags().StringVar(&opts.ConfirmedCanvasLayout, "confirmed-canvas-layout", "", "structured consent: confirmed canvas layout")
+	cmd.Flags().StringVar(&opts.ConfirmedProjectID, "confirmed-project-id", "", "structured consent: confirmed target project ID")
 	return cmd
 }
 

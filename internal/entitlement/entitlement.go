@@ -3,10 +3,10 @@ package entitlement
 
 // FreeCheckResult reports whether a request qualifies for zero-credit generation.
 type FreeCheckResult struct {
-	Eligible   bool              `json:"eligible"`
-	Mode       string            `json:"mode"`
-	Credits    float64           `json:"credits"`
-	Warnings   []string          `json:"warnings,omitempty"`
+	Eligible bool     `json:"eligible"`
+	Mode     string   `json:"mode"`
+	Credits  float64  `json:"credits"`
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 // CheckFree verifies zero-credit eligibility for a request.

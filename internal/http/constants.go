@@ -2,7 +2,7 @@ package http
 
 // Base URLs for Lovart APIs.
 const (
-	WWWBase  = "https://www.lovart.ai"
+	WWWBase   = "https://www.lovart.ai"
 	LGWBase   = "https://lgw.lovart.ai"
 	CanvaBase = "https://www.lovart.ai/api/canva"
 )

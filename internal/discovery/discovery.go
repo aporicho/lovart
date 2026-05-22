@@ -18,9 +18,9 @@ type ModelInfo struct {
 
 // generatorListResponse mirrors the Lovart LGW API response envelope.
 type generatorListResponse struct {
-	Code    int `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
-	Data struct {
+	Data    struct {
 		Items []ModelInfo `json:"items"`
 	} `json:"data"`
 }

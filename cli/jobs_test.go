@@ -72,7 +72,7 @@ func TestJobsRunAndResumeDefaultSubmitPacing(t *testing.T) {
 
 func TestJobsFinalizeCommandSurface(t *testing.T) {
 	cmd := newJobsFinalizeCmd()
-	allowed := []string{"download", "canvas", "download-dir", "project-id", "detail", "canvas-layout"}
+	allowed := []string{"download", "canvas", "download-dir", "project-id", "detail", "canvas-layout", "confirmed-canonical-path", "confirm-overwrite", "confirm-outside-default-root", "confirm-canvas-write", "confirmed-canvas-layout", "confirmed-project-id"}
 	for _, name := range allowed {
 		if cmd.Flags().Lookup(name) == nil {
 			t.Fatalf("jobs finalize missing --%s flag", name)
