@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/aporicho/lovart/internal/paths"
 )
 
 var templateVarPattern = regexp.MustCompile(`\{\{\s*([A-Za-z0-9_.]+)(?::([0-9]+))?\s*\}\}`)
@@ -36,7 +38,10 @@ func resolvePath(root string, opts Options, artifact Artifact, ext string) (stri
 	}
 
 	filename := safeFilename(renderTemplate(fileTemplate, data), fmt.Sprintf("artifact-%02d.%s", artifact.Index, ext))
-	dir := filepath.Join(root, dirRel)
+	dir, err := paths.ResolveWithinBase(root, dirRel)
+	if err != nil {
+		return "", "", err
+	}
 	return dir, filename, nil
 }
 

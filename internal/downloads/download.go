@@ -20,7 +20,11 @@ func DownloadArtifacts(ctx context.Context, artifacts []Artifact, opts Options) 
 	if root == "" {
 		root = paths.DownloadsDir
 	}
-	root = filepath.Clean(root)
+	resolvedRoot, err := paths.EnsureWritablePath(paths.DownloadsDir, root)
+	if err != nil {
+		return nil, fmt.Errorf("downloads: resolve root: %w", err)
+	}
+	root = resolvedRoot
 	if err := os.MkdirAll(root, 0755); err != nil {
 		return nil, fmt.Errorf("downloads: create root: %w", err)
 	}
