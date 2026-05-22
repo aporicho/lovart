@@ -28,6 +28,10 @@ type fakeRemote struct {
 	submitErrors        []error
 	runningTasks        []map[string]any
 	listRunningCalls    int
+	trackActive         bool
+	completeOnFetch     bool
+	activeTasks         map[string]bool
+	maxActiveObserved   int
 }
 
 func (f *fakeRemote) Quote(ctx context.Context, model string, body map[string]any, mode string) (*pricing.QuoteResult, error) {
@@ -47,11 +51,24 @@ func (f *fakeRemote) Submit(ctx context.Context, model string, body map[string]a
 		f.submittedOutputs = map[string]int{}
 	}
 	f.submittedOutputs[taskID] = fakeOutputCount(body)
+	if f.trackActive {
+		if f.activeTasks == nil {
+			f.activeTasks = map[string]bool{}
+		}
+		f.activeTasks[taskID] = true
+		if len(f.activeTasks) > f.maxActiveObserved {
+			f.maxActiveObserved = len(f.activeTasks)
+		}
+	}
 	return &generation.SubmitResult{TaskID: taskID, Status: "submitted"}, nil
 }
 
 func (f *fakeRemote) FetchTask(ctx context.Context, taskID string) (map[string]any, error) {
 	status := f.taskStatus
+	if f.completeOnFetch {
+		delete(f.activeTasks, taskID)
+		status = "completed"
+	}
 	if status == "" {
 		status = "running"
 	}
@@ -82,6 +99,13 @@ func (f *fakeRemote) FetchTask(ctx context.Context, taskID string) (map[string]a
 
 func (f *fakeRemote) ListRunningTasks(ctx context.Context) (*generation.TaskPoolResult, error) {
 	f.listRunningCalls++
+	if f.trackActive {
+		tasks := make([]map[string]any, 0, len(f.activeTasks))
+		for taskID := range f.activeTasks {
+			tasks = append(tasks, map[string]any{"task_id": taskID})
+		}
+		return &generation.TaskPoolResult{ActiveCount: len(tasks), Tasks: tasks}, nil
+	}
 	if f.runningTasks != nil {
 		return &generation.TaskPoolResult{ActiveCount: len(f.runningTasks), Tasks: f.runningTasks}, nil
 	}

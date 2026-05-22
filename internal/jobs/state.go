@@ -121,6 +121,10 @@ type SubmissionSummary struct {
 	DeferredReason        string  `json:"deferred_reason,omitempty"`
 	DeferredRequestID     string  `json:"deferred_request_id,omitempty"`
 	RemainingPending      int     `json:"remaining_pending"`
+	ConcurrencyUnit       string  `json:"concurrency_unit,omitempty"`
+	LogicalJobCount       int     `json:"logical_job_count,omitempty"`
+	RemoteRequestCount    int     `json:"remote_request_count,omitempty"`
+	RequestedOutputCount  int     `json:"requested_output_count,omitempty"`
 	SubmitIntervalSeconds float64 `json:"submit_interval_seconds,omitempty"`
 	SubmitLimit           int     `json:"submit_limit,omitempty"`
 	MaxActiveTasks        int     `json:"max_active_tasks,omitempty"`

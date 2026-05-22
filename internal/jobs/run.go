@@ -5,7 +5,10 @@ import (
 	"fmt"
 )
 
-const taskSampleLimit = 20
+const (
+	maxLovartActiveRemoteTasks = 10
+	taskSampleLimit            = 20
+)
 
 // DryRunJobs validates, quotes, gates, and saves a non-submitted batch state.
 func DryRunJobs(ctx context.Context, remote RemoteClient, jobsFile string, opts JobsOptions) (*BatchResult, error) {
@@ -58,11 +61,12 @@ func RunPreparedJobs(ctx context.Context, remote RemoteClient, state *RunState, 
 	if err := SaveState(state); err != nil {
 		return nil, err
 	}
-	if err := submitPending(ctx, remote, state, opts); err != nil {
-		return nil, err
-	}
 	if opts.Wait {
-		if err := waitActive(ctx, remote, state, opts); err != nil {
+		if err := schedulePending(ctx, remote, state, opts); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := submitPending(ctx, remote, state, opts); err != nil {
 			return nil, err
 		}
 	}
@@ -105,11 +109,12 @@ func ResumeJobs(ctx context.Context, remote RemoteClient, runDir string, opts Jo
 	if err := SaveState(state); err != nil {
 		return nil, err
 	}
-	if err := submitPending(ctx, remote, state, opts); err != nil {
-		return nil, err
-	}
 	if opts.Wait {
-		if err := waitActive(ctx, remote, state, opts); err != nil {
+		if err := schedulePending(ctx, remote, state, opts); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := submitPending(ctx, remote, state, opts); err != nil {
 			return nil, err
 		}
 	}

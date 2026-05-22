@@ -15,14 +15,6 @@ func submitPending(ctx context.Context, remote RemoteClient, state *RunState, op
 		SubmitLimit:           normalizedSubmitLimit(opts),
 		MaxActiveTasks:        normalizedMaxActiveTasks(opts),
 	}
-	projectID := opts.ProjectID
-	if projectID == "" {
-		projectID = state.ProjectID
-	}
-	cid := opts.CID
-	if cid == "" {
-		cid = state.CID
-	}
 	for i := range state.Jobs {
 		for j := range state.Jobs[i].RemoteRequests {
 			request := &state.Jobs[i].RemoteRequests[j]
@@ -45,60 +37,11 @@ func submitPending(ctx context.Context, remote RemoteClient, state *RunState, op
 					return err
 				}
 			}
-			body := requestEffectiveBody(*request)
-			request.Attempts++
-			summary.AttemptedCount++
-			result, err := remote.Submit(ctx, request.Model, body, generation.Options{
-				Mode:      request.Mode,
-				ProjectID: projectID,
-				CID:       cid,
-			})
-			if err != nil {
-				if generation.IsConcurrencyLimitError(err) {
-					addRequestError(request, "submission_deferred", "batch request submission deferred because the active task limit was reached", map[string]any{"error": err.Error()})
-					RefreshStatuses(state)
-					setSubmissionDeferred(state, summary, "active_task_limit_reached", request.RequestID)
-					if saveErr := SaveState(state); saveErr != nil {
-						return saveErr
-					}
-					return nil
-				}
-				if isTransientSubmitError(err) {
-					addRequestError(request, "submission_deferred", "batch request submission deferred after transient submit error", map[string]any{"error": err.Error()})
-					RefreshStatuses(state)
-					setSubmissionDeferred(state, summary, "transient_submit_error", request.RequestID)
-					if saveErr := SaveState(state); saveErr != nil {
-						return saveErr
-					}
-					return nil
-				}
-				summary.FailedCount++
-				request.Status = StatusFailed
-				addRequestError(request, "task_failed", "batch request submission failed", map[string]any{"error": err.Error()})
-				RefreshStatuses(state)
-				state.LastSubmission = finalizeSubmissionSummary(state, summary)
-				if saveErr := SaveState(state); saveErr != nil {
-					return saveErr
-				}
-				continue
-			}
-			clearRequestErrorsByCode(request, "submission_deferred")
-			summary.SubmittedCount++
-			request.TaskID = result.TaskID
-			request.Status = StatusSubmitted
-			if len(result.NormalizedBody) > 0 {
-				request.NormalizedBody = result.NormalizedBody
-			}
-			request.Response = map[string]any{
-				"task_id":         result.TaskID,
-				"status":          result.Status,
-				"normalized_body": request.NormalizedBody,
-			}
-			request.UpdatedAt = time.Now().UTC()
-			RefreshStatuses(state)
-			state.LastSubmission = finalizeSubmissionSummary(state, summary)
-			if err := SaveState(state); err != nil {
+			if err := submitOne(ctx, remote, state, opts, summary, request); err != nil {
 				return err
+			}
+			if summary.Deferred {
+				return nil
 			}
 		}
 	}
@@ -107,6 +50,61 @@ func submitPending(ctx context.Context, remote RemoteClient, state *RunState, op
 		return err
 	}
 	return nil
+}
+
+func submitOne(ctx context.Context, remote RemoteClient, state *RunState, opts JobsOptions, summary *SubmissionSummary, request *RemoteRequest) error {
+	projectID := opts.ProjectID
+	if projectID == "" {
+		projectID = state.ProjectID
+	}
+	cid := opts.CID
+	if cid == "" {
+		cid = state.CID
+	}
+	body := requestEffectiveBody(*request)
+	request.Attempts++
+	summary.AttemptedCount++
+	result, err := remote.Submit(ctx, request.Model, body, generation.Options{
+		Mode:      request.Mode,
+		ProjectID: projectID,
+		CID:       cid,
+	})
+	if err != nil {
+		if generation.IsConcurrencyLimitError(err) {
+			addRequestError(request, "submission_deferred", "batch request submission deferred because the active task limit was reached", map[string]any{"error": err.Error()})
+			RefreshStatuses(state)
+			setSubmissionDeferred(state, summary, "active_task_limit_reached", request.RequestID)
+			return SaveState(state)
+		}
+		if isTransientSubmitError(err) {
+			addRequestError(request, "submission_deferred", "batch request submission deferred after transient submit error", map[string]any{"error": err.Error()})
+			RefreshStatuses(state)
+			setSubmissionDeferred(state, summary, "transient_submit_error", request.RequestID)
+			return SaveState(state)
+		}
+		summary.FailedCount++
+		request.Status = StatusFailed
+		addRequestError(request, "task_failed", "batch request submission failed", map[string]any{"error": err.Error()})
+		RefreshStatuses(state)
+		state.LastSubmission = finalizeSubmissionSummary(state, summary)
+		return SaveState(state)
+	}
+	clearRequestErrorsByCode(request, "submission_deferred")
+	summary.SubmittedCount++
+	request.TaskID = result.TaskID
+	request.Status = StatusSubmitted
+	if len(result.NormalizedBody) > 0 {
+		request.NormalizedBody = result.NormalizedBody
+	}
+	request.Response = map[string]any{
+		"task_id":         result.TaskID,
+		"status":          result.Status,
+		"normalized_body": request.NormalizedBody,
+	}
+	request.UpdatedAt = time.Now().UTC()
+	RefreshStatuses(state)
+	state.LastSubmission = finalizeSubmissionSummary(state, summary)
+	return SaveState(state)
 }
 
 func clearRequestErrorsByCode(request *RemoteRequest, code string) {
@@ -139,6 +137,9 @@ func normalizedSubmitLimit(opts JobsOptions) int {
 func normalizedMaxActiveTasks(opts JobsOptions) int {
 	if opts.MaxActiveTasks <= 0 {
 		return 0
+	}
+	if opts.MaxActiveTasks > maxLovartActiveRemoteTasks {
+		return maxLovartActiveRemoteTasks
 	}
 	return opts.MaxActiveTasks
 }

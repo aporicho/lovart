@@ -330,13 +330,26 @@ lovart jobs status ~/.lovart/runs/jobs-<hash> --refresh --detail full
 lovart jobs finalize ~/.lovart/runs/jobs-<hash> --download --canvas
 ```
 
-`jobs run` 和 `jobs resume` 会串行提交任务，默认每次提交之间等待 2 秒，避免触发
-远端 burst limit。它们还会在提交前检查账号当前运行任务数，默认达到 10 个 active
-tasks 时停止本轮提交，剩余请求保留为 pending/quoted；等任务完成后继续运行
-`lovart jobs resume ~/.lovart/runs/jobs-<hash>` 即可从未提交处恢复。遇到 429、
-rate limit、timeout 或并发上限错误时也会用同样方式 defer。需要主动限制单轮提交
-数量时使用 `--submit-limit N`，需要调整节奏时使用 `--submit-interval-seconds N`；
-需要调整 active task 上限时使用 `--max-active-tasks N`，`0` 表示关闭这个门禁。
+`jobs run` 和 `jobs resume` 的 batch 术语必须区分清楚：
+
+- logical job：JSONL 中的一行，是用户视角的一项工作。
+- remote request：由 logical job 按模型 output 能力展开后的原子提交请求。
+- remote task：远端返回 `task_id` 后真正占用 Lovart 并发槽的任务。
+
+`--max-active-tasks` 限制的是 remote task 数，不是 JSONL 行数，也不是图片 output
+数。默认上限是 10，和 Lovart 账号当前 active task 上限对齐；传入大于 10 的值会被
+钳制为 10。
+
+默认异步模式下，`jobs run` 和 `jobs resume` 会串行提交 remote request，默认每次提交
+之间等待 2 秒，避免触发远端 burst limit。提交前会检查账号当前 active remote task
+数，达到上限时停止本轮提交，剩余请求保留为 pending/quoted；等任务完成后继续运行
+`lovart jobs resume ~/.lovart/runs/jobs-<hash>` 即可从未提交处恢复。加 `--wait`、
+`--download` 或 `--canvas` 时会启用调度循环：最多保持 10 个 active remote tasks，
+轮询完成一批后自动填充下一批，直到所有 pending remote requests 完成、超时或遇到
+可恢复错误。遇到 429、rate limit、timeout 或并发上限错误时也会用同样方式 defer。
+需要主动限制单轮提交数量时使用 `--submit-limit N`，需要调整节奏时使用
+`--submit-interval-seconds N`；需要调整 active task 上限时使用
+`--max-active-tasks N`，`0` 表示关闭这个门禁。
 
 默认值：
 
