@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"sync/atomic"
 	"testing"
+
+	"github.com/aporicho/lovart/internal/paths"
 )
 
 func TestDownloadArtifactsRoutesByFieldsAndEmbedsPNGMetadata(t *testing.T) {
@@ -112,6 +114,61 @@ func TestDefaultDirectoryFallsBackToTitlePrefix(t *testing.T) {
 	want := filepath.Join(root, "001 凡人少年初入仙途", "artifact-01.png")
 	if result.Files[0].Path != want {
 		t.Fatalf("path = %q, want %q", result.Files[0].Path, want)
+	}
+}
+
+func TestDownloadArtifactsDefaultsToDownloadsDir(t *testing.T) {
+	t.Cleanup(paths.Reset)
+	root := t.TempDir()
+	t.Setenv("LOVART_HOME", root)
+	paths.Reset()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write(testPNG(t))
+	}))
+	defer server.Close()
+
+	result, err := DownloadArtifacts(context.Background(), []Artifact{{URL: server.URL + "/a.png", Index: 1}}, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.RootDir != paths.DownloadsDir {
+		t.Fatalf("RootDir = %q, want %q", result.RootDir, paths.DownloadsDir)
+	}
+	if len(result.Files) != 1 || result.Files[0].Error != "" {
+		t.Fatalf("download result = %#v", result.Files)
+	}
+	if _, err := os.Stat(result.Files[0].Path); err != nil {
+		t.Fatalf("downloaded file missing: %v", err)
+	}
+}
+
+func TestDownloadArtifactsResolvesRelativeRootInsideDownloadsDir(t *testing.T) {
+	t.Cleanup(paths.Reset)
+	root := t.TempDir()
+	t.Setenv("LOVART_HOME", root)
+	paths.Reset()
+
+	result, err := DownloadArtifacts(context.Background(), nil, Options{RootDir: "batch"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(paths.DownloadsDir, "batch")
+	if result.RootDir != want {
+		t.Fatalf("RootDir = %q, want %q", result.RootDir, want)
+	}
+}
+
+func TestDownloadArtifactsRejectsRelativeRootEscape(t *testing.T) {
+	t.Cleanup(paths.Reset)
+	root := t.TempDir()
+	t.Setenv("LOVART_HOME", root)
+	paths.Reset()
+
+	_, err := DownloadArtifacts(context.Background(), nil, Options{RootDir: filepath.Join("..", "escape")})
+	if err == nil {
+		t.Fatalf("expected relative root escape to fail")
 	}
 }
 
