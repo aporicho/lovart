@@ -1,11 +1,12 @@
 package jobs
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -107,7 +108,7 @@ func writeJSON(w http.ResponseWriter, value any) {
 
 func TestHTTPRemoteContractQuoteEntersStateGateAndNormalizedBody(t *testing.T) {
 	cs := newContractServer(t)
-	remote := newHTTPContractRemote(t, cs.server)
+	remote := newHTTPContractRemote(t, cs)
 	state := newContractRunState(t, 1)
 
 	result, err := DryRunPreparedJobs(context.Background(), remote, state, JobsOptions{AllowPaid: true, MaxTotalCredits: 20})
@@ -134,7 +135,7 @@ func TestHTTPRemoteContractQuoteEntersStateGateAndNormalizedBody(t *testing.T) {
 
 func TestHTTPRemoteContractSubmitReturnsTaskAndResumeDoesNotResubmit(t *testing.T) {
 	cs := newContractServer(t)
-	remote := newHTTPContractRemote(t, cs.server)
+	remote := newHTTPContractRemote(t, cs)
 	state := newContractRunState(t, 1)
 	opts := JobsOptions{AllowPaid: true, MaxTotalCredits: 20, ProjectID: "project-1", CID: "cid-1"}
 
@@ -164,7 +165,7 @@ func TestHTTPRemoteContractSubmitReturnsTaskAndResumeDoesNotResubmit(t *testing.
 
 func TestHTTPRemoteContractStatusRefreshCompletedArtifacts(t *testing.T) {
 	cs := newContractServer(t)
-	remote := newHTTPContractRemote(t, cs.server)
+	remote := newHTTPContractRemote(t, cs)
 	state := newSubmittedContractRunState(t, "task-done")
 
 	result, err := StatusJobs(context.Background(), remote, state.RunDir, JobsOptions{Refresh: true, Detail: "full"})
@@ -188,7 +189,7 @@ func TestHTTPRemoteContractStatusRefreshModerationFailure(t *testing.T) {
 	cs.status = "rejected"
 	cs.artifacts = nil
 	cs.failure = map[string]any{"moderation_result": map[string]any{"message": "blocked by content policy"}}
-	remote := newHTTPContractRemote(t, cs.server)
+	remote := newHTTPContractRemote(t, cs)
 	state := newSubmittedContractRunState(t, "task-rejected")
 
 	result, err := StatusJobs(context.Background(), remote, state.RunDir, JobsOptions{Refresh: true, Detail: "full"})
@@ -207,7 +208,7 @@ func TestHTTPRemoteContractStatusRefreshModerationFailure(t *testing.T) {
 func TestHTTPRemoteContractListRunningTasksDefersAtActiveCap(t *testing.T) {
 	cs := newContractServer(t)
 	cs.runningTasks = []any{"task-a", map[string]any{"task_id": "task-b"}}
-	remote := newHTTPContractRemote(t, cs.server)
+	remote := newHTTPContractRemote(t, cs)
 	state := newContractRunState(t, 1)
 	opts := JobsOptions{AllowPaid: true, MaxTotalCredits: 20, ProjectID: "project-1", CID: "cid-1", MaxActiveTasks: 2}
 
@@ -230,7 +231,7 @@ func TestHTTPRemoteContract429SubmitDefersAsTransient(t *testing.T) {
 	cs := newContractServer(t)
 	cs.submitStatus = http.StatusTooManyRequests
 	cs.submitBody = `{"code":429,"message":"too many requests"}`
-	remote := newHTTPContractRemote(t, cs.server)
+	remote := newHTTPContractRemote(t, cs)
 	state := newContractRunState(t, 1)
 	opts := JobsOptions{AllowPaid: true, MaxTotalCredits: 20, ProjectID: "project-1", CID: "cid-1"}
 
@@ -251,7 +252,7 @@ func TestHTTPRemoteContractConcurrencyLimitDefersAsActiveLimit(t *testing.T) {
 	cs := newContractServer(t)
 	cs.takeSlotCode = 4001
 	cs.takeSlotMsg = "too many running tasks: concurrency limit reached"
-	remote := newHTTPContractRemote(t, cs.server)
+	remote := newHTTPContractRemote(t, cs)
 	state := newContractRunState(t, 1)
 	opts := JobsOptions{AllowPaid: true, MaxTotalCredits: 20, ProjectID: "project-1", CID: "cid-1"}
 
@@ -264,35 +265,35 @@ func TestHTTPRemoteContractConcurrencyLimitDefersAsActiveLimit(t *testing.T) {
 	}
 }
 
-func newHTTPContractRemote(t *testing.T, server *httptest.Server) RemoteClient {
+func newHTTPContractRemote(t *testing.T, cs *contractServer) RemoteClient {
 	t.Helper()
 	client := lovarthttp.NewClient(&auth.Credentials{Cookie: "lovart=test", Token: "token", WebID: "web-123"}, nil)
-	rewriteHTTPClient(t, client, server)
+	client.SetHTTPClient(&http.Client{Transport: contractRoundTripper{handler: http.HandlerFunc(cs.handle)}, Timeout: 5 * time.Second})
 	return NewHTTPRemoteClient(client)
 }
 
-func rewriteHTTPClient(t *testing.T, client *lovarthttp.Client, server *httptest.Server) {
-	t.Helper()
-	target, err := url.Parse(server.URL)
+type contractRoundTripper struct {
+	handler http.Handler
+}
+
+func (t contractRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	body, err := cloneBody(req.Body)
 	if err != nil {
-		t.Fatalf("parse server URL: %v", err)
+		return nil, err
 	}
-	transport := &rewriteTransport{target: target, base: server.Client().Transport}
-	netClient := &http.Client{Transport: transport, Timeout: 5 * time.Second}
-	client.SetHTTPClient(netClient)
-}
-
-type rewriteTransport struct {
-	target *url.URL
-	base   http.RoundTripper
-}
-
-func (t *rewriteTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	clone := req.Clone(req.Context())
-	clone.URL.Scheme = t.target.Scheme
-	clone.URL.Host = t.target.Host
-	clone.Host = t.target.Host
-	return t.base.RoundTrip(clone)
+	clone.Body = io.NopCloser(bytes.NewReader(body))
+	recorder := httptest.NewRecorder()
+	t.handler.ServeHTTP(recorder, clone)
+	return recorder.Result(), nil
+}
+
+func cloneBody(body io.ReadCloser) ([]byte, error) {
+	if body == nil {
+		return nil, nil
+	}
+	defer body.Close()
+	return io.ReadAll(body)
 }
 
 func newContractRunState(t *testing.T, count int) *RunState {
