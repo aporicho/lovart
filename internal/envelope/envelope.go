@@ -5,6 +5,8 @@ package envelope
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/aporicho/lovart/internal/security/redaction"
 )
 
 // Envelope is the top-level JSON contract.
@@ -68,6 +70,31 @@ func boolPtr(value bool) *bool {
 // PrintJSON serializes e to compact JSON and writes it to stdout.
 // This is the stable machine contract — agents parse it.
 func PrintJSON(e Envelope) {
-	b, _ := json.Marshal(e)
+	b, _ := json.Marshal(redactedEnvelope(e))
 	fmt.Println(string(b))
+}
+
+func redactedEnvelope(e Envelope) Envelope {
+	redacted := e
+	redacted.Data = redaction.RedactValue(e.Data)
+	redacted.Warnings = redactStrings(e.Warnings)
+	if e.Error != nil {
+		redacted.Error = &ErrorBody{
+			Code:    e.Error.Code,
+			Message: redaction.RedactString(e.Error.Message),
+			Details: redaction.RedactMap(e.Error.Details),
+		}
+	}
+	return redacted
+}
+
+func redactStrings(values []string) []string {
+	if values == nil {
+		return nil
+	}
+	redacted := make([]string, len(values))
+	for i, value := range values {
+		redacted[i] = redaction.RedactString(value)
+	}
+	return redacted
 }
