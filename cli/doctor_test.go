@@ -24,7 +24,7 @@ func TestDoctorCommandDefaultsToLocalDiagnostics(t *testing.T) {
 		}
 	})
 
-	for _, want := range []string{`"ok":true`, `"execution_class":"local"`, `"network_required":false`, `"checks":`} {
+	for _, want := range []string{`"ok":true`, `"execution_class":"local"`, `"network_required":false`, `"checks":`, `"next_action":{"command":"lovart auth login"`} {
 		if !strings.Contains(output, want) {
 			t.Fatalf("doctor output missing %s: %s", want, output)
 		}

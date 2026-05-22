@@ -33,6 +33,7 @@ type Result struct {
 	Version            string   `json:"version"`
 	Root               string   `json:"root"`
 	Checks             Checks   `json:"checks"`
+	NextAction         *Action  `json:"next_action,omitempty"`
 	RecommendedActions []string `json:"recommended_actions,omitempty"`
 }
 
@@ -56,6 +57,7 @@ type Check struct {
 	Fields             []string       `json:"fields,omitempty"`
 	Error              string         `json:"error,omitempty"`
 	Details            map[string]any `json:"details,omitempty"`
+	NextAction         *Action        `json:"next_action,omitempty"`
 	RecommendedActions []string       `json:"recommended_actions,omitempty"`
 }
 
@@ -88,6 +90,7 @@ func Run() Result {
 		Version:            version.Version,
 		Root:               paths.Root,
 		Checks:             checks,
+		NextAction:         firstNextAction(all),
 		RecommendedActions: recommendedActions(all),
 	}
 }
@@ -117,6 +120,7 @@ func checkAuth(snapshot credsSnapshot) Check {
 			Status:             CheckMissing,
 			Source:             snapshot.source,
 			Error:              "credentials file not found",
+			NextAction:         authLoginAction("credentials are missing"),
 			RecommendedActions: []string{"run `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 		}
 	}
@@ -126,6 +130,7 @@ func checkAuth(snapshot credsSnapshot) Check {
 			Status:             StatusBroken,
 			Source:             snapshot.source,
 			Error:              snapshot.readErr.Error(),
+			NextAction:         credentialsPermissionsAction("credentials cannot be read"),
 			RecommendedActions: []string{"check credentials file permissions"},
 		}
 	}
@@ -135,6 +140,7 @@ func checkAuth(snapshot credsSnapshot) Check {
 			Status:             StatusBroken,
 			Source:             snapshot.source,
 			Error:              snapshot.parseErr.Error(),
+			NextAction:         authLoginAction("credentials are not valid JSON"),
 			RecommendedActions: []string{"run `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 		}
 	}
@@ -144,6 +150,7 @@ func checkAuth(snapshot credsSnapshot) Check {
 			Status:             CheckIncomplete,
 			Source:             snapshot.source,
 			Error:              snapshot.credsErr.Error(),
+			NextAction:         authLoginAction("credentials are incomplete"),
 			RecommendedActions: []string{"run `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 		}
 	}
@@ -168,6 +175,7 @@ func checkProject(snapshot credsSnapshot) Check {
 			Source:             snapshot.source,
 			Error:              "credentials file not found",
 			Details:            details,
+			NextAction:         authLoginAction("credentials are required before selecting a project"),
 			RecommendedActions: []string{"run `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 		}
 	}
@@ -182,6 +190,7 @@ func checkProject(snapshot credsSnapshot) Check {
 			Source:             snapshot.source,
 			Error:              err.Error(),
 			Details:            details,
+			NextAction:         authLoginAction("project context cannot be read from credentials"),
 			RecommendedActions: []string{"run `lovart auth login`", "run `lovart dev auth-login` for developer browser capture"},
 		}
 	}
@@ -192,6 +201,7 @@ func checkProject(snapshot credsSnapshot) Check {
 			Source:             snapshot.source,
 			Error:              snapshot.projectErr.Error(),
 			Details:            details,
+			NextAction:         projectSelectionAction("project context is missing"),
 			RecommendedActions: []string{"run `lovart project list`", "run `lovart project select <project_id>`"},
 		}
 	}
@@ -219,6 +229,7 @@ func checkProject(snapshot credsSnapshot) Check {
 		Fields:             fields,
 		Error:              "project context is incomplete for generation",
 		Details:            details,
+		NextAction:         projectSelectionAction("project context is incomplete for generation"),
 		RecommendedActions: actions,
 	}
 }
@@ -234,6 +245,7 @@ func checkSigner() Check {
 			Status:             status,
 			Path:               paths.SignerWASMFile,
 			Error:              err.Error(),
+			NextAction:         runtimeSyncAction("signer runtime is missing"),
 			RecommendedActions: []string{"run `lovart update sync --all`"},
 		}
 	}
@@ -249,6 +261,7 @@ func checkSigner() Check {
 			Status:             status,
 			Path:               paths.SignerWASMFile,
 			Error:              err.Error(),
+			NextAction:         runtimeSyncAction("signer runtime cannot be loaded"),
 			RecommendedActions: []string{"run `lovart update sync --all`"},
 		}
 	}
@@ -260,6 +273,7 @@ func checkSigner() Check {
 			Status:             StatusBroken,
 			Path:               paths.SignerWASMFile,
 			Error:              err.Error(),
+			NextAction:         runtimeSyncAction("signer health check failed"),
 			RecommendedActions: []string{"run `lovart update sync --all`"},
 		}
 	}
@@ -273,6 +287,7 @@ func checkSigner() Check {
 			Status:             StatusBroken,
 			Path:               paths.SignerWASMFile,
 			Error:              err.Error(),
+			NextAction:         runtimeSyncAction("signer test signature failed"),
 			RecommendedActions: []string{"run `lovart update sync --all`"},
 		}
 	}
@@ -282,6 +297,7 @@ func checkSigner() Check {
 			Status:             StatusBroken,
 			Path:               paths.SignerWASMFile,
 			Error:              "signer returned empty signature",
+			NextAction:         runtimeSyncAction("signer returned an empty test signature"),
 			RecommendedActions: []string{"run `lovart update sync --all`"},
 		}
 	}
@@ -307,6 +323,7 @@ func checkMetadata() Check {
 			Status:             status,
 			Path:               paths.MetadataManifestFile,
 			Error:              err.Error(),
+			NextAction:         runtimeSyncAction("metadata cache is missing"),
 			RecommendedActions: []string{"run `lovart update sync --all`"},
 		}
 	}
@@ -319,6 +336,7 @@ func checkMetadata() Check {
 			Path:               paths.MetadataManifestFile,
 			Error:              fmt.Sprintf("metadata cache files missing: %s", strings.Join(missing, ", ")),
 			Details:            map[string]any{"missing_files": missing},
+			NextAction:         runtimeSyncAction("metadata cache files are missing"),
 			RecommendedActions: []string{"run `lovart update sync --all`"},
 		}
 	}
@@ -345,6 +363,7 @@ func checkRegistry() Check {
 			OK:                 false,
 			Status:             status,
 			Error:              err.Error(),
+			NextAction:         runtimeSyncAction("model registry is missing or unreadable"),
 			RecommendedActions: []string{"run `lovart update sync --all`"},
 		}
 	}
@@ -354,6 +373,7 @@ func checkRegistry() Check {
 			OK:                 false,
 			Status:             StatusBroken,
 			Error:              "registry contains no models",
+			NextAction:         runtimeSyncAction("model registry contains no models"),
 			RecommendedActions: []string{"run `lovart update sync --all`"},
 		}
 	}

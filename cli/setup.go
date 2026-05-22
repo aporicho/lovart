@@ -55,6 +55,9 @@ func setupData(result selftest.Result) map[string]any {
 		"version": result.Version,
 		"checks":  result.Checks,
 	}
+	if result.NextAction != nil {
+		data["next_action"] = result.NextAction
+	}
 	if len(result.RecommendedActions) > 0 {
 		data["recommended_actions"] = result.RecommendedActions
 	}
