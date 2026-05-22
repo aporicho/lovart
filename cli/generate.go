@@ -16,18 +16,24 @@ import (
 
 func newGenerateCmd() *cobra.Command {
 	var (
-		bodyFile             string
-		prompt               string
-		mode                 string
-		projectID            string
-		allowPaid            bool
-		maxCredits           float64
-		wait                 bool
-		download             bool
-		canvas               bool
-		downloadDir          string
-		downloadDirTemplate  string
-		downloadFileTemplate string
+		bodyFile                string
+		prompt                  string
+		mode                    string
+		projectID               string
+		allowPaid               bool
+		maxCredits              float64
+		confirmPaid             bool
+		confirmedMaxCredits     float64
+		confirmedModel          string
+		confirmedMode           string
+		confirmedOutputs        int
+		confirmedRemoteRequests int
+		wait                    bool
+		download                bool
+		canvas                  bool
+		downloadDir             string
+		downloadDirTemplate     string
+		downloadFileTemplate    string
 	)
 
 	cmd := &cobra.Command{
@@ -88,13 +94,19 @@ func newGenerateCmd() *cobra.Command {
 			}
 
 			opts := generation.Options{
-				Mode:       mode,
-				AllowPaid:  allowPaid,
-				MaxCredits: maxCredits,
-				ProjectID:  projectID,
-				CID:        cid,
-				Wait:       wait,
-				Download:   download,
+				Mode:                    mode,
+				AllowPaid:               allowPaid,
+				MaxCredits:              maxCredits,
+				ConfirmPaid:             confirmPaid,
+				ConfirmedMaxCredits:     confirmedMaxCredits,
+				ConfirmedModel:          confirmedModel,
+				ConfirmedMode:           confirmedMode,
+				ConfirmedOutputs:        confirmedOutputs,
+				ConfirmedRemoteRequests: confirmedRemoteRequests,
+				ProjectID:               projectID,
+				CID:                     cid,
+				Wait:                    wait,
+				Download:                download,
 			}
 
 			// Preflight.
@@ -199,6 +211,12 @@ func newGenerateCmd() *cobra.Command {
 	cmd.Flags().StringVar(&projectID, "project-id", "", "target project ID (defaults to current project context)")
 	cmd.Flags().BoolVar(&allowPaid, "allow-paid", false, "allow paid generation")
 	cmd.Flags().Float64Var(&maxCredits, "max-credits", 0, "max credits to spend")
+	cmd.Flags().BoolVar(&confirmPaid, "confirm-paid", false, "structured consent: confirm this generation may spend credits")
+	cmd.Flags().Float64Var(&confirmedMaxCredits, "confirmed-max-credits", 0, "structured consent: confirmed max credits for this generation")
+	cmd.Flags().StringVar(&confirmedModel, "confirmed-model", "", "structured consent: confirmed normalized generator model")
+	cmd.Flags().StringVar(&confirmedMode, "confirmed-mode", "", "structured consent: confirmed normalized mode")
+	cmd.Flags().IntVar(&confirmedOutputs, "confirmed-outputs", 0, "structured consent: confirmed output count")
+	cmd.Flags().IntVar(&confirmedRemoteRequests, "confirmed-remote-requests", 0, "structured consent: confirmed number of remote submit requests")
 	cmd.Flags().BoolVar(&wait, "wait", false, "wait for task completion")
 	cmd.Flags().BoolVar(&download, "download", false, "download artifacts after completion")
 	cmd.Flags().BoolVar(&canvas, "canvas", false, "add completed artifacts to the project canvas")

@@ -52,27 +52,31 @@ type QuoteOptions struct {
 
 // JobsOptions configures batch run/resume.
 type JobsOptions struct {
-	OutDir                string
-	ProjectID             string
-	CID                   string
-	AllowPaid             bool
-	MaxTotalCredits       float64
-	SubmitIntervalSeconds float64
-	SubmitLimit           int
-	MaxActiveTasks        int
-	Wait                  bool
-	Download              bool
-	DownloadDir           string
-	DownloadDirTemplate   string
-	DownloadFileTemplate  string
-	Canvas                bool
-	CanvasLayout          string
-	TimeoutSeconds        float64
-	PollInterval          float64
-	Detail                string
-	RetryFailed           bool
-	Refresh               bool
-	AuditLogger           *audit.Logger
+	OutDir                   string
+	ProjectID                string
+	CID                      string
+	AllowPaid                bool
+	MaxTotalCredits          float64
+	ConfirmPaid              bool
+	ConfirmedMaxTotalCredits float64
+	ConfirmedRemoteRequests  int
+	ConfirmedMaxActiveTasks  int
+	SubmitIntervalSeconds    float64
+	SubmitLimit              int
+	MaxActiveTasks           int
+	Wait                     bool
+	Download                 bool
+	DownloadDir              string
+	DownloadDirTemplate      string
+	DownloadFileTemplate     string
+	Canvas                   bool
+	CanvasLayout             string
+	TimeoutSeconds           float64
+	PollInterval             float64
+	Detail                   string
+	RetryFailed              bool
+	Refresh                  bool
+	AuditLogger              *audit.Logger
 }
 
 // ParseJobsFile reads and validates a jobs.jsonl file.

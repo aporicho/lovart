@@ -7,7 +7,7 @@
 - 不在 issue、PR、终端录屏或日志中粘贴 cookie、token、CSRF、CID、完整凭据文件或浏览器 profile。
 - 不把 `~/.lovart/creds.json`、audit JSONL、jobs state 中的敏感字段提交到 git。
 - Level 0 和 Level 1 不允许提交生成任务；所有 smoke 命令都不要带 `--submit`。
-- Level 2 只允许极小预算：1-3 条 logical jobs、`--submit-limit 1`、`--max-active-tasks 1` 或 `2`、`--allow-paid`、极小 `--max-total-credits`。
+- Level 2 只允许极小预算：1-3 条 logical jobs、`--submit-limit 1`、`--max-active-tasks 1` 或 `2`、`--allow-paid`、极小 `--max-total-credits`，并必须带 structured paid consent flags（`--confirm-paid`、`--confirmed-max-total-credits`、`--confirmed-remote-requests`、`--confirmed-max-active-tasks`）。
 - canvas 写回是单独 opt-in；不要把 `--canvas` 混进首次 Level 2 验证。
 
 ## 0. 通用准备
@@ -238,14 +238,19 @@ lovart quote openai/gpt-image-2 --body-file "$VERIFY_ROOT/request.json" --mode r
 ### 2.1 单次提交 1 个 remote request
 
 把 `VERIFY_MAX_CREDITS` 设置为刚才 quote 结果以上、但仍然极小的值。例如 quote 为 2 credits 时可设为 3；不要使用大预算。
+Level 2 的 submit 命令必须同时带旧 paid gate 和 structured paid consent flags；确认值应等于本次命令的实际预算、预计新增 submit 数和 active task 上限。
 
 ```sh
 export VERIFY_MAX_CREDITS="3"
 lovart jobs run "$VERIFY_ROOT/jobs.jsonl" \
   --allow-paid \
   --max-total-credits "$VERIFY_MAX_CREDITS" \
+  --confirm-paid \
+  --confirmed-max-total-credits "$VERIFY_MAX_CREDITS" \
+  --confirmed-remote-requests 1 \
   --submit-limit 1 \
   --max-active-tasks 1 \
+  --confirmed-max-active-tasks 1 \
   --submit-interval-seconds 2
 ```
 
@@ -254,7 +259,7 @@ lovart jobs run "$VERIFY_ROOT/jobs.jsonl" \
 | 命令 | execution_class | network_required | remote_write | paid_possible | 预计副作用 | 停止条件 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `export VERIFY_MAX_CREDITS="3"` | local | false | false | false | 设置当前 shell 的预算变量 | 数值大于本次验证最小需要时停止并调低 |
-| `lovart jobs run ... --allow-paid ...` | submit | true | true | true | 读取 quote、创建最多 1 个 remote task、写本地 run state、写 audit JSONL；可能消耗 credits | 未带 `--allow-paid`/预算为空/`--submit-limit` 不是 1/`--max-active-tasks` 大于 2/project 非测试时停止 |
+| `lovart jobs run ... --allow-paid ... --confirm-paid ...` | submit | true | true | true | 读取 quote、创建最多 1 个 remote task、写本地 run state、写 audit JSONL；可能消耗 credits | 未带 `--allow-paid`、structured paid consent flags、预算为空、确认值和实际预算/submit 数/active cap 不一致、`--submit-limit` 不是 1、`--max-active-tasks` 大于 2、或 project 非测试时停止 |
 
 期望输出状态：
 
@@ -296,8 +301,12 @@ lovart jobs status "$VERIFY_RUN_DIR" --refresh --detail requests
 lovart jobs resume "$VERIFY_RUN_DIR" \
   --allow-paid \
   --max-total-credits "$VERIFY_MAX_CREDITS" \
+  --confirm-paid \
+  --confirmed-max-total-credits "$VERIFY_MAX_CREDITS" \
+  --confirmed-remote-requests 1 \
   --submit-limit 1 \
   --max-active-tasks 1 \
+  --confirmed-max-active-tasks 1 \
   --submit-interval-seconds 2
 lovart jobs status "$VERIFY_RUN_DIR" --refresh --detail full
 ```
@@ -307,7 +316,7 @@ lovart jobs status "$VERIFY_RUN_DIR" --refresh --detail full
 | 命令 | execution_class | network_required | remote_write | paid_possible | 预计副作用 | 停止条件 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `lovart jobs status ... --refresh` | preflight | true | false | false | 读取本地 state，并刷新已有 active remote task 状态 | task 属于非测试 project 或状态异常时停止 |
-| `lovart jobs resume ... --allow-paid ...` | submit | true | true | true | 继续提交 pending/quoted request；本 runbook 中最多再尝试 1 次 | 预算变大、`--submit-limit` 不是 1、或已无 pending 但仍准备重复提交时停止 |
+| `lovart jobs resume ... --allow-paid ... --confirm-paid ...` | submit | true | true | true | 继续提交 pending/quoted request；本 runbook 中最多再尝试 1 次 | 缺少 structured paid consent flags、预算变大、确认值和实际预算/本次新增 submit 数/active cap 不一致、`--submit-limit` 不是 1、或已无 pending 但仍准备重复提交时停止 |
 | `lovart jobs status ... --refresh --detail full` | preflight | true | false | false | 刷新状态并打印完整本地 state | 看到 unexpected failed/content policy/timeout 时按恢复策略处理 |
 
 期望状态转换：

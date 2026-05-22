@@ -83,12 +83,16 @@ func auditJobsSubmit(opts JobsOptions, state *RunState, request *RemoteRequest, 
 
 func jobsAuditMetadata(state *RunState, opts JobsOptions) map[string]any {
 	metadata := map[string]any{
-		"allow_paid":        opts.AllowPaid,
-		"max_total_credits": opts.MaxTotalCredits,
-		"wait":              opts.Wait,
-		"download":          opts.Download,
-		"canvas":            opts.Canvas,
-		"max_active_tasks":  opts.MaxActiveTasks,
+		"allow_paid":                  opts.AllowPaid,
+		"max_total_credits":           opts.MaxTotalCredits,
+		"confirm_paid":                opts.ConfirmPaid,
+		"confirmed_max_total_credits": opts.ConfirmedMaxTotalCredits,
+		"confirmed_remote_requests":   opts.ConfirmedRemoteRequests,
+		"confirmed_max_active_tasks":  opts.ConfirmedMaxActiveTasks,
+		"wait":                        opts.Wait,
+		"download":                    opts.Download,
+		"canvas":                      opts.Canvas,
+		"max_active_tasks":            opts.MaxActiveTasks,
 	}
 	if state == nil {
 		return metadata

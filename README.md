@@ -252,7 +252,13 @@ lovart quote openai/gpt-image-2 --body-file request.json --mode relax
 单次生成：
 
 ```sh
-lovart generate openai/gpt-image-2 --body-file request.json --allow-paid --max-credits 20
+lovart generate openai/gpt-image-2 --body-file request.json \
+  --allow-paid --max-credits 20 \
+  --confirm-paid --confirmed-max-credits 20 \
+  --confirmed-model openai/gpt-image-2 \
+  --confirmed-mode auto \
+  --confirmed-outputs 1 \
+  --confirmed-remote-requests 1
 lovart task wait <task_id>
 lovart download task <task_id>
 lovart task canvas <task_id>
@@ -307,9 +313,20 @@ object，会先根据 cached model schema 校验，再发起签名网络请求�
 
 ```sh
 lovart quote openai/gpt-image-2 --body-file request.json
-lovart generate openai/gpt-image-2 --body-file request.json --allow-paid --max-credits 20
+lovart generate openai/gpt-image-2 --body-file request.json \
+  --allow-paid --max-credits 20 \
+  --confirm-paid --confirmed-max-credits 20 \
+  --confirmed-model openai/gpt-image-2 \
+  --confirmed-mode auto \
+  --confirmed-outputs 1 \
+  --confirmed-remote-requests 1
 lovart task wait <task_id>
 ```
+
+`--allow-paid`/`--max-credits` 是执行门禁；`--confirm-paid` 和 `--confirmed-*`
+是 structured paid consent Phase 1 字段，用来记录操作者确认的模型、mode、输出数、
+远端 submit 数和 credit 上限。它们当前作为可选 flags 传入内部 options/audit，供迁移期
+审计和后续严格比对使用。
 
 ## Batch Jobs
 
@@ -323,8 +340,17 @@ batch jobs 使用 newline-delimited JSON。每一行描述一个用户级 job：
 运行、恢复和查看：
 
 ```sh
-lovart jobs run jobs.jsonl --allow-paid --max-total-credits 100
-lovart jobs resume ~/.lovart/runs/jobs-<hash> --retry-failed
+lovart jobs run jobs.jsonl \
+  --allow-paid --max-total-credits 100 \
+  --confirm-paid --confirmed-max-total-credits 100 \
+  --confirmed-remote-requests 2 \
+  --confirmed-max-active-tasks 10
+lovart jobs resume ~/.lovart/runs/jobs-<hash> \
+  --allow-paid --max-total-credits 100 \
+  --confirm-paid --confirmed-max-total-credits 100 \
+  --confirmed-remote-requests 1 \
+  --confirmed-max-active-tasks 10 \
+  --retry-failed
 lovart jobs status ~/.lovart/runs/jobs-<hash>
 lovart jobs status ~/.lovart/runs/jobs-<hash> --refresh --detail full
 lovart jobs finalize ~/.lovart/runs/jobs-<hash> --download --canvas
@@ -351,6 +377,13 @@ lovart jobs finalize ~/.lovart/runs/jobs-<hash> --download --canvas
 `--submit-interval-seconds N`；需要调整 active task 上限时使用
 `--max-active-tasks N`，`0` 表示关闭这个门禁。
 
+付费 batch submit 除了 `--allow-paid --max-total-credits N`，还可以带 structured paid
+consent flags：`--confirm-paid`、`--confirmed-max-total-credits N`、
+`--confirmed-remote-requests N`、`--confirmed-max-active-tasks N`。其中
+`confirmed-remote-requests` 表示本次命令可能新增提交的 remote request 数（resume 不重复
+计算已有 task id 的历史请求），`confirmed-max-active-tasks` 应等于本次使用的
+`--max-active-tasks`。
+
 默认值：
 
 - `mode` 默认是 `auto`。
@@ -371,7 +404,7 @@ lovart jobs finalize ~/.lovart/runs/jobs-<hash> --download --canvas
 下载的 PNG、JPEG、WebP 和 GIF 文件在格式支持时会写入 Lovart effect metadata。
 
 真实远端 batch scheduler 验证请使用分级 runbook：
-[docs/operations/remote-batch-verification.md](docs/operations/remote-batch-verification.md)。Level 0/1 不提交任务，Level 2 需要明确小预算和 `--allow-paid` opt-in。
+[docs/operations/remote-batch-verification.md](docs/operations/remote-batch-verification.md)。Level 0/1 不提交任务，Level 2 需要明确小预算、`--allow-paid` opt-in 和 structured paid consent flags。
 
 ## MCP Server
 
