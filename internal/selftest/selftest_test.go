@@ -32,6 +32,8 @@ func TestEmptyRuntimeNeedsSetup(t *testing.T) {
 	if result.Checks.Registry.Status != CheckMissing {
 		t.Fatalf("registry status = %q, want missing", result.Checks.Registry.Status)
 	}
+	assertNextAction(t, result.NextAction, "lovart auth login", "lovart_auth_login")
+	assertNextAction(t, result.Checks.Auth.NextAction, "lovart auth login", "lovart_auth_login")
 }
 
 func TestInvalidCredentialsMarkAuthBroken(t *testing.T) {
@@ -77,6 +79,7 @@ func TestCredentialsWithoutProjectContextNeedSetup(t *testing.T) {
 	if got := result.Checks.Project.Details["project_context_ready"]; got != false {
 		t.Fatalf("project_context_ready = %#v, want false", got)
 	}
+	assertNextAction(t, result.NextAction, "lovart project list", "lovart_project_list")
 
 	data, err := json.Marshal(result)
 	if err != nil {
@@ -84,6 +87,67 @@ func TestCredentialsWithoutProjectContextNeedSetup(t *testing.T) {
 	}
 	if strings.Contains(string(data), "secret-cookie") || strings.Contains(string(data), "secret-token") {
 		t.Fatalf("self-test leaked credential values: %s", data)
+	}
+}
+
+func TestRuntimeMissingNextActionPriority(t *testing.T) {
+	resetRuntimeRoot(t)
+	writeCreds(t, map[string]any{
+		"cookie":     "secret-cookie",
+		"token":      "secret-token",
+		"csrf":       "secret-csrf",
+		"project_id": "project-123",
+		"cid":        "cid-123",
+	})
+
+	result := Run()
+
+	assertNextAction(t, result.NextAction, "lovart update sync --all", "")
+	if result.Checks.Signer.NextAction == nil {
+		t.Fatal("signer next_action is nil")
+	}
+	if result.Checks.Metadata.NextAction == nil {
+		t.Fatal("metadata next_action is nil")
+	}
+}
+
+func TestMetadataMissingNextActionPriority(t *testing.T) {
+	resetRuntimeRoot(t)
+	writeCreds(t, map[string]any{
+		"cookie":     "secret-cookie",
+		"token":      "secret-token",
+		"csrf":       "secret-csrf",
+		"project_id": "project-123",
+		"cid":        "cid-123",
+	})
+	writeSigner(t)
+
+	result := Run()
+
+	assertNextAction(t, result.NextAction, "lovart update sync --all", "")
+	if result.Checks.Signer.NextAction != nil {
+		t.Fatalf("signer next_action = %#v, want nil", result.Checks.Signer.NextAction)
+	}
+	if result.Checks.Metadata.NextAction == nil {
+		t.Fatal("metadata next_action is nil")
+	}
+}
+
+func TestNextActionJSONShapeStable(t *testing.T) {
+	resetRuntimeRoot(t)
+
+	data, err := json.Marshal(Run())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, want := range []string{
+		`"next_action":{"command":"lovart auth login","mcp_tool":"lovart_auth_login","reason":"credentials are missing","blocking":true,"recoverable":true}`,
+		`"auth":{"ok":false,"status":"missing"`,
+	} {
+		if !strings.Contains(string(data), want) {
+			t.Fatalf("self-test JSON missing stable shape %s: %s", want, data)
+		}
 	}
 }
 
@@ -113,8 +177,33 @@ func TestReadyRuntimePasses(t *testing.T) {
 	if len(result.RecommendedActions) != 0 {
 		t.Fatalf("recommended_actions = %#v, want empty", result.RecommendedActions)
 	}
+	if result.NextAction != nil {
+		t.Fatalf("next_action = %#v, want nil", result.NextAction)
+	}
 	if got := result.Checks.Project.Details["project_context_ready"]; got != true {
 		t.Fatalf("project_context_ready = %#v, want true", got)
+	}
+}
+
+func assertNextAction(t *testing.T, action *Action, command, mcpTool string) {
+	t.Helper()
+	if action == nil {
+		t.Fatal("next_action is nil")
+	}
+	if action.Command != command {
+		t.Fatalf("next_action.command = %q, want %q", action.Command, command)
+	}
+	if action.MCPTool != mcpTool {
+		t.Fatalf("next_action.mcp_tool = %q, want %q", action.MCPTool, mcpTool)
+	}
+	if action.Reason == "" {
+		t.Fatal("next_action.reason is empty")
+	}
+	if !action.Blocking {
+		t.Fatal("next_action.blocking = false, want true")
+	}
+	if !action.Recoverable {
+		t.Fatal("next_action.recoverable = false, want true")
 	}
 }
 

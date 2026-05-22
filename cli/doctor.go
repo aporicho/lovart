@@ -22,6 +22,9 @@ func newDoctorCmd() *cobra.Command {
 				"root":    result.Root,
 				"checks":  result.Checks,
 			}
+			if result.NextAction != nil {
+				data["next_action"] = result.NextAction
+			}
 			if len(result.RecommendedActions) > 0 {
 				data["recommended_actions"] = result.RecommendedActions
 			}
