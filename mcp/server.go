@@ -112,8 +112,12 @@ func (s *Server) HandleMessage(ctx context.Context, message map[string]any) *rpc
 	}
 }
 
-// CallTool validates arguments, applies MCP defaults, and invokes executor.
+// CallTool validates policy, applies MCP defaults, and invokes executor.
 func (s *Server) CallTool(ctx context.Context, name string, args map[string]any) envelope.Envelope {
+	if decision, allowed := gateToolCallPolicy(name, args); !allowed {
+		return policyGateEnvelope(decision)
+	}
+
 	switch name {
 	case "lovart_auth_status":
 		return s.executor.AuthStatus(ctx)

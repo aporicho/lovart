@@ -61,6 +61,10 @@ func tool(name, description string, properties map[string]any, required ...strin
 		required = []string{}
 	}
 	capability := capabilityForTool(name)
+	if requiresPolicyConfirmation(capability) {
+		properties["confirm_policy"] = boolSchema("explicitly confirm MCP policy-gated side effects before execution")
+		properties["confirm"] = boolSchema("alias for confirm_policy")
+	}
 	return Tool{
 		Name:        name,
 		Description: description,

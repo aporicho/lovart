@@ -315,19 +315,20 @@ func TestUnknownToolReturnsEnvelopeError(t *testing.T) {
 func TestAuthLoginAndExtensionToolsParseArgs(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
-	env := server.CallTool(context.Background(), "lovart_auth_login", map[string]any{"timeout_seconds": 12.5})
+	env := server.CallTool(context.Background(), "lovart_auth_login", map[string]any{"timeout_seconds": 12.5, "confirm_policy": true})
 	if !env.OK || executor.authLogin.TimeoutSeconds != 12.5 {
 		t.Fatalf("auth login args not parsed: env=%#v args=%#v", env, executor.authLogin)
 	}
-	env = server.CallTool(context.Background(), "lovart_auth_login", map[string]any{"timeout_seconds": 0})
+	env = server.CallTool(context.Background(), "lovart_auth_login", map[string]any{"timeout_seconds": 0, "confirm_policy": true})
 	if env.OK || env.Error == nil || env.Error.Code != "input_error" {
 		t.Fatalf("expected invalid timeout error, got %#v", env)
 	}
 
 	env = server.CallTool(context.Background(), "lovart_extension_install", map[string]any{
-		"source_dir":    "/source",
-		"extension_dir": "/target",
-		"dry_run":       true,
+		"source_dir":     "/source",
+		"extension_dir":  "/target",
+		"dry_run":        true,
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("extension install failed: %#v", env)
@@ -346,7 +347,8 @@ func TestProjectCreateDefaultsToSelect(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_project_create", map[string]any{
-		"name": "Campaign draft",
+		"name":           "Campaign draft",
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -356,7 +358,8 @@ func TestProjectCreateDefaultsToSelect(t *testing.T) {
 	}
 
 	env = server.CallTool(context.Background(), "lovart_project_create", map[string]any{
-		"select": false,
+		"select":         false,
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -369,12 +372,12 @@ func TestProjectCreateDefaultsToSelect(t *testing.T) {
 func TestProjectSelectRequiresProjectID(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
-	env := server.CallTool(context.Background(), "lovart_project_select", map[string]any{})
+	env := server.CallTool(context.Background(), "lovart_project_select", map[string]any{"confirm_policy": true})
 	if env.OK {
 		t.Fatalf("expected missing project_id error")
 	}
 
-	env = server.CallTool(context.Background(), "lovart_project_select", map[string]any{"project_id": "proj_123"})
+	env = server.CallTool(context.Background(), "lovart_project_select", map[string]any{"project_id": "proj_123", "confirm_policy": true})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
@@ -395,7 +398,7 @@ func TestProjectShowOpenRepairAcceptOptionalProjectID(t *testing.T) {
 		t.Fatalf("project show args = %#v", executor.projectShow)
 	}
 
-	env = server.CallTool(context.Background(), "lovart_project_open", map[string]any{"project_id": "proj_123"})
+	env = server.CallTool(context.Background(), "lovart_project_open", map[string]any{"project_id": "proj_123", "confirm_policy": true})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
@@ -412,12 +415,12 @@ func TestProjectShowOpenRepairAcceptOptionalProjectID(t *testing.T) {
 func TestProjectRenameRequiresInputs(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
-	env := server.CallTool(context.Background(), "lovart_project_rename", map[string]any{"project_id": "proj_123"})
+	env := server.CallTool(context.Background(), "lovart_project_rename", map[string]any{"project_id": "proj_123", "confirm_policy": true})
 	if env.OK {
 		t.Fatalf("expected missing new_name error")
 	}
 
-	env = server.CallTool(context.Background(), "lovart_project_rename", map[string]any{"project_id": "proj_123", "new_name": "New name"})
+	env = server.CallTool(context.Background(), "lovart_project_rename", map[string]any{"project_id": "proj_123", "new_name": "New name", "confirm_policy": true})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
 	}
@@ -429,7 +432,7 @@ func TestProjectRenameRequiresInputs(t *testing.T) {
 func TestProjectDeleteRequiresMatchingConfirmProjectID(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
-	env := server.CallTool(context.Background(), "lovart_project_delete", map[string]any{"project_id": "proj_123"})
+	env := server.CallTool(context.Background(), "lovart_project_delete", map[string]any{"project_id": "proj_123", "confirm_policy": true})
 	if env.OK {
 		t.Fatalf("expected missing confirm_project_id error")
 	}
@@ -463,7 +466,8 @@ func TestDownloadToolsParseArgs(t *testing.T) {
 	}
 
 	env = server.CallTool(context.Background(), "lovart_task_cancel", map[string]any{
-		"task_ids": []any{"task-a", "task-b"},
+		"task_ids":       []any{"task-a", "task-b"},
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -497,9 +501,10 @@ func TestDownloadToolsParseArgs(t *testing.T) {
 	}
 
 	env = server.CallTool(context.Background(), "lovart_task_canvas", map[string]any{
-		"task_id":    "task-123",
-		"project_id": "project-123",
-		"detail":     "full",
+		"task_id":        "task-123",
+		"project_id":     "project-123",
+		"detail":         "full",
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -516,6 +521,7 @@ func TestDownloadToolsParseArgs(t *testing.T) {
 		"download_file_template": "img-{{artifact.index:02}}.{{ext}}",
 		"overwrite":              true,
 		"detail":                 "full",
+		"confirm_policy":         true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -554,6 +560,7 @@ func TestDownloadToolsParseArgs(t *testing.T) {
 		"artifact_index": 1.0,
 		"original":       true,
 		"overwrite":      true,
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -566,9 +573,9 @@ func TestDownloadToolsParseArgs(t *testing.T) {
 func TestCanvasDownloadRequiresExactlyOneSelector(t *testing.T) {
 	server := NewServerWithExecutor(&fakeExecutor{})
 	for _, args := range []map[string]any{
-		{},
-		{"artifact_id": "shape:one", "all": true},
-		{"artifact_index": -1.0},
+		{"confirm_policy": true},
+		{"artifact_id": "shape:one", "all": true, "confirm_policy": true},
+		{"artifact_index": -1.0, "confirm_policy": true},
 	} {
 		env := server.CallTool(context.Background(), "lovart_canvas_download", args)
 		if env.OK || env.Error == nil || env.Error.Code != "input_error" {
@@ -687,8 +694,9 @@ func TestGenerateDefaultsToAsyncPostprocess(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_generate", map[string]any{
-		"model": "openai/gpt-image-2",
-		"body":  map[string]any{"prompt": "test"},
+		"model":          "openai/gpt-image-2",
+		"body":           map[string]any{"prompt": "test"},
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -700,9 +708,10 @@ func TestGenerateDefaultsToAsyncPostprocess(t *testing.T) {
 	executor = &fakeExecutor{}
 	server = NewServerWithExecutor(executor)
 	env = server.CallTool(context.Background(), "lovart_generate", map[string]any{
-		"model": "openai/gpt-image-2",
-		"body":  map[string]any{"prompt": "test"},
-		"wait":  false,
+		"model":          "openai/gpt-image-2",
+		"body":           map[string]any{"prompt": "test"},
+		"wait":           false,
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -714,9 +723,10 @@ func TestGenerateDefaultsToAsyncPostprocess(t *testing.T) {
 	executor = &fakeExecutor{}
 	server = NewServerWithExecutor(executor)
 	env = server.CallTool(context.Background(), "lovart_generate", map[string]any{
-		"model":    "openai/gpt-image-2",
-		"body":     map[string]any{"prompt": "test"},
-		"download": true,
+		"model":          "openai/gpt-image-2",
+		"body":           map[string]any{"prompt": "test"},
+		"download":       true,
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -738,6 +748,7 @@ func TestJobsRunArgsExposeUserSurface(t *testing.T) {
 		"submit_interval_seconds": 1.5,
 		"submit_limit":            7.0,
 		"max_active_tasks":        9.0,
+		"confirm_policy":          true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -751,7 +762,8 @@ func TestJobsStatusDefaultsToSummary(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_jobs_status", map[string]any{
-		"run_dir": "runs/x",
+		"run_dir":        "runs/x",
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -783,6 +795,7 @@ func TestJobsResumeArgsExposeUserSurface(t *testing.T) {
 		"submit_interval_seconds": 3.0,
 		"submit_limit":            5.0,
 		"max_active_tasks":        8.0,
+		"confirm_policy":          true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -796,13 +809,14 @@ func TestJobsFinalizeArgsExposeUserSurface(t *testing.T) {
 	executor := &fakeExecutor{}
 	server := NewServerWithExecutor(executor)
 	env := server.CallTool(context.Background(), "lovart_jobs_finalize", map[string]any{
-		"run_dir":       "runs/x",
-		"download":      true,
-		"canvas":        true,
-		"project_id":    "proj_123",
-		"download_dir":  "runs/x/images",
-		"detail":        "requests",
-		"canvas_layout": "plain",
+		"run_dir":        "runs/x",
+		"download":       true,
+		"canvas":         true,
+		"project_id":     "proj_123",
+		"download_dir":   "runs/x/images",
+		"detail":         "requests",
+		"canvas_layout":  "plain",
+		"confirm_policy": true,
 	})
 	if !env.OK {
 		t.Fatalf("unexpected envelope: %#v", env)
@@ -811,7 +825,7 @@ func TestJobsFinalizeArgsExposeUserSurface(t *testing.T) {
 		t.Fatalf("jobs finalize args = %#v", executor.jobsFinalize)
 	}
 
-	env = server.CallTool(context.Background(), "lovart_jobs_finalize", map[string]any{"run_dir": "runs/x"})
+	env = server.CallTool(context.Background(), "lovart_jobs_finalize", map[string]any{"run_dir": "runs/x", "confirm_policy": true})
 	if env.OK || env.Error == nil || env.Error.Code != "input_error" {
 		t.Fatalf("expected finalize action input error, got %#v", env)
 	}
