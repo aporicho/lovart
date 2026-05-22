@@ -154,6 +154,9 @@ func FinalizeJobs(ctx context.Context, remote RemoteClient, runDir string, opts 
 		state.CID = opts.CID
 		changed = true
 	}
+	if err := enforceFinalizeConsent(state, opts); err != nil {
+		return nil, err
+	}
 	if changed {
 		if err := SaveState(state); err != nil {
 			return nil, err

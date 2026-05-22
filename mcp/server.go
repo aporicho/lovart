@@ -489,13 +489,19 @@ func parseJobsFinalizeArgs(args map[string]any) (JobsFinalizeArgs, error) {
 		return JobsFinalizeArgs{}, err
 	}
 	parsed := JobsFinalizeArgs{
-		RunDir:       runDir,
-		Download:     boolArg(args, "download", false),
-		Canvas:       boolArg(args, "canvas", false),
-		ProjectID:    stringArg(args, "project_id", ""),
-		DownloadDir:  stringArg(args, "download_dir", ""),
-		Detail:       detail,
-		CanvasLayout: stringArg(args, "canvas_layout", jobs.CanvasLayoutFrame),
+		RunDir:                    runDir,
+		Download:                  boolArg(args, "download", false),
+		Canvas:                    boolArg(args, "canvas", false),
+		ProjectID:                 stringArg(args, "project_id", ""),
+		DownloadDir:               stringArg(args, "download_dir", ""),
+		Detail:                    detail,
+		CanvasLayout:              stringArg(args, "canvas_layout", jobs.CanvasLayoutFrame),
+		ConfirmedCanonicalPath:    stringArg(args, "confirmed_canonical_path", ""),
+		ConfirmOverwrite:          boolArg(args, "confirm_overwrite", false),
+		ConfirmOutsideDefaultRoot: boolArg(args, "confirm_outside_default_root", false),
+		ConfirmCanvasWrite:        boolArg(args, "confirm_canvas_write", false),
+		ConfirmedCanvasLayout:     stringArg(args, "confirmed_canvas_layout", ""),
+		ConfirmedProjectID:        stringArg(args, "confirmed_project_id", ""),
 	}
 	if !parsed.Download && !parsed.Canvas {
 		return JobsFinalizeArgs{}, fmt.Errorf("choose at least one finalization action: download or canvas")

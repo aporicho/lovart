@@ -64,26 +64,32 @@ type JobsOptions struct {
 	// Per-request structured consent fields are retained for future jobs
 	// semantics. Jobs Phase 1 validates only batch-level consent fields:
 	// confirm_paid, max_total_credits, remote_requests, and max_active_tasks.
-	ConfirmedModel        string
-	ConfirmedMode         string
-	ConfirmedOutputs      int
-	ConfirmedMaxCredits   float64
-	SubmitIntervalSeconds float64
-	SubmitLimit           int
-	MaxActiveTasks        int
-	Wait                  bool
-	Download              bool
-	DownloadDir           string
-	DownloadDirTemplate   string
-	DownloadFileTemplate  string
-	Canvas                bool
-	CanvasLayout          string
-	TimeoutSeconds        float64
-	PollInterval          float64
-	Detail                string
-	RetryFailed           bool
-	Refresh               bool
-	AuditLogger           *audit.Logger
+	ConfirmedModel            string
+	ConfirmedMode             string
+	ConfirmedOutputs          int
+	ConfirmedMaxCredits       float64
+	SubmitIntervalSeconds     float64
+	SubmitLimit               int
+	MaxActiveTasks            int
+	Wait                      bool
+	Download                  bool
+	DownloadDir               string
+	DownloadDirTemplate       string
+	DownloadFileTemplate      string
+	ConfirmedCanonicalPath    string
+	ConfirmOverwrite          bool
+	ConfirmOutsideDefaultRoot bool
+	Canvas                    bool
+	CanvasLayout              string
+	ConfirmCanvasWrite        bool
+	ConfirmedCanvasLayout     string
+	ConfirmedProjectID        string
+	TimeoutSeconds            float64
+	PollInterval              float64
+	Detail                    string
+	RetryFailed               bool
+	Refresh                   bool
+	AuditLogger               *audit.Logger
 }
 
 // ParseJobsFile reads and validates a jobs.jsonl file.

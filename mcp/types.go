@@ -239,13 +239,19 @@ type JobsResumeArgs struct {
 
 // JobsFinalizeArgs configures lovart_jobs_finalize.
 type JobsFinalizeArgs struct {
-	RunDir       string `json:"run_dir"`
-	Download     bool   `json:"download"`
-	Canvas       bool   `json:"canvas"`
-	ProjectID    string `json:"project_id"`
-	DownloadDir  string `json:"download_dir"`
-	Detail       string `json:"detail"`
-	CanvasLayout string `json:"canvas_layout"`
+	RunDir                    string `json:"run_dir"`
+	Download                  bool   `json:"download"`
+	Canvas                    bool   `json:"canvas"`
+	ProjectID                 string `json:"project_id"`
+	DownloadDir               string `json:"download_dir"`
+	Detail                    string `json:"detail"`
+	CanvasLayout              string `json:"canvas_layout"`
+	ConfirmedCanonicalPath    string `json:"confirmed_canonical_path"`
+	ConfirmOverwrite          bool   `json:"confirm_overwrite"`
+	ConfirmOutsideDefaultRoot bool   `json:"confirm_outside_default_root"`
+	ConfirmCanvasWrite        bool   `json:"confirm_canvas_write"`
+	ConfirmedCanvasLayout     string `json:"confirmed_canvas_layout"`
+	ConfirmedProjectID        string `json:"confirmed_project_id"`
 }
 
 // Executor runs validated MCP tool calls.

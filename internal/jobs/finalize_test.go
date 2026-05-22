@@ -49,12 +49,19 @@ func TestFinalizeJobsDownloadsAndWritesCanvasWithoutResubmit(t *testing.T) {
 		t.Fatalf("run summary=%#v submits=%d", result.Summary, remote.submits)
 	}
 
-	finalized, err := FinalizeJobs(context.Background(), remote, state.RunDir, JobsOptions{
-		Download:     true,
-		Canvas:       true,
-		DownloadDir:  filepath.Join(dir, "downloads"),
-		CanvasLayout: CanvasLayoutFrame,
-	})
+	downloadDir := filepath.Join(dir, "downloads")
+	finalizeOpts := JobsOptions{
+		Download:                  true,
+		Canvas:                    true,
+		DownloadDir:               downloadDir,
+		ConfirmedCanonicalPath:    downloadDir,
+		ConfirmOutsideDefaultRoot: true,
+		CanvasLayout:              CanvasLayoutFrame,
+		ConfirmCanvasWrite:        true,
+		ConfirmedCanvasLayout:     CanvasLayoutFrame,
+		ConfirmedProjectID:        "project",
+	}
+	finalized, err := FinalizeJobs(context.Background(), remote, state.RunDir, finalizeOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,12 +75,7 @@ func TestFinalizeJobsDownloadsAndWritesCanvasWithoutResubmit(t *testing.T) {
 		t.Fatalf("downloads summary=%#v downloads=%#v", finalized.Summary, finalized.Downloads)
 	}
 
-	finalizedAgain, err := FinalizeJobs(context.Background(), remote, state.RunDir, JobsOptions{
-		Download:     true,
-		Canvas:       true,
-		DownloadDir:  filepath.Join(dir, "downloads"),
-		CanvasLayout: CanvasLayoutFrame,
-	})
+	finalizedAgain, err := FinalizeJobs(context.Background(), remote, state.RunDir, finalizeOpts)
 	if err != nil {
 		t.Fatal(err)
 	}
