@@ -73,6 +73,7 @@ func submitOne(ctx context.Context, remote RemoteClient, state *RunState, opts J
 		ConfirmedOutputs:        1,
 		ConfirmedRemoteRequests: opts.ConfirmedRemoteRequests,
 		ProjectID:               projectID,
+		ConfirmedProjectID:      opts.ConfirmedProjectID,
 		CID:                     cid,
 	})
 	if err != nil {

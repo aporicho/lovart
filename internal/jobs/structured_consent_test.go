@@ -107,6 +107,9 @@ func setValidPaidConsent(opts *JobsOptions, credits float64, remoteRequests int,
 	opts.ConfirmedMaxTotalCredits = credits
 	opts.ConfirmedRemoteRequests = remoteRequests
 	opts.ConfirmedMaxActiveTasks = maxActiveTasks
+	if opts.ProjectID != "" {
+		opts.ConfirmedProjectID = opts.ProjectID
+	}
 }
 
 func assertGateError(t *testing.T, err error, code string) {
