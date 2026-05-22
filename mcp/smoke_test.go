@@ -212,6 +212,9 @@ func TestSmokeSubmitCallsGenerateWithPostprocessDisabled(t *testing.T) {
 	if generateArgs["wait"] != false || generateArgs["download"] != false || generateArgs["canvas"] != false {
 		t.Fatalf("generate postprocess should be disabled: %#v", generateArgs)
 	}
+	if generateArgs["confirm_policy"] != true {
+		t.Fatalf("smoke submit should explicitly confirm MCP policy gate: %#v", generateArgs)
+	}
 	if env.RemoteWrite == nil || !*env.RemoteWrite || env.Submitted == nil || !*env.Submitted {
 		t.Fatalf("submit metadata not set: %#v", env)
 	}

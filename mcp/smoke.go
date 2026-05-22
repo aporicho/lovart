@@ -134,14 +134,15 @@ func Smoke(ctx context.Context, opts SmokeOptions) envelope.Envelope {
 
 	if opts.Submit {
 		args := map[string]any{
-			"model":       opts.Model,
-			"body":        opts.Body,
-			"mode":        opts.Mode,
-			"allow_paid":  opts.AllowPaid,
-			"max_credits": opts.MaxCredits,
-			"wait":        false,
-			"download":    false,
-			"canvas":      false,
+			"model":          opts.Model,
+			"body":           opts.Body,
+			"mode":           opts.Mode,
+			"allow_paid":     opts.AllowPaid,
+			"max_credits":    opts.MaxCredits,
+			"confirm_policy": true,
+			"wait":           false,
+			"download":       false,
+			"canvas":         false,
 		}
 		if !projectReady {
 			appendSkippedStep(&report, "generate", "lovart_generate", "project context is not ready", []string{"run `lovart project list`", "run `lovart project select <project_id>`"})
