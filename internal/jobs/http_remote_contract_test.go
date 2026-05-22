@@ -117,7 +117,7 @@ func TestHTTPRemoteContractQuoteEntersStateGateAndNormalizedBody(t *testing.T) {
 	}
 	request := state.Jobs[0].RemoteRequests[0]
 	if got := request.Status; got != StatusQuoted {
-		t.Fatalf("request status = %q, want %q", got, StatusQuoted)
+		t.Fatalf("request status = %q, want %q; errors=%#v quote_calls=%d", got, StatusQuoted, request.Errors, cs.quoteCalls.Load())
 	}
 	if request.Quote == nil || request.Quote.Price != 12.5 || request.Quote.Balance != 40 {
 		t.Fatalf("quote not recorded in state: %#v", request.Quote)
@@ -141,7 +141,7 @@ func TestHTTPRemoteContractSubmitReturnsTaskAndResumeDoesNotResubmit(t *testing.
 
 	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
 	if err != nil {
-		t.Fatalf("RunPreparedJobs: %v", err)
+		t.Fatalf("RunPreparedJobs: %v; request_errors=%#v quote_calls=%d", err, state.Jobs[0].RemoteRequests[0].Errors, cs.quoteCalls.Load())
 	}
 	request := state.Jobs[0].RemoteRequests[0]
 	if request.TaskID != "task-123" || request.Status != StatusSubmitted {
@@ -214,7 +214,7 @@ func TestHTTPRemoteContractListRunningTasksDefersAtActiveCap(t *testing.T) {
 
 	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
 	if err != nil {
-		t.Fatalf("RunPreparedJobs: %v", err)
+		t.Fatalf("RunPreparedJobs: %v; request_errors=%#v quote_calls=%d", err, state.Jobs[0].RemoteRequests[0].Errors, cs.quoteCalls.Load())
 	}
 	if result.Submission == nil || !result.Submission.Deferred || result.Submission.DeferredReason != "active_task_limit_reached" {
 		t.Fatalf("submission not deferred at active cap: %#v", result.Submission)
@@ -237,7 +237,7 @@ func TestHTTPRemoteContract429SubmitDefersAsTransient(t *testing.T) {
 
 	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
 	if err != nil {
-		t.Fatalf("RunPreparedJobs: %v", err)
+		t.Fatalf("RunPreparedJobs: %v; request_errors=%#v quote_calls=%d", err, state.Jobs[0].RemoteRequests[0].Errors, cs.quoteCalls.Load())
 	}
 	request := state.Jobs[0].RemoteRequests[0]
 	if request.Status == StatusFailed {
@@ -258,7 +258,7 @@ func TestHTTPRemoteContractConcurrencyLimitDefersAsActiveLimit(t *testing.T) {
 
 	result, err := RunPreparedJobs(context.Background(), remote, state, opts)
 	if err != nil {
-		t.Fatalf("RunPreparedJobs: %v", err)
+		t.Fatalf("RunPreparedJobs: %v; request_errors=%#v quote_calls=%d", err, state.Jobs[0].RemoteRequests[0].Errors, cs.quoteCalls.Load())
 	}
 	if result.Submission == nil || !result.Submission.Deferred || result.Submission.DeferredReason != "active_task_limit_reached" {
 		t.Fatalf("concurrency limit not classified as active limit defer: %#v", result.Submission)
