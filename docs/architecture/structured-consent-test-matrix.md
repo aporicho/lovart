@@ -18,6 +18,23 @@ Phase 1 covers `lovart_generate`, `lovart_jobs_run`, and `lovart_jobs_resume`. E
 | `confirm_current_project` | remote_write | `lovart_generate`, `lovart_jobs_run` | tool input schema property named `confirm_current_project` | `--confirm-current-project` or equivalent command docs/help | implicit current project requires current-project acknowledgment tied to resolved id |
 | `confirmed_canonical_path` | local_write | `lovart_generate` downloads, `lovart_jobs_run`, `lovart_jobs_resume` | tool input schema property named `confirmed_canonical_path` | `--confirmed-canonical-path` or equivalent command docs/help | relative, WSL/Windows, symlink, and default-root path canonicalization cases |
 
+## Phase 2 field surface
+
+Phase 2 covers `destructive`, `remote_write`, `local_write`, and `canvas_write` consent. Rows marked schema/reserved may land in MCP schema or CLI help before strict business enforcement; reviewers must not treat reserved fields as already enforcing safety.
+
+| Field | Risk area | Phase 2 tools | MCP schema/review target | CLI docs/review target | Regression check |
+| --- | --- | --- | --- | --- | --- |
+| `confirm_project_id` | destructive | `lovart_project_delete`, `lovart_project_rename` | tool input schema property named `confirm_project_id` | `--confirm-project-id` or equivalent command docs/help | exact target project id match; `confirm_policy` alone is insufficient |
+| `confirm_task_ids` | destructive | `lovart_task_cancel` | tool input schema property named `confirm_task_ids` | `--confirm-task-ids` or equivalent command docs/help | same task id set, including missing/extra/shuffled ids |
+| `confirm_new_name` | destructive-like remote_write | `lovart_project_rename` | tool input schema property named `confirm_new_name` | `--confirm-new-name` or equivalent command docs/help | normalized rename target mismatch blocks write |
+| `confirmed_project_name` | remote_write | `lovart_project_create`, `lovart_project_rename` | tool input schema property named `confirmed_project_name` | `--confirmed-project-name` or equivalent command docs/help | create/rename final name matches user-visible plan |
+| `confirmed_select_after_create` | remote_write/local context write | `lovart_project_create`, `lovart_project_select` context review | tool input schema property named `confirmed_select_after_create` | `--confirmed-select-after-create` or equivalent command docs/help | select-after-create acknowledgement matches actual context write |
+| `confirm_overwrite` | local_write | `lovart_task_download`, `lovart_canvas_download`, `lovart_jobs_finalize`, extension install | tool input schema property named `confirm_overwrite` | `--confirm-overwrite` or equivalent command docs/help | overwrite=true or existing target requires explicit overwrite consent |
+| `confirm_outside_default_root` | local_write | `lovart_task_download`, `lovart_canvas_download`, `lovart_jobs_run`, `lovart_jobs_status`, `lovart_jobs_finalize`, extension install | tool input schema property named `confirm_outside_default_root` | `--confirm-outside-default-root` or equivalent command docs/help | writes outside default Lovart root require explicit consent |
+| `confirmed_file_count` | local_write | `lovart_task_download`, `lovart_canvas_download`, `lovart_generate`, `lovart_jobs_finalize` downloads | tool input schema property named `confirmed_file_count` | `--confirmed-file-count` or equivalent command docs/help | batch artifact count or documented upper bound mismatch blocks write |
+| `confirmed_canvas_write` | canvas_write | `lovart_task_canvas`, `lovart_jobs_finalize`, `lovart_generate` with canvas | tool input schema property named `confirmed_canvas_write` | `--confirmed-canvas-write` or equivalent command docs/help | canvas=true requires explicit canvas write consent plus project acknowledgement |
+| `confirm_canvas_shape_ids` | canvas_write/destructive | future canvas mutation tools | schema/reserved field named `confirm_canvas_shape_ids` | reserved `--confirm-canvas-shape-ids` docs/help | exact canvas shape id set for future mutation/delete |
+
 ## Cross-layer regression checklist
 
 | Layer | Required checks |

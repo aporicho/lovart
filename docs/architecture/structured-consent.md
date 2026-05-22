@@ -161,6 +161,48 @@ structured consent 是业务确认：它回答“用户批准的是哪个对象�
 4. Strict business gate：高风险业务操作必须匹配结构化字段；`confirm_policy` 仍作为 MCP 外层 gate 存在。
 5. Deprecation：长期可保留 `confirm` alias，但文档和错误提示只推荐 `confirm_policy` + structured consent。
 
+## Phase 2 落地范围和 enforce 状态
+
+Phase 2 将 structured consent 从 Phase 1 的 paid submit 扩展到四类副作用：`destructive`、`remote_write`、`local_write`、`canvas_write`。其中 `canvas_write` 是 `remote_write` 的子类，但文档和 audit 中单独标记，是为了让“写远端项目画布”不同于普通项目 metadata 写入，也不同于本地 artifact download。
+
+### Phase 2 字段语义
+
+| 风险类别 | 字段 | 语义与匹配规则 |
+| --- | --- | --- |
+| `destructive` | `confirm_project_id` | 确认将被删除、重命名或作为 destructive 操作目标的 project id；必须等于规范化后的目标 `project_id`。 |
+| `destructive` | `confirm_task_ids` | 确认将被取消的 task id 集合；必须和规范化目标集合完全一致，允许实现排序后做集合比对。 |
+| `destructive` | `confirm_new_name` | 确认 rename 的最终项目名；必须等于 trim/normalize 后的 `new_name`。 |
+| `remote_write` | `confirmed_project_id` | 确认将写入的远端 project id；显式传 `project_id` 时优先使用，不接受只用 `confirm_current_project` 替代。 |
+| `remote_write` | `confirm_current_project` | 确认工具会使用当前 selected project；只能在未显式传 `project_id` 时使用，并必须和 resolved current project id 一起进入 audit。 |
+| `remote_write` | `confirmed_project_name` | 确认 project create/rename 的最终项目名；project create 尚无 id 时可用来绑定用户看到的创建对象。 |
+| `remote_write` | `confirmed_select_after_create` | 确认 project create 后是否写入本地 current-project context；`true`/`false` 必须等于实际 `select` 行为。 |
+| `local_write` | `confirmed_canonical_path` | 确认本次本地写入根路径的 canonical absolute path；不得用原始相对路径或未解析 `~` 的路径比对。 |
+| `local_write` | `confirm_overwrite` | 当 `overwrite=true` 或即将覆盖现有文件时必须为 `true`。 |
+| `local_write` | `confirm_outside_default_root` | 当写入目标不在 Lovart 默认 runtime/download root 下时必须为 `true`。 |
+| `local_write` | `confirmed_file_count` | 确认批量下载/生成将写入的文件数或上限；实现可在 artifact 数未知时先作为 reserved/schema 字段。 |
+| `canvas_write` | `confirmed_canvas_write` | 确认本次会把 artifact 或 canvas mutation 写回远端项目画布；必须和 `canvas=true` 或等价写画布动作匹配。 |
+| `canvas_write` / `destructive` | `confirm_canvas_shape_ids` | 未来 canvas mutation/delete 的对象确认；必须和目标 shape id 集合完全一致。 |
+
+### CLI / MCP enforce vs schema/reserved
+
+本文档不要求 docs/tests workstream 大范围实现业务 enforcement；Phase 2 的实现状态应在代码落地时保持下表同步。
+
+| 命令 / MCP tool | Phase 2 风险 | 字段 | 当前 enforce 期望 |
+| --- | --- | --- | --- |
+| `lovart_project_delete` / `lovart project delete` | `destructive` + `remote_write` | `confirm_project_id` | 已存在对象级确认字段；应作为 Phase 2 destructive enforce 基线，`confirm_policy` 不能替代。 |
+| `lovart_project_rename` / `lovart project rename` | `destructive`-like + `remote_write` | `confirm_project_id`, `confirm_new_name` | Phase 2 enforce：rename 前必须同时匹配 project id 和最终名称。 |
+| `lovart_task_cancel` / `lovart task cancel` | `destructive` + `remote_write` | `confirm_task_ids` | Phase 2 enforce：取消前必须匹配 task id 集合。 |
+| `lovart_project_create` / `lovart project create` | `remote_write`，可选本地 context 写 | `confirmed_project_name`, `confirmed_select_after_create` | Phase 2 schema/reserved；实施后确认创建名称和 select 行为。 |
+| `lovart_project_select` / `lovart project select` | `local_write`（current-project context） | `confirmed_project_id`, `confirmed_canonical_path` | Phase 2 schema/reserved；实施后确认 project id 和 context store 路径。 |
+| `lovart_generate` / `lovart generate` | `remote_write` submit；可选 `local_write` download；可选 `canvas_write` | `confirmed_project_id`/`confirm_current_project`, `confirmed_canonical_path`, `confirm_overwrite`, `confirm_outside_default_root`, `confirmed_file_count`, `confirmed_canvas_write` | Paid 字段已属 Phase 1 enforce；Phase 2 local/canvas/project fields 可先进入 schema/help/audit，随后由 generation workstream enforce。 |
+| `lovart_task_download`, `lovart_canvas_download`, `lovart download task|canvas` | `local_write` | `confirmed_canonical_path`, `confirm_overwrite`, `confirm_outside_default_root`, `confirmed_file_count` | Phase 2 schema/reserved；download 前不得真实远端写，实施后只 gate 本地文件写入。 |
+| `lovart_task_canvas` / `lovart task canvas` | `canvas_write` + `remote_write` | `confirmed_project_id`/`confirm_current_project`, `confirmed_canvas_write` | Phase 2 schema/reserved；实施后写 canvas 前必须确认 project 和 canvas write opt-in。 |
+| `lovart_jobs_run`, `lovart_jobs_resume` / `lovart jobs run|resume` | Phase 1 paid；`remote_write` submit；`local_write` run state/download | paid fields, `confirmed_project_id`/`confirm_current_project`, local_write fields | Paid batch fields已属 Phase 1 enforce；Phase 2 project/local fields 可先进入 schema/help/audit，由 jobs workstream enforce。 |
+| `lovart_jobs_finalize` / `lovart jobs finalize` | `local_write` download；`canvas_write` when `canvas=true` | local_write fields for `--download`; `confirmed_project_id`/`confirm_current_project` + `confirmed_canvas_write` for `--canvas` | Phase 2 schema/reserved；finalize 不需要 paid consent，除非未来加入 submit/retry。 |
+| `lovart_jobs_status` / `lovart jobs status --refresh` | remote read + local run state write | `confirmed_canonical_path` | 低优先级 schema/reserved；不得被误标为 paid submit。 |
+
+MCP schema 可以先暴露 reserved 字段以便 clients 预先适配；CLI help/docs 也可以先记录等价 flags。但 reserved 字段在未 enforce 前不得在安全文案中暗示“已经保护了执行”，只能说明“将用于 Phase 2 业务确认”。
+
 ## Audit 关联要求
 
 所有高风险操作应通过 `event_id` 和 `correlation_id` 串联。建议：
@@ -238,23 +280,26 @@ structured consent 是业务确认：它回答“用户批准的是哪个对象�
 - audit 写入 quote/gate/submit/finish 的 correlation chain。
 - 保持 `confirm_policy` 行为不变。
 
-### Phase 2：destructive / task / project
+### Phase 2：destructive / remote_write / local_write / canvas_write
 
-范围：`lovart_project_delete`、`lovart_project_rename`、`lovart_task_cancel`，以及项目 select/create 的基础 remote/local 确认。
+范围：`lovart_project_delete`、`lovart_project_rename`、`lovart_task_cancel`，项目 select/create 的基础 remote/local 确认，downloads、extension install、jobs finalize/status run dir、task canvas、canvas download、generate download/canvas 和 jobs run/resume/finalize 的 Phase 2 非 paid 字段。
 
 - 将 `confirm_project_id` 规范化为 destructive object confirmation。
 - 为 task cancel 增加 `confirm_task_ids`。
 - 为 rename 增加 `confirm_new_name`。
-- 对错误提示和 audit 增加对象级 mismatch 状态。
-
-### Phase 3：local_write / canvas
-
-范围：downloads、extension install、jobs finalize/status run dir、task canvas、canvas download 和未来 canvas mutation。
-
-- 引入 canonical path resolver 和 default root 判定。
-- 覆盖/默认 root 外写入必须额外确认。
-- canvas write 统一要求 project acknowledgment 和 `confirmed_canvas_write`。
+- 为 remote project writes 增加 `confirmed_project_id` / `confirm_current_project` / `confirmed_project_name` / `confirmed_select_after_create` 语义。
+- 为 local writes 增加 `confirmed_canonical_path` / `confirm_overwrite` / `confirm_outside_default_root` / `confirmed_file_count` 语义，引入 canonical path resolver 和 default root 判定。
+- canvas write 统一要求 project acknowledgment 和 `confirmed_canvas_write`；未来 destructive canvas mutation 使用 `confirm_canvas_shape_ids`。
+- 对错误提示和 audit 增加对象级、路径级、canvas-write mismatch 状态。
 - 对 WSL/Windows 路径转换、symlink、相对路径建立测试。
+
+### Phase 3：strict rollout / canvas mutation hardening
+
+范围：把 Phase 2 schema/reserved 字段逐步从 warning/schema 收紧到业务 enforce，并覆盖未来 canvas mutation。
+
+- 对仍处于 reserved 状态的 MCP schema/CLI flags 启用 strict business gate。
+- 统一 canvas mutation/delete 的 shape id 对象确认。
+- 完成 cross-layer audit redaction 和 error-code 稳定性测试。
 
 ### Phase 4：connector pairing（可选）
 

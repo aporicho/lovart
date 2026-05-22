@@ -24,6 +24,38 @@ var structuredConsentPhase1Tools = []string{
 	"lovart_jobs_resume",
 }
 
+var structuredConsentPhase2Fields = []string{
+	"confirm_project_id",
+	"confirm_task_ids",
+	"confirm_new_name",
+	"confirmed_project_name",
+	"confirmed_select_after_create",
+	"confirm_overwrite",
+	"confirm_outside_default_root",
+	"confirmed_file_count",
+	"confirmed_canvas_write",
+	"confirm_canvas_shape_ids",
+}
+
+var structuredConsentPhase2Risks = []string{
+	"destructive",
+	"remote_write",
+	"local_write",
+	"canvas_write",
+}
+
+var structuredConsentPhase2Tools = []string{
+	"lovart_project_delete",
+	"lovart_project_rename",
+	"lovart_task_cancel",
+	"lovart_project_create",
+	"lovart_project_select",
+	"lovart_task_download",
+	"lovart_canvas_download",
+	"lovart_task_canvas",
+	"lovart_jobs_finalize",
+}
+
 func TestStructuredConsentPhase1ReviewMatrix(t *testing.T) {
 	design := readStructuredConsentDoc(t, "../docs/architecture/structured-consent.md")
 	matrix := readStructuredConsentDoc(t, "../docs/architecture/structured-consent-test-matrix.md")
@@ -38,6 +70,28 @@ func TestStructuredConsentPhase1ReviewMatrix(t *testing.T) {
 		assertDocMentions(t, "structured consent design", design, "`"+tool+"`")
 		assertDocMentions(t, "structured consent test matrix", matrix, "`"+tool+"`")
 	}
+}
+
+func TestStructuredConsentPhase2ReviewMatrix(t *testing.T) {
+	design := readStructuredConsentDoc(t, "../docs/architecture/structured-consent.md")
+	matrix := readStructuredConsentDoc(t, "../docs/architecture/structured-consent-test-matrix.md")
+
+	for _, risk := range structuredConsentPhase2Risks {
+		assertDocMentions(t, "structured consent design", design, "`"+risk+"`")
+		assertDocMentions(t, "structured consent test matrix", matrix, "`"+risk+"`")
+	}
+	for _, field := range structuredConsentPhase2Fields {
+		assertDocMentions(t, "structured consent design", design, "`"+field+"`")
+		row := structuredConsentMatrixRow(t, matrix, field)
+		if !strings.Contains(row, "tool input schema property named `"+field+"`") && !strings.Contains(row, "schema/reserved field named `"+field+"`") {
+			t.Fatalf("structured consent matrix row for %s must name the MCP schema property or reserved schema field; row=%s", field, row)
+		}
+	}
+	for _, tool := range structuredConsentPhase2Tools {
+		assertDocMentions(t, "structured consent design", design, "`"+tool+"`")
+		assertDocMentions(t, "structured consent test matrix", matrix, "`"+tool+"`")
+	}
+	assertDocMentions(t, "structured consent design", design, "schema/reserved")
 }
 
 func TestStructuredConsentAuditReviewMatrix(t *testing.T) {
